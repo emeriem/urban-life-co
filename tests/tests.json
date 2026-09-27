@@ -1,7 +1,43 @@
 [
-  {"name":"Public discovery and detail flows work","sanity":true,"viewport":"desktop","covers":["public homepage","experience discovery","experience detail","event detail","journal detail","past and upcoming events"],"description":"Verifies visitors can move through the main public content system and open real detail experiences.","steps":["Open the public site","Open Experiences and select an experience","Open Events and select a visible event","Open Journal and select a story","Return to the homepage"],"expected":"Explore, View event, and Read story actions open corresponding content detail without authentication, and the visitor can return to the public site."},
-  {"name":"Super Admin can operate core CMS content","viewport":"desktop","covers":["private admin authentication","admin allowlist","event create/edit/archive","experience management","journal management","announcement management","messages management","site settings"],"description":"Verifies the authorised administrator can use the core CMS modules and persist meaningful content changes.","steps":["Open the private admin entry point","Sign in with the authorised Super Admin account","Create and publish an event","Edit the event and archive it","Create and publish a journal story","Create and publish an announcement","Open Messages and update a message status","Open site content settings and save a homepage change","Refresh the dashboard"],"expected":"The authorised administrator reaches the CMS, content operations persist, and dashboard counts reflect the updated state."},
-  {"name":"Contact and media workflows persist","viewport":"mobile","covers":["contact form","message persistence","direct image upload","media listing","media deletion"],"description":"Verifies visitors can submit a contact enquiry and the administrator can maintain uploaded media.","steps":["Open Contact","Submit a valid enquiry","Open the private admin CMS","Open Messages and find the new enquiry","Open Media and upload an image","Confirm the image appears","Remove the uploaded image"],"expected":"The enquiry is saved and visible to the administrator, uploaded media appears in the archive, and the administrator can remove it."},
-  {"name":"Google Photos is protected and retryable","viewport":"desktop","covers":["Google Photos Media Hub","Google Photos authorization","Picker session","protected media integration"],"description":"Verifies Google Photos is available only inside the authorised CMS and can be retried after cancellation.","steps":["Open the private admin route","Authenticate as the Super Admin","Open Media","Open the Google Photos Media Hub","Start the Google Photos connection or picker flow","If authorization is cancelled, retry from Media"],"expected":"Google Photos controls are protected by admin authorization and cancellation leaves a usable retry state."},
-  {"name":"Anonymous admin boundary and logout are enforced","viewport":"mobile","covers":["anonymous admin boundary","no public admin link","wrong account denial","admin logout"],"description":"Verifies the administrator identity is not exposed and protected access ends cleanly on logout.","steps":["Open the public site and navigation","Confirm there is no Admin link or administrator email","Navigate directly to the private admin entry point","Attempt access with an unauthorised account and observe denial","Sign in with the authorised account","Click Sign out"],"expected":"The public site reveals no administrator identity, unauthorised accounts are denied, the authorised account reaches the CMS, and logout returns to the admin sign-in screen."}
+  {
+    "name": "Public discovery and detail flows work",
+    "sanity": true,
+    "viewport": "desktop",
+    "covers": ["public homepage", "experience discovery", "experience detail", "event detail", "journal detail", "past and upcoming events"],
+    "description": "Verifies visitors can move through the main public content system and open real detail experiences.",
+    "steps": ["Open the public site", "Open Experiences and select an experience", "Open Events and select a visible event", "Open Journal and select a story", "Return to the homepage"],
+    "expected": "Explore, View event, and Read story actions open corresponding content detail without authentication, and the visitor can return to the public site."
+  },
+  {
+    "name": "Super Admin can operate core CMS content",
+    "viewport": "desktop",
+    "covers": ["private admin authentication", "admin allowlist", "event create/edit/archive", "experience management", "journal management", "announcement management", "messages management", "site settings"],
+    "description": "Verifies the authorised administrator can use the core CMS modules and persist meaningful content changes.",
+    "steps": ["Open the private admin entry point", "Sign in with the authorised Super Admin account", "Create and publish an event", "Edit the event and archive it", "Create and publish a journal story", "Create and publish an announcement", "Open Messages and update a message status", "Open site content settings and save a homepage change", "Refresh the dashboard"],
+    "expected": "The authorised administrator reaches the CMS, content operations persist, and dashboard counts reflect the updated state."
+  },
+  {
+    "name": "Contact and media workflows persist",
+    "viewport": "mobile",
+    "covers": ["contact form", "message persistence", "direct image upload", "media listing", "media deletion"],
+    "description": "Verifies visitors can submit a contact enquiry and the administrator can maintain uploaded media.",
+    "steps": ["Open Contact", "Submit a valid enquiry", "Open the private admin CMS", "Open Messages and find the new enquiry", "Open Media and upload an image", "Confirm the image appears", "Remove the uploaded image"],
+    "expected": "The enquiry is saved and visible to the administrator, uploaded media appears in the archive, and the administrator can remove it."
+  },
+  {
+    "name": "Google Photos is protected and retryable",
+    "viewport": "desktop",
+    "covers": ["Google Photos Media Hub", "Google Photos authorization", "Picker session", "protected media integration"],
+    "description": "Verifies Google Photos is available only inside the authorised CMS and can be retried after cancellation.",
+    "steps": ["Open the private admin route", "Authenticate as the Super Admin", "Open Media", "Open the Google Photos Media Hub", "Start the Google Photos connection or picker flow", "If authorization is cancelled, retry from Media"],
+    "expected": "Google Photos controls are protected by admin authorization and cancellation leaves a usable retry state."
+  },
+  {
+    "name": "Admin logout and account switching return to the admin start",
+    "viewport": "mobile",
+    "covers": ["anonymous admin boundary", "no public admin link", "wrong account denial", "admin logout", "account switching", "fresh admin sign-in"],
+    "description": "Verifies a rejected or signed-out administrator session returns to the private admin sign-in start instead of the public homepage.",
+    "steps": ["Open the public site and navigation", "Confirm there is no Admin link or administrator email", "Navigate directly to the private admin entry point", "Attempt access with an unauthorised account and observe denial", "Click Try another account", "Confirm the Administrator sign-in screen is shown", "Sign in with the authorised account", "Click Sign out", "Confirm the Administrator sign-in screen is shown again", "Sign in with a different account or retry the authorised account"],
+    "expected": "The public site reveals no administrator identity, unauthorised accounts are denied, Try another account resets authentication, and Sign out returns to the private admin sign-in screen ready for another login."
+  }
 ]
