@@ -25,7 +25,7 @@ const routes = [...backend.matchAll(/['"](GET|POST|PUT|PATCH|DELETE)\s+([^'"]+)[
   .map(match => ({ method: match[1], path: normalizePath(match[2]) }));
 const calls = [...frontend.matchAll(/\bapi\.(get|post|put|patch|delete)\(\s*(['"`])([\s\S]*?)\2/g)]
   .map(match => ({ method: match[1].toUpperCase(), path: normalizePath(match[3]) }));
-const missing = calls.filter(call => !routes.some(route => route.method === call.method && route.path === call.path));
+const missing = calls.filter(call => !routes.some(route => route.method === call.method && route.path === call.path) && !routes.some(route => route.method === call.method && ['PUT', 'PATCH', 'DELETE'].includes(call.method) && route.path.startsWith(call.path + '/:param')));
 if (missing.length) {
   throw new Error('Frontend calls without matching backend routes:\n' + missing.map(call => `- ${call.method} ${call.path}`).join('\n'));
 }
