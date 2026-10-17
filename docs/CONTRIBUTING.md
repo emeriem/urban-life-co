@@ -45,3 +45,10 @@ A PR should state:
 ## Production rule
 
 No change is considered complete merely because it compiles. A change is complete when its intended behaviour works, relevant regression paths have been checked, and the correct branch has been merged.
+
+## Automated CI gate
+
+Every pull request targeting `develop` or `main` runs the GitHub Actions CI workflow. A change must pass the frontend TypeScript check, production build, regression-test schema checks, and frontend/backend API route contract checks before it is considered ready to merge.
+
+If a workflow fails, fix the cause on the feature branch and push the correction. Do not bypass the checks to promote a change to production.
+
