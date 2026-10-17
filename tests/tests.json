@@ -1,7 +1,6 @@
 [
   {
     "name": "Public discovery and detail flows work",
-    "sanity": true,
     "viewport": "desktop",
     "covers": [
       "public homepage",
@@ -19,7 +18,8 @@
       "Open Journal and select a story",
       "Return to the homepage"
     ],
-    "expected": "Explore, View event, and Read story actions open corresponding content detail without authentication, and the visitor can return to the public site."
+    "expected": "Explore, View event, and Read story actions open corresponding content detail without authentication, and the visitor can return to the public site.",
+    "sanity": true
   },
   {
     "name": "Super Admin can operate core CMS content",
@@ -118,7 +118,6 @@
   },
   {
     "name": "Open the private CMS and navigate the editorial workspace",
-    "sanity": true,
     "viewport": "desktop",
     "covers": [
       "private CMS authentication",
