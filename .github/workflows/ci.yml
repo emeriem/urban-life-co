@@ -1,0 +1,30 @@
+name: Urban Life Co. CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Build and contract checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Type-check frontend
+        run: npm run check:types
+      - name: Build production bundle
+        run: npm run build
+      - name: Verify backend/API and regression-test contracts
+        run: node scripts/verify-contracts.mjs
