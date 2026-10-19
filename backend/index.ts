@@ -1,6 +1,26 @@
 import { router, json, error, requireAuth, requireAdminEmailAllowlist } from '@appdeploy/sdk';
+import type { RouterMiddleware } from '@appdeploy/sdk';
 import { db, secrets, storage } from '@appdeploy/sdk';
-const ADMIN_EMAILS = ['njemtrybe@gmail.com'];
+let adminCache: { emails: string[]; at: number } | null = null;
+async function adminEmails(): Promise<string[]> {
+  if (adminCache && Date.now() - adminCache.at < 5 * 60 * 1000) return adminCache.emails;
+  const names = await secrets.listSecretNames();
+  const raw = names.includes('ADMIN_EMAILS') ? await secrets.readSecret('ADMIN_EMAILS') : '';
+  const emails = String(raw ?? '').split(',').map(email => email.trim().toLowerCase()).filter(Boolean);
+  adminCache = { emails, at: Date.now() };
+  return emails;
+}
+const requireAdminFromSecret: RouterMiddleware = async (ctx) => {
+  const emails = await adminEmails();
+  if (!emails.length) return error('Admin access is not configured.', 403);
+  return requireAdminEmailAllowlist(emails)(ctx);
+};
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const CONTACT_TYPES = ['General enquiry', 'Partnership', 'Event', 'Community'];
+const safe = (body: unknown) => {
+  const { id, createdAt, ...rest } = (body ?? {}) as Record<string, unknown>;
+  return rest;
+};
 const GOOGLE_PHOTOS_SCOPE = 'https://www.googleapis.com/auth/photospicker.mediaitems.readonly';
 const seedEvents = [
   { title: 'Urban Hikers — Reactivation Hike', date: '2026-08-22', time: '7:00 AM', location: 'Coal Camp, Enugu', category: 'Urban Hikers', experience: 'Urban Hikers', status: 'completed', price: '₦2,500', description: 'A return to the trail: movement, exploration and community.', image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=1400&q=80', registrationLink: '', capacity: 50 },
@@ -17,14 +37,15 @@ const seedStories = [
   { title: 'Why We Live. Connect. Explore.', category: 'Urban Life Co.', date: '2026-08-20', excerpt: 'The three ideas at the centre of every experience we create.', status: 'published', featured: false },
   { title: 'The Urban Life Field Notes', category: 'Journal', date: '2026-08-10', excerpt: 'A growing archive of places, people and experiences.', status: 'published', featured: false },
 ];
-async function ensureSeeds() { const events = await db.list('events', { limit: 20 }); if (!events.items.length) await db.add('events', seedEvents); const experiences = await db.list('experiences', { limit: 20 }); if (!experiences.items.length) await db.add('experiences', seedExperiences); const stories = await db.list('stories', { limit: 20 }); if (!stories.items.length) await db.add('stories', seedStories); const settings = await db.list('site_settings', { limit: 5 }); if (!settings.items.length) await db.add('site_settings', [{ key: 'global', heroEyebrow: 'URBAN LIFE CO. · ENUGU · NIGERIA', heroTitle: 'Live. Connect. Explore.', heroCopy: 'We create experiences that bring people together, encourage exploration and make everyday life more meaningful.', communityHeadline: 'Come for the experience. Stay for the people.', communityCopy: 'Urban Life Co. is being built around the belief that life gets better when people have places to meet, move, explore and build something together.', updatedAt: new Date().toISOString() }]); }
+let seeded = false;
+async function ensureSeeds() { if (seeded) return; const events = await db.list('events', { limit: 20 }); if (!events.items.length) await db.add('events', seedEvents); const experiences = await db.list('experiences', { limit: 20 }); if (!experiences.items.length) await db.add('experiences', seedExperiences); const stories = await db.list('stories', { limit: 20 }); if (!stories.items.length) await db.add('stories', seedStories); const settings = await db.list('site_settings', { limit: 5 }); if (!settings.items.length) await db.add('site_settings', [{ key: 'global', heroEyebrow: 'URBAN LIFE CO. · ENUGU · NIGERIA', heroTitle: 'Live. Connect. Explore.', heroCopy: 'We create experiences that bring people together, encourage exploration and make everyday life more meaningful.', communityHeadline: 'Come for the experience. Stay for the people.', communityCopy: 'Urban Life Co. is being built around the belief that life gets better when people have places to meet, move, explore and build something together.', updatedAt: new Date().toISOString() }]); seeded = true; }
 
 async function withMediaUrls(items: any[]) { const paths = items.map(item => item.imagePath || item.coverImagePath || item.path).filter(Boolean) as string[]; if (!paths.length) return items; const urls = await storage.url(paths); const urlMap = new Map(urls.map(item => [item.path, item.url])); return items.map(item => ({ ...item, image: item.imagePath ? (urlMap.get(item.imagePath) ?? item.image) : item.image, coverImage: item.coverImagePath ? (urlMap.get(item.coverImagePath) ?? item.coverImage) : item.coverImage, url: item.path ? (urlMap.get(item.path) ?? item.url) : item.url })); }
 function publicEventStatus(item: any, now = new Date()) { if (item.status === 'cancelled' || item.status === 'postponed' || item.status === 'archived' || item.status === 'draft') return item.status; if (item.manualStatus) return item.manualStatus; const date = new Date(`${item.date}T${item.time ?? '23:59:59'}`); return date < now ? 'completed' : 'upcoming'; }
 async function content() { await ensureSeeds(); const [events, announcements, stories, experiences, settings] = await Promise.all([db.list('events', { limit: 100 }), db.list('announcements', { limit: 50 }), db.list('stories', { limit: 100 }), db.list('experiences', { limit: 50 }), db.list('site_settings', { limit: 5 })]); const now = new Date(); const activeAnnouncement = announcements.items.find(item => item.status === 'published' && (!item.startAt || new Date(item.startAt) <= now) && (!item.expiresAt || new Date(item.expiresAt) >= now)); const publicEvents = events.items.filter(item => item.status !== 'draft' && item.status !== 'archived').map(item => ({ ...item, status: publicEventStatus(item, now) })); return { events: await withMediaUrls(publicEvents), stories: await withMediaUrls(stories.items.filter(item => item.status === 'published')), experiences: await withMediaUrls(experiences.items.filter(item => item.status === 'published')), announcement: activeAnnouncement ?? null, settings: settings.items[0] ?? null }; }
 async function googleClientId() { const names = await secrets.listSecretNames(); if (!names.includes('GOOGLE_PHOTOS_CLIENT_ID')) return null; const raw = await secrets.readSecret('GOOGLE_PHOTOS_CLIENT_ID'); const value = String(raw ?? '').trim().replace(/^["']|["']$/g, ''); return value || null; }
 async function googleJson(url: string, accessToken: string, init: RequestInit = {}) { const response = await fetch(url, { ...init, headers: { ...(init.headers ?? {}), Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' } }); const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data?.error?.message ?? 'Google Photos request failed.'); return data; }
-const admin = [requireAuth(), requireAdminEmailAllowlist(ADMIN_EMAILS)];
+const admin = [requireAuth(), requireAdminFromSecret];
 export const handler = router({
   'GET /api/_healthcheck': [async () => json({ message: 'Success' })],
   'GET /api/content': [async () => json(await content())],
