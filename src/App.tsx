@@ -870,3 +870,5 @@ function GooglePhotosPanel({events}:{events:any[]}) {
     </article>
   );
 }
+
+export default App;
