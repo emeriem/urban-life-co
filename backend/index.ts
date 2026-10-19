@@ -1,4 +1,4 @@
-import { router, json, error, requireAuth, requireAdminEmailAllowlist } from '@appdeploy/sdk';
+import { router, json, error, requireAuth } from '@appdeploy/sdk';
 import type { RouterMiddleware } from '@appdeploy/sdk';
 import { db, secrets, storage } from '@appdeploy/sdk';
 let adminCache: { emails: string[]; at: number } | null = null;
@@ -13,7 +13,8 @@ async function adminEmails(): Promise<string[]> {
 const requireAdminFromSecret: RouterMiddleware = async (ctx) => {
   const emails = await adminEmails();
   if (!emails.length) return error('Admin access is not configured.', 403);
-  return requireAdminEmailAllowlist(emails)(ctx);
+  const email = ctx.user?.email?.trim().toLowerCase();
+  if (!email || !emails.includes(email)) return error('This account does not have administrator access.', 403);
 };
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const CONTACT_TYPES = ['General enquiry', 'Partnership', 'Event', 'Community'];
