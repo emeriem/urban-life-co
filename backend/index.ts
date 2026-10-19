@@ -1,6 +1,21 @@
-import { router, json, error, requireAuth, requireAdminEmailAllowlist } from '@appdeploy/sdk';
+import { router, json, error, requireAuth } from '@appdeploy/sdk';
+import type { RouterMiddleware } from '@appdeploy/sdk';
 import { db, secrets, storage } from '@appdeploy/sdk';
-const ADMIN_EMAILS = ['njemtrybe@gmail.com'];
+// Administrator identities are configured in AppDeploy's encrypted ADMIN_EMAILS secret.
+let adminEmailCache: { emails: string[]; expiresAt: number } | null = null;
+async function configuredAdminEmails(): Promise<string[]> {
+  if (adminEmailCache && adminEmailCache.expiresAt > Date.now()) return adminEmailCache.emails;
+  const names = await secrets.listSecretNames();
+  const value = names.includes('ADMIN_EMAILS') ? await secrets.readSecret('ADMIN_EMAILS') : '';
+  const emails = String(value ?? '').split(',').map(email => email.trim().toLowerCase()).filter(Boolean);
+  adminEmailCache = { emails, expiresAt: Date.now() + 5 * 60 * 1000 };
+  return emails;
+}
+const requireConfiguredAdmin: RouterMiddleware = async (ctx) => {
+  const emails = await configuredAdminEmails();
+  const email = ctx.user?.email?.trim().toLowerCase();
+  if (!emails.length || !email || !emails.includes(email)) return error('This account does not have administrator access.', 403);
+};
 const GOOGLE_PHOTOS_SCOPE = 'https://www.googleapis.com/auth/photospicker.mediaitems.readonly';
 const seedEvents = [
   { title: 'Urban Hikers — Reactivation Hike', date: '2026-08-22', time: '7:00 AM', location: 'Coal Camp, Enugu', category: 'Urban Hikers', experience: 'Urban Hikers', status: 'completed', price: '₦2,500', description: 'A return to the trail: movement, exploration and community.', image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=1400&q=80', registrationLink: '', capacity: 50 },
@@ -24,7 +39,7 @@ function publicEventStatus(item: any, now = new Date()) { if (item.status === 'c
 async function content() { await ensureSeeds(); const [events, announcements, stories, experiences, settings] = await Promise.all([db.list('events', { limit: 100 }), db.list('announcements', { limit: 50 }), db.list('stories', { limit: 100 }), db.list('experiences', { limit: 50 }), db.list('site_settings', { limit: 5 })]); const now = new Date(); const activeAnnouncement = announcements.items.find(item => item.status === 'published' && (!item.startAt || new Date(item.startAt) <= now) && (!item.expiresAt || new Date(item.expiresAt) >= now)); const publicEvents = events.items.filter(item => item.status !== 'draft' && item.status !== 'archived').map(item => ({ ...item, status: publicEventStatus(item, now) })); return { events: await withMediaUrls(publicEvents), stories: await withMediaUrls(stories.items.filter(item => item.status === 'published')), experiences: await withMediaUrls(experiences.items.filter(item => item.status === 'published')), announcement: activeAnnouncement ?? null, settings: settings.items[0] ?? null }; }
 async function googleClientId() { const names = await secrets.listSecretNames(); if (!names.includes('GOOGLE_PHOTOS_CLIENT_ID')) return null; const raw = await secrets.readSecret('GOOGLE_PHOTOS_CLIENT_ID'); const value = String(raw ?? '').trim().replace(/^["']|["']$/g, ''); return value || null; }
 async function googleJson(url: string, accessToken: string, init: RequestInit = {}) { const response = await fetch(url, { ...init, headers: { ...(init.headers ?? {}), Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' } }); const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data?.error?.message ?? 'Google Photos request failed.'); return data; }
-const admin = [requireAuth(), requireAdminEmailAllowlist(ADMIN_EMAILS)];
+const admin = [requireAuth(), requireConfiguredAdmin];
 export const handler = router({
   'GET /api/_healthcheck': [async () => json({ message: 'Success' })],
   'GET /api/content': [async () => json(await content())],
