@@ -52,7 +52,23 @@ export const handler = router({
   'GET /api/events/:id': [async (ctx) => { await ensureSeeds(); const [item] = await db.get('events', [ctx.params.id]); if (!item || item.status === 'draft' || item.status === 'archived') return error('Event not found.', 404); const [resolved] = await withMediaUrls([item]); return json(resolved); }],
   'GET /api/stories/:id': [async (ctx) => { await ensureSeeds(); const [item] = await db.get('stories', [ctx.params.id]); if (!item || item.status !== 'published') return error('Story not found.', 404); const [resolved] = await withMediaUrls([item]); return json(resolved); }],
   'GET /api/experiences/:id': [async (ctx) => { await ensureSeeds(); const [item] = await db.get('experiences', [ctx.params.id]); if (!item || item.status !== 'published') return error('Experience not found.', 404); const [resolved] = await withMediaUrls([item]); return json(resolved); }],
-  'POST /api/messages': [async (ctx) => { const body = (ctx.body ?? {}) as Record<string, unknown>; if (!body.name || !body.email || !body.message) return error('Name, email and message are required.', 400); const [id] = await db.add('messages', [{ ...body, status: 'new', createdAt: new Date().toISOString() }]); return json({ id, ok: Boolean(id) }); }],
+  'POST /api/messages': [async (ctx) => {
+    const body = (ctx.body ?? {}) as Record<string, unknown>;
+    if (body.website) return json({ ok: true });
+    const clean = (value: unknown, max: number) => String(value ?? '').trim().slice(0, max);
+    const name = clean(body.name, 120);
+    const email = clean(body.email, 200).toLowerCase();
+    const phone = clean(body.phone, 40);
+    const message = clean(body.message, 4000);
+    const type = CONTACT_TYPES.includes(String(body.type)) ? String(body.type) : 'General enquiry';
+    if (!name || !email || !message) return error('Name, email and message are required.', 400);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return error('Please enter a valid email address.', 400);
+    const recent = await db.list('messages', { limit: 100 });
+    const cutoff = Date.now() - 10 * 60 * 1000;
+    if (recent.items.filter(item => String(item.email ?? '').toLowerCase() === email && Date.parse(String(item.createdAt)) > cutoff).length >= 3) return error('Too many messages. Please try again later.', 429);
+    const [id] = await db.add('messages', [{ name, email, phone, type, message, status: 'new', createdAt: new Date().toISOString() }]);
+    return json({ id, ok: Boolean(id) });
+  }],
   'GET /api/media': [...admin, async () => { const { items } = await db.list('media', { limit: 80 }); const paths = items.map(item => item.path as string); const urls = paths.length ? await storage.url(paths) : []; const urlMap = new Map(urls.map(item => [item.path, item.url])); return json({ media: items.map(item => ({ ...item, url: urlMap.get(item.path as string) ?? null })) }); }],
   'GET /api/admin/status': [...admin, async () => json({ ok: true, role: 'super_admin' })],
   'GET /api/admin/dashboard': [...admin, async () => { const [events, stories, announcements, media, messages] = await Promise.all([db.list('events', { limit: 100 }), db.list('stories', { limit: 100 }), db.list('announcements', { limit: 100 }), db.list('media', { limit: 100 }), db.list('messages', { limit: 100 })]); return json({ metrics: { events: events.items.length, publishedEvents: events.items.filter(x => x.status === 'published').length, stories: stories.items.length, drafts: [...events.items, ...stories.items, ...announcements.items].filter(x => x.status === 'draft').length, media: media.items.length, newMessages: messages.items.filter(x => x.status === 'new').length, announcements: announcements.items.filter(x => x.status === 'published').length }, recentMessages: messages.items.slice(0, 8), recentEvents: events.items.slice(0, 8) }); }],
