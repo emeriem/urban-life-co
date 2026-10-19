@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   verify:
-    name: Build and contract checks
+    name: Frontend build and API contract checks
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
@@ -20,11 +20,41 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install dependencies
-        run: npm install --no-audit --no-fund
+          cache: npm
+      - name: Install public dependencies and provide CI-only AppDeploy client shim
+        shell: bash
+        run: |
+          # @appdeploy/client is supplied by the AppDeploy runtime and is not published
+          # to the public npm registry. Remove it only in this disposable CI workspace.
+          npm pkg delete 'dependencies.@appdeploy/client'
+          npm install --no-audit --no-fund
+          mkdir -p node_modules/@appdeploy/client
+          cat > node_modules/@appdeploy/client/package.json <<'PKG'
+          {"name":"@appdeploy/client","version":"0.0.0-ci-shim","type":"module","types":"index.d.ts","exports":{".":{"types":"./index.d.ts","import":"./index.js"}}}
+          PKG
+          cat > node_modules/@appdeploy/client/index.js <<'JS'
+          const unavailable = async () => { throw new Error("AppDeploy client is only available in the AppDeploy runtime."); };
+          export const api = { get: unavailable, post: unavailable, put: unavailable, patch: unavailable, delete: unavailable };
+          export const auth = { getUser: unavailable, signIn: unavailable, signOut: unavailable };
+          JS
+          cat > node_modules/@appdeploy/client/index.d.ts <<'TYPES'
+          type ApiResponse<T = any> = Promise<{ data: T }>;
+          export const api: {
+            get: (path: string, options?: any) => ApiResponse;
+            post: (path: string, body?: any, options?: any) => ApiResponse;
+            put: (path: string, body?: any, options?: any) => ApiResponse;
+            patch: (path: string, body?: any, options?: any) => ApiResponse;
+            delete: (path: string, options?: any) => ApiResponse;
+          };
+          export const auth: {
+            getUser: () => Promise<any>;
+            signIn: (options?: any) => Promise<any>;
+            signOut: () => Promise<any>;
+          };
+          TYPES
       - name: Type-check frontend
         run: npm run check:types
-      - name: Build production bundle
+      - name: Build production frontend bundle
         run: npm run build
       - name: Verify backend/API and regression-test contracts
         run: node scripts/verify-contracts.mjs
