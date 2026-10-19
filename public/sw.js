@@ -1,4 +1,4 @@
-const CACHE = 'urban-life-v3';
+const CACHE = 'urban-life-v4';
 self.addEventListener('install', event => {
   event.waitUntil(self.skipWaiting());
 });
@@ -10,6 +10,8 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.origin !== self.location.origin || requestUrl.pathname.startsWith('/api/')) return;
   event.respondWith(
     fetch(event.request)
       .then(response => {
