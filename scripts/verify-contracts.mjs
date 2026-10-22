@@ -21,6 +21,24 @@ for (const [index, test] of tests.entries()) {
 if (tests.length < 5) throw new Error(`Expected at least five regression tests; found ${tests.length}`);
 if (tests.filter(test => test.sanity === true).length !== 1) throw new Error('Exactly one regression test must be marked sanity: true');
 
+
+const forbiddenRuntimePatterns = [
+  [/requireAdminEmailAllowlist\s*\(/, 'unsupported requireAdminEmailAllowlist SDK helper'],
+  [/\bBuffer\s*\./, 'Node Buffer usage in the AppDeploy backend runtime'],
+];
+for (const [pattern, label] of forbiddenRuntimePatterns) {
+  if (pattern.test(backend)) throw new Error(\`Deployment compatibility regression: \${label} detected.\`);
+}
+if (!/const ADMIN_EMAILS = \[\s*['"][^'"]+@[^'"]+['"]\s*\]/.test(backend)) {
+  throw new Error('Deployment compatibility regression: AppDeploy requires a literal fallback admin allowlist.');
+}
+if (!/configured\.length\s*\?\s*configured\s*:\s*ADMIN_EMAILS/.test(backend)) {
+  throw new Error('Admin allowlist regression: configured ADMIN_EMAILS secret must take precedence over the source fallback.');
+}
+if (!/new Uint8Array\(await response\.arrayBuffer\(\)\)/.test(backend) || !/btoa\(/.test(backend)) {
+  throw new Error('Google Photos import must use runtime-compatible Uint8Array/base64 conversion.');
+}
+
 const routes = [...backend.matchAll(/['"](GET|POST|PUT|PATCH|DELETE)\s+([^'"]+)['"]\s*:/g)]
   .map(match => ({ method: match[1], path: normalizePath(match[2]) }));
 const calls = [...frontend.matchAll(/\bapi\.(get|post|put|patch|delete)\(\s*(['"`])([\s\S]*?)\2/g)]
