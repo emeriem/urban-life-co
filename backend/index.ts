@@ -1,20 +1,32 @@
 import { router, json, error, requireAuth } from '@appdeploy/sdk';
 import type { RouterMiddleware } from '@appdeploy/sdk';
 import { db, secrets, storage } from '@appdeploy/sdk';
+// AppDeploy's deployment validator requires a literal admin allowlist.
+// Keep this as a fallback only: the ADMIN_EMAILS app secret takes precedence.
+const ADMIN_EMAILS = ['njemtrybe@gmail.com'];
 let adminCache: { emails: string[]; at: number } | null = null;
 async function adminEmails(): Promise<string[]> {
-  if (adminCache && Date.now() - adminCache.at < 5 * 60 * 1000) return adminCache.emails;
+  if (adminCache && Date.now() - adminCache.at < 5 * 60 * 1000)
+    return adminCache.emails;
   const names = await secrets.listSecretNames();
-  const raw = names.includes('ADMIN_EMAILS') ? await secrets.readSecret('ADMIN_EMAILS') : '';
-  const emails = String(raw ?? '').split(',').map(email => email.trim().toLowerCase()).filter(Boolean);
+  const raw = names.includes('ADMIN_EMAILS')
+    ? await secrets.readSecret('ADMIN_EMAILS')
+    : '';
+  const configured = String(raw ?? '')
+    .split(',')
+    .map(email => email.trim().toLowerCase())
+    .filter(Boolean);
+  const emails = configured.length
+    ? configured
+    : ADMIN_EMAILS.map(email => email.toLowerCase());
   adminCache = { emails, at: Date.now() };
   return emails;
 }
-const requireAdminFromSecret: RouterMiddleware = async (ctx) => {
+const requireAdminFromSecret: RouterMiddleware = async ctx => {
   const emails = await adminEmails();
-  if (!emails.length) return error('Admin access is not configured.', 403);
   const email = ctx.user?.email?.trim().toLowerCase();
-  if (!email || !emails.includes(email)) return error('This account does not have administrator access.', 403);
+  if (!email || !emails.includes(email))
+    return error('This account does not have administrator access.', 403);
 };
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const CONTACT_TYPES = ['General enquiry', 'Partnership', 'Event', 'Community'];
@@ -98,5 +110,5 @@ export const handler = router({
   'GET /api/admin/google-photos/config': [...admin, async () => { const clientId = await googleClientId(); return json({ configured: Boolean(clientId), clientId: clientId ?? null, scope: GOOGLE_PHOTOS_SCOPE }); }],
   'POST /api/admin/google-photos/session': [...admin, async (ctx) => { const body = (ctx.body ?? {}) as { accessToken?: string; eventId?: string; experience?: string; maxItemCount?: number }; if (!body.accessToken) return error('Google Photos authorization is required.', 401); const data = await googleJson('https://photospicker.googleapis.com/v1/sessions', body.accessToken, { method: 'POST', body: JSON.stringify({ pickingConfig: { maxItemCount: String(Math.min(Math.max(body.maxItemCount ?? 30, 1), 100)) } }) }); await db.add('google_photos_picker_sessions', [{ sessionId: data.id, userId: ctx.user!.userId, eventId: body.eventId ?? null, experience: body.experience ?? null, createdAt: new Date().toISOString(), expireTime: data.expireTime ?? null }]); return json({ sessionId: data.id, pickerUri: `${data.pickerUri}/autoclose` }); }],
   'POST /api/admin/google-photos/session/:sessionId/status': [...admin, async (ctx) => { const body = (ctx.body ?? {}) as { accessToken?: string }; if (!body.accessToken) return error('Google Photos authorization is required.', 401); const data = await googleJson(`https://photospicker.googleapis.com/v1/sessions/${encodeURIComponent(ctx.params.sessionId)}`, body.accessToken); return json({ mediaItemsSet: Boolean(data.mediaItemsSet), expireTime: data.expireTime ?? null }); }],
-  'POST /api/admin/google-photos/import/:sessionId': [...admin, async (ctx) => { const body = (ctx.body ?? {}) as { accessToken?: string }; if (!body.accessToken) return error('Google Photos authorization is required.', 401); const rows = await db.list('google_photos_picker_sessions', { limit: 50 }); const picker = rows.items.find(item => item.sessionId === ctx.params.sessionId && item.userId === ctx.user!.userId); if (!picker) return error('Picker session not found.', 404); const selected = await googleJson(`https://photospicker.googleapis.com/v1/mediaItems?sessionId=${encodeURIComponent(ctx.params.sessionId)}&pageSize=100`, body.accessToken); const photos = (selected.mediaItems ?? []).filter((item: any) => String(item.mediaFile?.mimeType ?? '').startsWith('image/')).slice(0, 100); let imported = 0; for (const item of photos) { if (!item.mediaFile?.baseUrl) continue; const response = await fetch(`${item.mediaFile.baseUrl}=w1000-h1000`, { headers: { Authorization: `Bearer ${body.accessToken}` } }); if (!response.ok) continue; const buffer = Buffer.from(await response.arrayBuffer()); if (buffer.byteLength > 750000) continue; const mimeType = String(item.mediaFile.mimeType ?? 'image/jpeg'); const extension = mimeType.split('/')[1]?.replace('jpeg', 'jpg') ?? 'jpg'; const path = `media/google-photos/${ctx.params.sessionId}/${item.id}.${extension}`; const [written] = await storage.write([{ path, content: buffer.toString('base64'), contentType: mimeType }]); if (written) { await db.add('media', [{ path, googleMediaId: item.id, eventId: picker.eventId ?? null, experience: picker.experience ?? null, caption: item.mediaFile.filename ?? '', createdAt: new Date().toISOString() }]); imported += 1; } } await db.delete('google_photos_picker_sessions', [picker.id]); await googleJson(`https://photospicker.googleapis.com/v1/sessions/${encodeURIComponent(ctx.params.sessionId)}`, body.accessToken, { method: 'DELETE', body: '' }).catch(() => undefined); return json({ imported }); }],
+  'POST /api/admin/google-photos/import/:sessionId': [...admin, async (ctx) => { const body = (ctx.body ?? {}) as { accessToken?: string }; if (!body.accessToken) return error('Google Photos authorization is required.', 401); const rows = await db.list('google_photos_picker_sessions', { limit: 50 }); const picker = rows.items.find(item => item.sessionId === ctx.params.sessionId && item.userId === ctx.user!.userId); if (!picker) return error('Picker session not found.', 404); const selected = await googleJson(`https://photospicker.googleapis.com/v1/mediaItems?sessionId=${encodeURIComponent(ctx.params.sessionId)}&pageSize=100`, body.accessToken); const photos = (selected.mediaItems ?? []).filter((item: any) => String(item.mediaFile?.mimeType ?? '').startsWith('image/')).slice(0, 100); let imported = 0; for (const item of photos) { if (!item.mediaFile?.baseUrl) continue; const response = await fetch(`${item.mediaFile.baseUrl}=w1000-h1000`, { headers: { Authorization: `Bearer ${body.accessToken}` } }); if (!response.ok) continue; const buffer = new Uint8Array(await response.arrayBuffer()); if (buffer.byteLength > 750000) continue; const mimeType = String(item.mediaFile.mimeType ?? 'image/jpeg'); const extension = mimeType.split('/')[1]?.replace('jpeg', 'jpg') ?? 'jpg'; const path = `media/google-photos/${ctx.params.sessionId}/${item.id}.${extension}`; const [written] = await storage.write([{ path, content: btoa(Array.from(buffer, byte => String.fromCharCode(byte)).join('')), contentType: mimeType }]); if (written) { await db.add('media', [{ path, googleMediaId: item.id, eventId: picker.eventId ?? null, experience: picker.experience ?? null, caption: item.mediaFile.filename ?? '', createdAt: new Date().toISOString() }]); imported += 1; } } await db.delete('google_photos_picker_sessions', [picker.id]); await googleJson(`https://photospicker.googleapis.com/v1/sessions/${encodeURIComponent(ctx.params.sessionId)}`, body.accessToken, { method: 'DELETE', body: '' }).catch(() => undefined); return json({ imported }); }],
 });
