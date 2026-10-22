@@ -41,4 +41,4 @@ The production deployment is managed through AppDeploy. Keep secrets and credent
 
 ## Security
 
-The Super Admin allowlist is enforced server-side and loaded from the `ADMIN_EMAILS` AppDeploy secret (comma-separated); it is never stored in source control. See `docs/security/review-2026-10.md`. Google Photos access tokens are intended to remain session-scoped and must never be committed to this repository.
+The Super Admin allowlist is enforced server-side. The encrypted `ADMIN_EMAILS` AppDeploy secret (comma-separated) takes precedence; the current AppDeploy deployment validator also requires a literal fallback in backend source, which is a temporary security trade-off documented in `docs/security/review-2026-10.md`. Google Photos access tokens must never be committed to this repository.
