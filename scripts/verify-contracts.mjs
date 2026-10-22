@@ -27,7 +27,7 @@ const forbiddenRuntimePatterns = [
   [/\bBuffer\s*\./, 'Node Buffer usage in the AppDeploy backend runtime'],
 ];
 for (const [pattern, label] of forbiddenRuntimePatterns) {
-  if (pattern.test(backend)) throw new Error(\`Deployment compatibility regression: \${label} detected.\`);
+  if (pattern.test(backend)) throw new Error(`Deployment compatibility regression: ${label} detected.`);
 }
 if (!/const ADMIN_EMAILS = \[\s*['"][^'"]+@[^'"]+['"]\s*\]/.test(backend)) {
   throw new Error('Deployment compatibility regression: AppDeploy requires a literal fallback admin allowlist.');
