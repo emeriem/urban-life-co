@@ -2939,3 +2939,149 @@ footer::before {
   .ecosystem-tile.fitness,
   .ecosystem-tile.connect { border-width: 1px; }
 }
+
+
+/* ITERATION 02 — cinematic product-storytelling adapted to Urban Life Co.
+   Parent palette stays monochrome; orange remains exclusive to Urban Hikers. */
+.nav-wrap {
+  width: calc(100% - 64px);
+  margin: 18px 32px 0;
+  height: 66px;
+  padding: 0 28px;
+  border: 1px solid rgba(245,243,239,.12);
+  border-radius: 999px;
+  background: rgba(15,15,14,.84);
+  box-shadow: 0 8px 30px rgba(0,0,0,.12);
+  backdrop-filter: blur(18px);
+}
+.nav .nav-cta { border-radius: 999px; }
+.hero {
+  min-height: min(760px, 76vw);
+  margin: 14px 16px 0;
+  border-radius: 5px;
+  align-items: center;
+}
+.hero-image {
+  background:
+    linear-gradient(90deg, rgba(8,8,7,.72) 0%, rgba(8,8,7,.32) 48%, rgba(8,8,7,.05) 100%),
+    linear-gradient(0deg, rgba(8,8,7,.38), transparent 44%),
+    url('https://images.unsplash.com/photo-1518005020951-eccf4ba8ba44?auto=format&fit=crop&w=2200&q=90') center 48%/cover;
+}
+.hero h1 { max-width: 760px; font-size: clamp(62px, 9vw, 124px); line-height: .9; }
+.hero-copy { max-width: 420px; }
+.statement { padding: clamp(80px, 9vw, 130px) 8vw clamp(70px, 8vw, 110px); }
+.statement h2 { max-width: 980px; }
+.ecosystem-section {
+  background: #f5f3ef;
+  color: #111;
+  padding: clamp(70px, 8vw, 112px) 5vw;
+}
+.ecosystem-head { align-items: flex-end; gap: 28px; }
+.ecosystem-head h2 { max-width: 700px; }
+.ecosystem-intro { max-width: 300px; color: #77756f; font-size: 13px; line-height: 1.65; }
+.ecosystem-grid {
+  grid-template-columns: 1.18fr 1fr 1fr;
+  gap: 14px;
+  margin-top: 32px;
+  background: transparent;
+  border: 0;
+}
+.ecosystem-tile {
+  position: relative;
+  isolation: isolate;
+  min-height: clamp(340px, 38vw, 500px);
+  padding: 24px;
+  border-radius: 5px;
+  border: 0 !important;
+  color: #fff !important;
+  overflow: hidden;
+  background-color: #222 !important;
+  background-size: cover !important;
+  background-position: center !important;
+  text-align: left;
+}
+.ecosystem-tile::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,.18), transparent 34%, rgba(0,0,0,.82));
+  transition: background .3s ease;
+}
+.ecosystem-tile:hover::before { background: linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.08) 30%, rgba(0,0,0,.88)); }
+.ecosystem-tile.hikers {
+  background-image: url('https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=1100&q=85') !important;
+}
+.ecosystem-tile.fitness {
+  background-image: url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1000&q=85') !important;
+}
+.ecosystem-tile.connect {
+  background-image: url('https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1000&q=85') !important;
+}
+.ecosystem-tile span, .ecosystem-tile strong, .ecosystem-tile small, .ecosystem-tile svg { position: relative; z-index: 1; }
+.ecosystem-tile span { color: rgba(255,255,255,.8) !important; font-size: 9px; }
+.ecosystem-tile strong { font-size: clamp(30px, 3.2vw, 48px); line-height: .98; letter-spacing: -.055em; max-width: 320px; }
+.ecosystem-tile small { color: rgba(255,255,255,.78); font-size: 11px; }
+.ecosystem-tile svg { align-self: flex-end; }
+.section-head .eyebrow { color: #aaa79f; }
+.section-head h2 { max-width: 700px; }
+.event-card { border-radius: 5px; }
+.event-image { height: clamp(250px, 28vw, 370px); }
+.brand-feature {
+  background: #eeece6;
+  color: #111;
+  border: 0;
+  padding: clamp(80px, 10vw, 140px) 8vw;
+}
+.brand-feature-copy .eyebrow { color: #77756f; }
+.brand-feature-copy h2 { font-size: clamp(44px, 6vw, 78px); }
+.brand-feature-stack { min-height: 540px; }
+.stack-card {
+  border-radius: 5px;
+  overflow: hidden;
+  width: 82%;
+  min-height: 240px;
+  background-size: cover;
+  background-position: center;
+}
+.stack-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.7));
+}
+.stack-card span, .stack-card strong { position: relative; z-index: 1; }
+.stack-card span { color: rgba(255,255,255,.8); }
+.stack-card strong { color: #fff; }
+.stack-life { background-image: url('https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=1000&q=85'); }
+.stack-hikers { background-image: url('https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=1000&q=85'); }
+.stack-fitness { background-image: url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1000&q=85'); }
+.stories { background: #0b0b0a; color: #f5f3ef; }
+.stories .eyebrow, .stories .story-meta { color: #a8a59d; }
+.stories .link-button, .stories .text-button { color: #f5f3ef; }
+.story-grid { gap: 12px; background: transparent; }
+.story {
+  min-height: 320px;
+  border: 1px solid rgba(245,243,239,.14);
+  border-radius: 5px;
+  background: #121210;
+  color: #f5f3ef;
+  padding: 28px;
+}
+.story h3 { font-size: clamp(24px, 2.5vw, 34px); }
+.story p { color: #b5b2aa; font-size: 13px; }
+footer { background: #080908; color: #f5f3ef; }
+footer .footer-links button { color: #b5b2aa; }
+footer .footer-bottom { border-color: rgba(245,243,239,.16); }
+@media (max-width: 760px) {
+  .nav-wrap { width: calc(100% - 28px); margin: 12px 14px 0; height: 58px; padding: 0 18px; }
+  .hero { min-height: 690px; margin: 10px 8px 0; }
+  .hero h1 { font-size: clamp(56px, 13vw, 84px); }
+  .ecosystem-head { display: block; }
+  .ecosystem-intro { margin-top: 18px; }
+  .ecosystem-grid { grid-template-columns: 1fr; gap: 12px; }
+  .ecosystem-tile { min-height: 310px; }
+  .brand-feature-stack { min-height: 410px; }
+  .stack-card { min-height: 175px; padding: 18px; }
+  .stories .section-head { align-items: flex-end; }
+}
