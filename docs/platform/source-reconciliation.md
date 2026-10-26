@@ -45,9 +45,16 @@ Bring the GitHub repository into alignment with the current working AppDeploy so
 - [ ] Recover or add the required logo resource at public/resources/urban-life-logo.png; it is configured as a required AppDeploy resource but was not found in GitHub main.
 - [ ] Review full diffs and verify AppDeploy resource and build assumptions.
 - [ ] Build/type checks completed.
+- [x] Draft pull request opened: https://github.com/emeriem/urban-life-co/pull/12.
 - [ ] Draft pull request reviewed.
 - [ ] GitHub main reconciled.
 - [ ] Controlled deployment from reconciled source verified.
+
+## Pull request and validation status
+- Draft PR: https://github.com/emeriem/urban-life-co/pull/12
+- GitHub comparison reports the reconciliation branch is 18 commits ahead of main and 0 commits behind at the time of this note.
+- The available Vercel status check was still pending when inspected; this is not evidence that build or type checks passed.
+- Production remains unchanged; no AppDeploy deployment was triggered.
 
 ## Known exceptions and blockers
 - The required AppDeploy logo resource at public/resources/urban-life-logo.png is listed in AppDeploy resource inventory but was not present at that path in the GitHub branch. Do not replace it with a placeholder. Recover the exact asset or explicitly add the approved original before attempting a deployment from GitHub.
