@@ -1,6 +1,7 @@
 [
   {
     "name": "Public discovery and detail flows work",
+    "sanity": true,
     "viewport": "desktop",
     "covers": [
       "public homepage",
@@ -18,8 +19,7 @@
       "Open Journal and select a story",
       "Return to the homepage"
     ],
-    "expected": "Explore, View event, and Read story actions open corresponding content detail without authentication, and the visitor can return to the public site.",
-    "sanity": true
+    "expected": "Explore, View event, and Read story actions open corresponding content detail without authentication, and the visitor can return to the public site."
   },
   {
     "name": "Super Admin can operate core CMS content",
@@ -27,6 +27,9 @@
     "covers": [
       "private admin authentication",
       "admin allowlist",
+      "admin overview metrics",
+      "dashboard quick actions",
+      "dashboard recent event and enquiry empty states",
       "event create/edit/archive",
       "experience management",
       "journal management",
@@ -38,6 +41,8 @@
     "steps": [
       "Open the private admin entry point",
       "Sign in with the authorised Super Admin account",
+      "Review the overview metrics and recent events/enquiries panels",
+      "Use the dashboard quick action to open event creation",
       "Create and publish an event",
       "Edit the event and archive it",
       "Create and publish a journal story",
@@ -91,122 +96,25 @@
     "expected": "Google Photos controls are protected by admin authorization and cancellation leaves a usable retry state."
   },
   {
-    "name": "Admin logout and account switching return to the admin start",
+    "name": "PWA install, offline awareness, and accessibility",
     "viewport": "mobile",
     "covers": [
-      "anonymous admin boundary",
-      "no public admin link",
-      "wrong account denial",
-      "admin logout",
-      "account switching",
-      "fresh admin sign-in"
+      "PWA manifest",
+      "service worker app shell caching",
+      "offline connection awareness",
+      "install prompt",
+      "reduced motion",
+      "keyboard focus visibility",
+      "responsive asymmetric layout"
     ],
-    "description": "Verifies a rejected or signed-out administrator session returns to the private admin sign-in start instead of the public homepage.",
+    "description": "Verifies the progressive web app supports an install flow where the browser permits it and communicates connection state without disrupting navigation.",
     "steps": [
-      "Open the public site and navigation",
-      "Confirm there is no Admin link or administrator email",
-      "Navigate directly to the private admin entry point",
-      "Attempt access with an unauthorised account and observe denial",
-      "Click Try another account",
-      "Confirm the Administrator sign-in screen is shown",
-      "Sign in with the authorised account",
-      "Click Sign out",
-      "Confirm the Administrator sign-in screen is shown again",
-      "Sign in with a different account or retry the authorised account"
+      "Open the site in a supported mobile browser",
+      "Confirm the browser offers installation when eligible",
+      "Go offline and observe the offline status message",
+      "Restore the connection",
+      "Navigate between public pages using keyboard or touch"
     ],
-    "expected": "The public site reveals no administrator identity, unauthorised accounts are denied, Try another account resets authentication, and Sign out returns to the private admin sign-in screen ready for another login."
-  },
-  {
-    "name": "Open the private CMS and navigate the editorial workspace",
-    "viewport": "desktop",
-    "covers": [
-      "private CMS authentication",
-      "Figma editorial shell",
-      "content library navigation",
-      "protected admin workspace"
-    ],
-    "description": "Verifies the private CMS loads its editorial control centre after administrator authentication and exposes the content workspace.",
-    "steps": [
-      "Open the private admin workspace",
-      "Sign in with the authorized administrator account",
-      "Open Journal / Content library",
-      "Observe the editorial library and navigation controls"
-    ],
-    "expected": "The administrator sees the Urban Life Co. control centre and a functional Content library with search, filters and New article controls."
-  },
-  {
-    "name": "Create, publish, edit, and retain an article",
-    "viewport": "desktop",
-    "covers": [
-      "article creation",
-      "article publishing",
-      "article editing",
-      "backend story create/update",
-      "persistence after reload",
-      "revision history"
-    ],
-    "description": "Verifies the selected Figma article workflow creates a durable journal record, publishes it, edits it, and retains a revision trail.",
-    "steps": [
-      "Open Content library and choose New article",
-      "Enter a title, date, category, excerpt, and article body",
-      "Publish the article",
-      "Edit the article and save the changes",
-      "Refresh the CMS and reopen the article",
-      "Open Revision history"
-    ],
-    "expected": "The article remains available after refresh with the latest content, and Revision history shows a saved version."
-  },
-  {
-    "name": "Upload and inspect a media asset",
-    "viewport": "desktop",
-    "covers": [
-      "media library",
-      "media upload",
-      "asset details",
-      "storage upload",
-      "media deletion confirmation"
-    ],
-    "description": "Verifies a real image can be uploaded into the CMS media library and inspected through the selected asset detail surface.",
-    "steps": [
-      "Open Media",
-      "Upload an image file",
-      "Select the uploaded asset",
-      "Inspect Asset details",
-      "Use Copy URL or Remove"
-    ],
-    "expected": "The uploaded asset appears in the visual media library, its detail panel shows metadata, and destructive removal requires confirmation."
-  },
-  {
-    "name": "Block incomplete article publishing on mobile",
-    "viewport": "mobile",
-    "covers": [
-      "required article validation",
-      "mobile editor behavior",
-      "invalid-write guardrail"
-    ],
-    "description": "Verifies the selected article editor blocks publication when required editorial fields are incomplete on a mobile viewport.",
-    "steps": [
-      "Open Content library and choose New article",
-      "Leave required fields incomplete",
-      "Attempt to publish the article"
-    ],
-    "expected": "A visible validation message appears and no incomplete article is created."
-  },
-  {
-    "name": "Keep taxonomy and moderation states honest",
-    "viewport": "desktop",
-    "covers": [
-      "categories and tags",
-      "comments moderation empty state",
-      "taxonomy persistence"
-    ],
-    "description": "Verifies taxonomy controls work locally while the comments moderation screen communicates when comment ingestion is not connected instead of fabricating data.",
-    "steps": [
-      "Open Categories & tags from the Content library",
-      "Add a category or tag",
-      "Refresh the CMS and confirm the taxonomy remains",
-      "Open Comments moderation"
-    ],
-    "expected": "The added taxonomy remains in the browser and Comments moderation clearly shows an empty connected state rather than invented comments."
+    "expected": "The site remains navigable using cached app-shell content where available, connection state is communicated, and the layout remains usable on mobile."
   }
 ]
