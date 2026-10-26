@@ -29,10 +29,10 @@ const forbiddenRuntimePatterns = [
 for (const [pattern, label] of forbiddenRuntimePatterns) {
   if (pattern.test(backend)) throw new Error(`Deployment compatibility regression: ${label} detected.`);
 }
-if (/const ADMIN_EMAILS\\s*=/.test(backend) || /configured\\.length\\s*\\?\\s*configured\\s*:/.test(backend)) {
+if (/const ADMIN_EMAILS\s*=/.test(backend) || /configured\.length\s*\?\s*configured\s*:/.test(backend)) {
   throw new Error('Admin authorization regression: source-code fallback allowlists are forbidden; access must fail closed without configured secret emails.');
 }
-if (!/names\\.includes\\('ADMIN_EMAILS'\\)/.test(backend) || !/return emails;/.test(backend) || !/if \\(!email \\|\\| !emails\\.includes\\(email\\)\\)/.test(backend)) {
+if (!/names\.includes\('ADMIN_EMAILS'\)/.test(backend) || !/return emails;/.test(backend) || !/if \(!email \|\| !emails\.includes\(email\)\)/.test(backend)) {
   throw new Error('Admin authorization regression: the configured ADMIN_EMAILS secret must be the sole source of allowed administrator emails.');
 }
 if (!/new Uint8Array\(await response\.arrayBuffer\(\)\)/.test(backend) || !/btoa\(/.test(backend)) {
