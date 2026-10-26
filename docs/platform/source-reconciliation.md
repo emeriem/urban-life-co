@@ -37,12 +37,22 @@ Bring the GitHub repository into alignment with the current working AppDeploy so
 - [x] Current AppDeploy snapshot identified.
 - [x] GitHub drift confirmed for key application files.
 - [x] Reconciliation branch created.
-- [ ] Full source and asset inventory compared.
-- [ ] Source files copied and reviewed on the branch.
+- [x] Main source inventory and AppDeploy snapshot paths compared.
+- [x] Synced AppDeploy versions of backend/index.ts, index.html, postcss.config.js, public/icon.svg, public/manifest.webmanifest, public/sw.js, src/App.tsx, src/index.css, src/main.tsx, tailwind.config.js, tsconfig.json, and vite.config.ts to the reconciliation branch where content differed.
+- [x] Added platform vision, preliminary architecture/gap audit, and reconciliation log under docs/platform/.
+- [x] Preserved GitHub package.json because it contains local development tooling (@appdeploy/client and check:types) not present in the AppDeploy snapshot package file.
+- [x] Preserved the existing GitHub tests/tests.json suite pending deliberate review because replacing it with the snapshot version would remove many existing QA scenarios.
+- [ ] Recover or add the required logo resource at public/resources/urban-life-logo.png; it is configured as a required AppDeploy resource but was not found in GitHub main.
+- [ ] Review full diffs and verify AppDeploy resource and build assumptions.
 - [ ] Build/type checks completed.
-- [ ] Pull request created and reviewed.
+- [ ] Draft pull request reviewed.
 - [ ] GitHub main reconciled.
 - [ ] Controlled deployment from reconciled source verified.
+
+## Known exceptions and blockers
+- The required AppDeploy logo resource at public/resources/urban-life-logo.png is listed in AppDeploy resource inventory but was not present at that path in the GitHub branch. Do not replace it with a placeholder. Recover the exact asset or explicitly add the approved original before attempting a deployment from GitHub.
+- package.json is intentionally retained from GitHub for local development and type-check tooling. Its difference from AppDeploy's generated package file must be validated in a local/reproducible build rather than blindly overwritten.
+- The GitHub test suite is intentionally preserved on this branch. Its difference from the AppDeploy snapshot's tests/tests.json remains to be reviewed.
 
 ## Safety note
 The reconciliation branch is not automatically safe to deploy merely because it contains a newer AppDeploy snapshot. Build configuration, environment assumptions, secret bindings, asset resources, and runtime behaviour must be checked first.
