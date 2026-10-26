@@ -39,7 +39,8 @@ Bring the GitHub repository into alignment with the current working AppDeploy so
 - [x] Reconciliation branch created.
 - [x] Main source inventory and AppDeploy snapshot paths compared.
 - [x] Synced AppDeploy versions of backend/index.ts, index.html, postcss.config.js, public/icon.svg, public/manifest.webmanifest, public/sw.js, src/App.tsx, src/index.css, src/main.tsx, tailwind.config.js, tsconfig.json, and vite.config.ts to the reconciliation branch where content differed.
-- [x] Added platform vision, preliminary architecture/gap audit, and reconciliation log under docs/platform/.\n- [x] Added a top-level contributor handoff guide, current-state ledger, expanded README, and contribution/release workflow.
+- [x] Added platform vision, preliminary architecture/gap audit, and reconciliation log under docs/platform/.
+- [x] Added a top-level contributor handoff guide, current-state ledger, expanded README, and contribution/release workflow.
 - [x] Preserved GitHub package.json because it contains local development tooling (@appdeploy/client and check:types) not present in the AppDeploy snapshot package file.
 - [x] Preserved the existing GitHub tests/tests.json suite pending deliberate review because replacing it with the snapshot version would remove many existing QA scenarios.
 - [ ] Recover or add the required logo resource at public/resources/urban-life-logo.png; it is configured as a required AppDeploy resource but was not found in GitHub main.
