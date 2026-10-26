@@ -28,7 +28,7 @@ Bring the GitHub repository into alignment with the current working AppDeploy so
 1. Preserve the current production snapshot and record its ID.
 2. Create a dedicated reconciliation branch from GitHub main.
 3. Copy the latest AppDeploy text source files to that branch, preserving required local development tooling and existing assets.
-4. Add the platform roadmap and audit notes under docs/platform/.
+4. Add the platform roadmap, preliminary audit, source log, current-state ledger, and contributor handoff under docs/.
 5. Review diffs and run build/type checks where tooling permits.
 6. Create a pull request for review; do not merge automatically.
 7. After reconciliation is reviewed and merged, define the controlled deployment workflow and verify the exact commit before any production release.
@@ -39,7 +39,7 @@ Bring the GitHub repository into alignment with the current working AppDeploy so
 - [x] Reconciliation branch created.
 - [x] Main source inventory and AppDeploy snapshot paths compared.
 - [x] Synced AppDeploy versions of backend/index.ts, index.html, postcss.config.js, public/icon.svg, public/manifest.webmanifest, public/sw.js, src/App.tsx, src/index.css, src/main.tsx, tailwind.config.js, tsconfig.json, and vite.config.ts to the reconciliation branch where content differed.
-- [x] Added platform vision, preliminary architecture/gap audit, and reconciliation log under docs/platform/.
+- [x] Added platform vision, preliminary architecture/gap audit, and reconciliation log under docs/platform/.\n- [x] Added a top-level contributor handoff guide, current-state ledger, expanded README, and contribution/release workflow.
 - [x] Preserved GitHub package.json because it contains local development tooling (@appdeploy/client and check:types) not present in the AppDeploy snapshot package file.
 - [x] Preserved the existing GitHub tests/tests.json suite pending deliberate review because replacing it with the snapshot version would remove many existing QA scenarios.
 - [ ] Recover or add the required logo resource at public/resources/urban-life-logo.png; it is configured as a required AppDeploy resource but was not found in GitHub main.
@@ -52,8 +52,8 @@ Bring the GitHub repository into alignment with the current working AppDeploy so
 
 ## Pull request and validation status
 - Draft PR: https://github.com/emeriem/urban-life-co/pull/12
-- GitHub comparison reports the reconciliation branch is 18 commits ahead of main and 0 commits behind at the time of this note.
-- The available Vercel status check was still pending when inspected; this is not evidence that build or type checks passed.
+- A fresh GitHub comparison on 26 October 2026 reported the branch 23 commits ahead of main and 0 behind. This count changes as commits are added; check the live comparison rather than treating it as a durable status.
+- Review submissions and inline review threads were empty at the latest check. CI/build/type-check success remains unverified; inspect live checks before merging.
 - Production remains unchanged; no AppDeploy deployment was triggered.
 
 ## Known exceptions and blockers
