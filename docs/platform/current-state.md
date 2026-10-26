@@ -18,7 +18,7 @@ The current AppDeploy PWA is reported **Ready** at snapshot `1793038200898`. Sou
 | GitHub reconciliation | Merged | PR #12 merged; merge commit `3346e6aef032a971613418772e1fc1bb3dbd68fe` | Keep `main` as the reviewed code baseline |
 | GitHub Actions CI | Passed on merge commit | Run #37 completed successfully for commit `3346e6aef032a971613418772e1fc1bb3dbd68fe`; dependency setup, TypeScript check, Vite build, and contract checks all passed. [View run](https://github.com/emeriem/urban-life-co/actions/runs/40405648219) | Add browser-level tests and keep CI green |
 | External deployment integrations | Out of scope | Urban Life Co. will use GitHub for source control/CI and AppDeploy for application development/deployment. External deployment services are not part of the approved workflow | Keep future work within GitHub and AppDeploy unless explicitly approved otherwise |
-| Local/reproducible build | Unverified | A configured CI workflow is not proof that the merged commit passed it | Confirm the exact merge-commit CI result and fix any failure |
+| Reproducibility against live AppDeploy source | Unverified | CI passed for the recorded GitHub merge commit, but that does not prove GitHub `main` matches the current AppDeploy snapshot or can reproduce it exactly | Complete file-by-file source drift audit and reconcile deliberately |
 | Required logo asset | Blocked for GitHub-source reproducibility | AppDeploy resource inventory lists `public/resources/urban-life-logo.png`, but the path is absent from GitHub `main`. Do not fabricate a replacement | Recover the exact approved original and add it through a reviewed change if repository tracking is required |
 | Admin authentication | Implemented in source; full security review pending | Email allowlist exists; it is not a complete roles/tenant permissions model | Review authentication and authorization route-by-route |
 | Google sign-in / Photos | Needs verification | AppDeploy logs show a Google Identity script-load warning; this alone does not establish a current user-facing defect | Browser-test sign-in, picker, import, and failure handling |
@@ -33,7 +33,7 @@ The repository has a GitHub Actions workflow at [`.github/workflows/ci.yml`](../
 2. A Vite production build.
 3. Static backend/API route and regression-test contract checks.
 
-These checks are useful but have limits: the workflow creates a temporary CI-only shim for the AppDeploy runtime client, and the contract script checks test definitions and source patterns rather than executing browser journeys. A green result would be evidence for those checks only—not proof that the deployed app works end-to-end.
+These checks are useful but have limits: the workflow creates a temporary CI-only shim for the AppDeploy runtime client, and the contract script checks test definitions and source patterns rather than executing browser journeys. A green result is evidence for those checks only—not proof that the deployed app works end-to-end or that GitHub source matches the current AppDeploy snapshot.
 
 The GitHub Actions workflow passed on merge commit `3346e6aef032a971613418772e1fc1bb3dbd68fe` (run #37). Its successful steps include dependency setup with the CI-only AppDeploy client shim, TypeScript checking, the Vite production build, and static contract checks. This does not establish end-to-end browser behavior. A third-party status check may still appear on GitHub commits, but it is not part of the approved release workflow and must not drive work or deployment decisions.
 
@@ -47,8 +47,9 @@ The GitHub Actions workflow passed on merge commit `3346e6aef032a971613418772e1f
 
 ### P0 — Prove the code baseline
 - [x] Verify the GitHub Actions result for merge commit `3346e6aef032a971613418772e1fc1bb3dbd68fe`; run #37 passed. [Run details](https://github.com/emeriem/urban-life-co/actions/runs/40405648219).
+- [ ] Complete file-by-file comparison between the current AppDeploy snapshot and GitHub `main`; record all material differences.
 - [ ] Recover the exact approved logo asset and verify all referenced static resources.
-- [ ] Run or verify dependency installation, TypeScript checks, and production build; document exact versions/results.
+- [ ] Re-run/verify dependency setup, TypeScript checks, production build, and contract checks against the current branch head; document exact commit and results.
 - [ ] Run browser smoke tests for public routes, admin login, CMS CRUD, media, Google Photos, and PWA behavior.
 - [ ] Review backend authentication, authorization, validation, and data operations for unintended exposure or destructive behavior.
 - [ ] Document environment variables/secrets by name and purpose only—never values.
@@ -57,7 +58,7 @@ The GitHub Actions workflow passed on merge commit `3346e6aef032a971613418772e1f
 - [x] Reconcile key AppDeploy source files into GitHub and merge the handoff documentation.
 - [x] Add an initial route-and-data inventory from source inspection.
 - [x] Configure a GitHub Actions type/build/contract-check workflow.
-- [x] Verify type/build/contract CI on the merged `main` commit.
+- [x] Verify type/build/contract CI on the recorded merge commit.
 - [ ] Add real browser regression tests.
 - [ ] Document backup, rollback, deployment verification, and incident response within the GitHub + AppDeploy workflow.
 - [ ] Define and test the relationship between AppDeploy snapshots and GitHub commits.
