@@ -1,59 +1,67 @@
 # Current State — Urban Life Co.
 
 **Last reviewed:** 26 October 2026  
-**Purpose:** an evidence-based handoff snapshot. Re-check live GitHub/AppDeploy state before acting.
+**Purpose:** evidence-based handoff snapshot. Re-check live GitHub/AppDeploy state before release work.
 
 ## Executive status
 
-The project has an existing deployed PWA and an in-progress GitHub source-reconciliation branch. The long-term platform direction is documented. The repository is **not yet certified as a reproducible build of the live app**, and the multi-brand architecture is **not ready for external tenants**.
+The current AppDeploy PWA is reported **Ready** at snapshot `1793038200898`. Source reconciliation and the project handoff documentation have been merged into GitHub `main` as merge commit `3346e6aef032a971613418772e1fc1bb3dbd68fe`.
+
+**This is not a production release.** GitHub merge did not trigger an AppDeploy deployment, and the live app remains on the previously recorded AppDeploy snapshot. The repository is not yet certified as a reproducible build of that app, and the multi-brand architecture is not ready for external tenants.
 
 ## Status ledger
 
 | Area | Status | Evidence / caveat | Next action |
 |---|---|---|---|
-| Public PWA and CMS source | Implemented in inspected source | Source contains public pages and CMS workflows; not all flows were independently browser-tested | Smoke-test key journeys |
-| Live deployment | Exists | AppDeploy app ID `urban-life-co-zk9nyq`; snapshot `1793038200898` was reported Ready when inspected | Re-check current status before release work |
-| GitHub reconciliation | In progress | Branch `reconcile/appdeploy-source-2026-10-26`; draft PR #12 | Review complete diff and resolve blockers |
-| Local reproducible build | Unknown / unverified | `npm run build` and `npm run check:types` have not been confirmed passing for this branch | Run checks and preserve logs |
-| Required logo asset | Blocked | `public/resources/urban-life-logo.png` is required in AppDeploy resource inventory but absent at that path in the branch | Recover exact approved asset |
-| Admin authentication | Implemented in source; full security review pending | Email allowlist exists; not a complete roles/tenant permissions model | Map auth and authorization route-by-route |
-| Google sign-in / Photos | Needs verification | AppDeploy log showed a Google Identity script load warning; warning alone does not establish current failure | Browser-test sign-in, picker, import, and error handling |
-| QA scenarios | Present, execution unverified | `tests/tests.json` contains scenario definitions | Identify runner/format and record real test results |
-| Multi-tenant isolation | Not implemented/proven | Inspected backend did not show a clear tenant/workspace boundary across shared collections | Design and test before external onboarding |
-| Production deployment from GitHub | Not established | AppDeploy remains the deployment record; no release was triggered during reconciliation | Create controlled release/rollback procedure after validation |
+| Public PWA and CMS source | Present in inspected source | Source includes public pages and CMS workflows; not every journey has been independently browser-tested | Smoke-test key journeys |
+| Live deployment | Ready in latest status check | AppDeploy app ID `urban-life-co-zk9nyq`; snapshot `1793038200898`; QA response reported no frontend or network errors in its snapshot, but a later Google Identity script-load warning exists in logs | Verify current user journeys and logs before release |
+| GitHub reconciliation | Merged | PR #12 merged; merge commit `3346e6aef032a971613418772e1fc1bb3dbd68fe` | Keep `main` as the reviewed code baseline |
+| GitHub Actions CI | Passed on merge commit | Run #37 completed successfully for commit `3346e6aef032a971613418772e1fc1bb3dbd68fe`; dependency setup, TypeScript check, Vite build, and contract checks all passed. [View run](https://github.com/emeriem/urban-life-co/actions/runs/40405648219) | Add browser-level tests and keep CI green |
+| Vercel check | Failed on merge commit at last check | Combined commit status returned a failed Vercel check. The target is not accessible through the current inspection path, so root cause is unknown; do not assume this is harmless or a source build failure | Inspect the Vercel deployment/check details in GitHub or Vercel and determine whether this project should use Vercel at all |
+| Local/reproducible build | Unverified | A configured CI workflow is not proof that the merged commit passed it | Confirm the exact merge-commit CI result and fix any failure |
+| Required logo asset | Blocked for GitHub-source reproducibility | AppDeploy resource inventory lists `public/resources/urban-life-logo.png`, but the path is absent from GitHub `main`. Do not fabricate a replacement | Recover the exact approved original and add it through a reviewed change if repository tracking is required |
+| Admin authentication | Implemented in source; full security review pending | Email allowlist exists; it is not a complete roles/tenant permissions model | Review authentication and authorization route-by-route |
+| Google sign-in / Photos | Needs verification | AppDeploy logs show a Google Identity script-load warning; this alone does not establish a current user-facing defect | Browser-test sign-in, picker, import, and failure handling |
+| QA scenarios | Present; execution evidence incomplete | `tests/tests.json` contains scenario definitions; contract checker validates their shape but is not a browser test runner | Identify and run a real browser-test suite |
+| Multi-tenant isolation | Not implemented/proven | Inspected backend does not show a clear tenant/workspace boundary across shared collections | Design and test before external onboarding |
+| Production deployment from GitHub | Not established | AppDeploy remains the deployment/release record; no release was triggered during reconciliation | Define a controlled release and rollback procedure after validation |
 
-## Known source decisions
+## Current engineering checks
 
-- The reconciliation branch copies the current AppDeploy snapshot's key source files where they differed from GitHub main.
-- GitHub's `package.json` was retained to preserve local development tooling, including `@appdeploy/client` and `check:types`; validate it with a reproducible build.
-- The existing broader GitHub `tests/tests.json` suite was retained rather than silently replacing it with the smaller AppDeploy snapshot test file.
-- The exact missing logo asset was not fabricated.
-- Production was not deployed or changed as part of the source-copy work.
+The repository has a GitHub Actions workflow at [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml). It is configured to run:
+1. TypeScript checks.
+2. A Vite production build.
+3. Static backend/API route and regression-test contract checks.
 
-See [source reconciliation log](source-reconciliation.md) for file-level history.
+These checks are useful but have limits: the workflow creates a temporary CI-only shim for the AppDeploy runtime client, and the contract script checks test definitions and source patterns rather than executing browser journeys. A green result would be evidence for those checks only—not proof that the deployed app works end-to-end.
 
-## Backend documentation added
+The GitHub Actions workflow passed on merge commit `3346e6aef032a971613418772e1fc1bb3dbd68fe` (run #37). Its successful steps include dependency setup with the CI-only AppDeploy client shim, TypeScript checking, the Vite production build, and static contract checks. This does not establish end-to-end browser behavior. The separate combined status still reports **Vercel: failure** on that commit; its root cause remains unresolved.
 
-- [x] Added [backend route and data inventory](backend-route-data-inventory.md) based on static inspection of the reconciliation branch. It includes the visible route catalogue, access middleware, collections/resources, source-level risks, and verification checklist. This is not yet runtime test evidence.
+## Backend documentation
+
+- [Backend route and data inventory](backend-route-data-inventory.md) — static source inspection, not runtime or penetration-test evidence.
+- [Architecture and gap audit](architecture-gap-audit.md) — current platform risks and target architecture.
+- [Platform vision and roadmap](vision-and-roadmap.md) — product direction and staged delivery.
 
 ## Prioritized work queue
 
-### P0 — Make the repo trustworthy
+### P0 — Prove the code baseline
+- [ ] Inspect the failed Vercel check and determine its root cause.
+- [x] Verify the GitHub Actions result for merge commit `3346e6aef032a971613418772e1fc1bb3dbd68fe`; run #37 passed. [Run details](https://github.com/emeriem/urban-life-co/actions/runs/40405648219).
 - [ ] Recover the exact approved logo asset and verify all referenced static resources.
-- [ ] Review all changed files in PR #12 against the AppDeploy snapshot and GitHub baseline.
-- [ ] Run dependency installation, TypeScript checks, and production build; document exact versions/results.
-- [ ] Fix reproducibility blockers without blindly replacing package configuration.
+- [ ] Run or verify dependency installation, TypeScript checks, and production build; document exact versions/results.
 - [ ] Run browser smoke tests for public routes, admin login, CMS CRUD, media, Google Photos, and PWA behavior.
-- [ ] Review backend auth and data operations for unintended exposure and destructive behavior.
-- [ ] Ensure PR checks are complete and review PR #12 before merge.
+- [ ] Review backend authentication, authorization, validation, and data operations for unintended exposure or destructive behavior.
+- [ ] Document environment variables/secrets by name and purpose only—never values.
 
 ### P1 — Establish a maintainable engineering baseline
+- [x] Reconcile key AppDeploy source files into GitHub and merge the handoff documentation.
 - [x] Add an initial route-and-data inventory from source inspection.
-- [ ] Verify the route inventory against runtime behavior and extend it with test evidence, schema details, and failure-path results.
-- [ ] Document environment variables/secrets by name and purpose only—never values.
-- [ ] Add automated checks for type/build and the most critical regression flows.
+- [x] Configure a GitHub Actions type/build/contract-check workflow.
+- [x] Verify type/build/contract CI on the merged `main` commit.
+- [ ] Add real browser regression tests.
 - [ ] Document backup, rollback, deployment verification, and incident response.
-- [ ] Define a clear relationship between AppDeploy snapshots and GitHub commits.
+- [ ] Define and test the relationship between AppDeploy snapshots and GitHub commits.
 
 ### P2 — Prepare multi-brand architecture
 - [ ] Define tenant/brand data model and migration plan.
@@ -70,10 +78,11 @@ See [source reconciliation log](source-reconciliation.md) for file-level history
 
 ## Release gate
 
-No production release from this branch until:
+No production release from GitHub until:
 1. The exact required assets and runtime dependencies are accounted for.
-2. Build/type checks pass or any justified exceptions are documented and approved.
+2. Build/type checks pass or justified exceptions are documented and approved.
 3. Critical browser smoke tests pass.
 4. Authentication and backend routes have been reviewed.
 5. A known-good rollback point and release verification checklist exist.
-6. The owner explicitly approves deployment.
+6. The Vercel failure is understood and the intended deployment path is clear.
+7. The owner explicitly approves deployment.
