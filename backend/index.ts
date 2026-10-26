@@ -1,8 +1,9 @@
 import { router, json, error, requireAuth } from '@appdeploy/sdk';
-import type { RouterMiddleware } from '@appdeploy/sdk';
 import { db, secrets, storage } from '@appdeploy/sdk';
-// AppDeploy's deployment validator requires a literal admin allowlist.
-// Keep this as a fallback only: the ADMIN_EMAILS app secret takes precedence.
+import type { RouterMiddleware } from '@appdeploy/sdk';
+
+// The platform's deployment validator requires an explicit, user-provided admin allowlist.
+// A configured ADMIN_EMAILS app secret takes precedence; the explicit allowlist is the safe fallback.
 const ADMIN_EMAILS = ['njemtrybe@gmail.com'];
 let adminCache: { emails: string[]; at: number } | null = null;
 async function adminEmails(): Promise<string[]> {
@@ -14,11 +15,11 @@ async function adminEmails(): Promise<string[]> {
     : '';
   const configured = String(raw ?? '')
     .split(',')
-    .map(email => email.trim().toLowerCase())
+    .map(e => e.trim().toLowerCase())
     .filter(Boolean);
   const emails = configured.length
     ? configured
-    : ADMIN_EMAILS.map(email => email.toLowerCase());
+    : ADMIN_EMAILS.map(e => e.toLowerCase());
   adminCache = { emails, at: Date.now() };
   return emails;
 }
@@ -26,89 +27,809 @@ const requireAdminFromSecret: RouterMiddleware = async ctx => {
   const emails = await adminEmails();
   const email = ctx.user?.email?.trim().toLowerCase();
   if (!email || !emails.includes(email))
-    return error('This account does not have administrator access.', 403);
+    return error('Admin access denied.', 403);
 };
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const ALLOWED_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+];
 const CONTACT_TYPES = ['General enquiry', 'Partnership', 'Event', 'Community'];
+// Never let a client overwrite identity/audit fields.
 const safe = (body: unknown) => {
-  const { id, createdAt, ...rest } = (body ?? {}) as Record<string, unknown>;
-  return rest;
+  const copy: Record<string, unknown> = {
+    ...((body ?? {}) as Record<string, unknown>),
+  };
+  delete copy.id;
+  delete copy.createdAt;
+  return copy;
 };
-const GOOGLE_PHOTOS_SCOPE = 'https://www.googleapis.com/auth/photospicker.mediaitems.readonly';
+const GOOGLE_PHOTOS_SCOPE =
+  'https://www.googleapis.com/auth/photospicker.mediaitems.readonly';
 const seedEvents = [
-  { title: 'Urban Hikers — Reactivation Hike', date: '2026-08-22', time: '7:00 AM', location: 'Coal Camp, Enugu', category: 'Urban Hikers', experience: 'Urban Hikers', status: 'completed', price: '₦2,500', description: 'A return to the trail: movement, exploration and community.', image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=1400&q=80', registrationLink: '', capacity: 50 },
-  { title: 'Urban Hangout', date: '2026-08-16', time: '3:00 PM', location: 'Villa Toscana, Enugu', category: 'Community', experience: 'Urban Connect', status: 'completed', price: '₦1,000', description: 'Games, music, drinks and the people that make the community.', image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1400&q=80', registrationLink: '', capacity: 80 },
-  { title: 'Urban Hikers × Eastern United', date: '2026-09-12', time: '2:00 PM', location: 'Ngwo Park', category: 'Outdoor', experience: 'Urban Hikers', status: 'completed', price: 'Free', description: 'An active afternoon built around touch rugby, movement and connection.', image: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=1400&q=80', registrationLink: '', capacity: 60 },
+  {
+    title: 'Urban Hikers — Reactivation Hike',
+    date: '2026-08-22',
+    time: '7:00 AM',
+    location: 'Coal Camp, Enugu',
+    category: 'Urban Hikers',
+    experience: 'Urban Hikers',
+    status: 'completed',
+    price: '₦2,500',
+    description: 'A return to the trail: movement, exploration and community.',
+    image:
+      'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=1400&q=80',
+    registrationLink: '',
+    capacity: 50,
+  },
+  {
+    title: 'Urban Hangout',
+    date: '2026-08-16',
+    time: '3:00 PM',
+    location: 'Villa Toscana, Enugu',
+    category: 'Community',
+    experience: 'Urban Connect',
+    status: 'completed',
+    price: '₦1,000',
+    description: 'Games, music, drinks and the people that make the community.',
+    image:
+      'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1400&q=80',
+    registrationLink: '',
+    capacity: 80,
+  },
+  {
+    title: 'Urban Hikers × Eastern United',
+    date: '2026-09-12',
+    time: '2:00 PM',
+    location: 'Ngwo Park',
+    category: 'Outdoor',
+    experience: 'Urban Hikers',
+    status: 'completed',
+    price: 'Free',
+    description:
+      'An active afternoon built around touch rugby, movement and connection.',
+    image:
+      'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=1400&q=80',
+    registrationLink: '',
+    capacity: 60,
+  },
 ];
 const seedExperiences = [
-  { name: 'Urban Hikers', category: 'Outdoor lifestyle', description: 'More than a hike. It is a community built around movement, adventure, travel and connection.', status: 'published', featured: true },
-  { name: 'Urban Fitness', category: 'Movement & wellness', description: 'A movement and wellness experience for people who want to move, train and live actively.', status: 'published', featured: true },
-  { name: 'Urban Connect', category: 'People & opportunity', description: 'A social and professional connection layer for people, ideas, opportunities and meaningful relationships.', status: 'published', featured: true },
+  {
+    name: 'Urban Hikers',
+    category: 'Outdoor lifestyle',
+    description:
+      'More than a hike. It is a community built around movement, adventure, travel and connection.',
+    status: 'published',
+    featured: true,
+  },
+  {
+    name: 'Urban Fitness',
+    category: 'Movement & wellness',
+    description:
+      'A movement and wellness experience for people who want to move, train and live actively.',
+    status: 'published',
+    featured: true,
+  },
+  {
+    name: 'Urban Connect',
+    category: 'People & opportunity',
+    description:
+      'A social and professional connection layer for people, ideas, opportunities and meaningful relationships.',
+    status: 'published',
+    featured: true,
+  },
 ];
 const seedStories = [
-  { title: 'More Than a Hike. It’s a Community.', category: 'Community', date: '2026-08-28', excerpt: 'Why the trail is only the beginning of what Urban Hikers is building.', status: 'published', featured: true },
-  { title: 'Why We Live. Connect. Explore.', category: 'Urban Life Co.', date: '2026-08-20', excerpt: 'The three ideas at the centre of every experience we create.', status: 'published', featured: false },
-  { title: 'The Urban Life Field Notes', category: 'Journal', date: '2026-08-10', excerpt: 'A growing archive of places, people and experiences.', status: 'published', featured: false },
+  {
+    title: 'More Than a Hike. It’s a Community.',
+    category: 'Community',
+    date: '2026-08-28',
+    excerpt:
+      'Why the trail is only the beginning of what Urban Hikers is building.',
+    status: 'published',
+    featured: true,
+  },
+  {
+    title: 'Why We Live. Connect. Explore.',
+    category: 'Urban Life Co.',
+    date: '2026-08-20',
+    excerpt: 'The three ideas at the centre of every experience we create.',
+    status: 'published',
+    featured: false,
+  },
+  {
+    title: 'The Urban Life Field Notes',
+    category: 'Journal',
+    date: '2026-08-10',
+    excerpt: 'A growing archive of places, people and experiences.',
+    status: 'published',
+    featured: false,
+  },
 ];
 let seeded = false;
-async function ensureSeeds() { if (seeded) return; const events = await db.list('events', { limit: 20 }); if (!events.items.length) await db.add('events', seedEvents); const experiences = await db.list('experiences', { limit: 20 }); if (!experiences.items.length) await db.add('experiences', seedExperiences); const stories = await db.list('stories', { limit: 20 }); if (!stories.items.length) await db.add('stories', seedStories); const settings = await db.list('site_settings', { limit: 5 }); if (!settings.items.length) await db.add('site_settings', [{ key: 'global', heroEyebrow: 'URBAN LIFE CO. · ENUGU · NIGERIA', heroTitle: 'Live. Connect. Explore.', heroCopy: 'We create experiences that bring people together, encourage exploration and make everyday life more meaningful.', communityHeadline: 'Come for the experience. Stay for the people.', communityCopy: 'Urban Life Co. is being built around the belief that life gets better when people have places to meet, move, explore and build something together.', updatedAt: new Date().toISOString() }]); seeded = true; }
-
-async function withMediaUrls(items: any[]) { const paths = items.map(item => item.imagePath || item.coverImagePath || item.path).filter(Boolean) as string[]; if (!paths.length) return items; const urls = await storage.url(paths); const urlMap = new Map(urls.map(item => [item.path, item.url])); return items.map(item => ({ ...item, image: item.imagePath ? (urlMap.get(item.imagePath) ?? item.image) : item.image, coverImage: item.coverImagePath ? (urlMap.get(item.coverImagePath) ?? item.coverImage) : item.coverImage, url: item.path ? (urlMap.get(item.path) ?? item.url) : item.url })); }
-function publicEventStatus(item: any, now = new Date()) { if (item.status === 'cancelled' || item.status === 'postponed' || item.status === 'archived' || item.status === 'draft') return item.status; if (item.manualStatus) return item.manualStatus; const date = new Date(`${item.date}T${item.time ?? '23:59:59'}`); return date < now ? 'completed' : 'upcoming'; }
-async function content() { await ensureSeeds(); const [events, announcements, stories, experiences, settings] = await Promise.all([db.list('events', { limit: 100 }), db.list('announcements', { limit: 50 }), db.list('stories', { limit: 100 }), db.list('experiences', { limit: 50 }), db.list('site_settings', { limit: 5 })]); const now = new Date(); const activeAnnouncement = announcements.items.find(item => item.status === 'published' && (!item.startAt || new Date(item.startAt) <= now) && (!item.expiresAt || new Date(item.expiresAt) >= now)); const publicEvents = events.items.filter(item => item.status !== 'draft' && item.status !== 'archived').map(item => ({ ...item, status: publicEventStatus(item, now) })); return { events: await withMediaUrls(publicEvents), stories: await withMediaUrls(stories.items.filter(item => item.status === 'published')), experiences: await withMediaUrls(experiences.items.filter(item => item.status === 'published')), announcement: activeAnnouncement ?? null, settings: settings.items[0] ?? null }; }
-async function googleClientId() { const names = await secrets.listSecretNames(); if (!names.includes('GOOGLE_PHOTOS_CLIENT_ID')) return null; const raw = await secrets.readSecret('GOOGLE_PHOTOS_CLIENT_ID'); const value = String(raw ?? '').trim().replace(/^["']|["']$/g, ''); return value || null; }
-async function googleJson(url: string, accessToken: string, init: RequestInit = {}) { const response = await fetch(url, { ...init, headers: { ...(init.headers ?? {}), Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' } }); const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data?.error?.message ?? 'Google Photos request failed.'); return data; }
+async function ensureSeeds() {
+  if (seeded) return;
+  const events = await db.list('events', { limit: 20 });
+  if (!events.items.length) await db.add('events', seedEvents);
+  const experiences = await db.list('experiences', { limit: 20 });
+  if (!experiences.items.length) await db.add('experiences', seedExperiences);
+  const stories = await db.list('stories', { limit: 20 });
+  if (!stories.items.length) await db.add('stories', seedStories);
+  const settings = await db.list('site_settings', { limit: 5 });
+  if (!settings.items.length)
+    await db.add('site_settings', [
+      {
+        key: 'global',
+        heroEyebrow: 'URBAN LIFE CO. · ENUGU · NIGERIA',
+        heroTitle: 'Live. Connect. Explore.',
+        heroCopy:
+          'We create experiences that bring people together, encourage exploration and make everyday life more meaningful.',
+        communityHeadline: 'Come for the experience. Stay for the people.',
+        communityCopy:
+          'Urban Life Co. is being built around the belief that life gets better when people have places to meet, move, explore and build something together.',
+        updatedAt: new Date().toISOString(),
+      },
+    ]);
+  seeded = true;
+}
+async function withMediaUrls(items: any[]) {
+  const paths = items
+    .map(item => item.imagePath || item.coverImagePath || item.path)
+    .filter(Boolean) as string[];
+  if (!paths.length) return items;
+  const urls = await storage.url(paths);
+  const urlMap = new Map(urls.map(item => [item.path, item.url]));
+  return items.map(item => ({
+    ...item,
+    image: item.imagePath
+      ? (urlMap.get(item.imagePath) ?? item.image)
+      : item.image,
+    coverImage: item.coverImagePath
+      ? (urlMap.get(item.coverImagePath) ?? item.coverImage)
+      : item.coverImage,
+    url: item.path ? (urlMap.get(item.path) ?? item.url) : item.url,
+  }));
+}
+async function content() {
+  await ensureSeeds();
+  const [events, announcements, stories, experiences, settings] =
+    await Promise.all([
+      db.list('events', { limit: 100 }),
+      db.list('announcements', { limit: 50 }),
+      db.list('stories', { limit: 100 }),
+      db.list('experiences', { limit: 50 }),
+      db.list('site_settings', { limit: 5 }),
+    ]);
+  const now = new Date().toISOString();
+  const activeAnnouncement = announcements.items.find(
+    item =>
+      item.status === 'published' &&
+      (!item.startAt || item.startAt <= now) &&
+      (!item.expiresAt || item.expiresAt >= now)
+  );
+  return {
+    events: await withMediaUrls(
+      events.items.filter(
+        item => item.status !== 'draft' && item.status !== 'archived'
+      )
+    ),
+    stories: await withMediaUrls(
+      stories.items.filter(item => item.status === 'published')
+    ),
+    experiences: await withMediaUrls(
+      experiences.items.filter(item => item.status === 'published')
+    ),
+    announcement: activeAnnouncement ?? null,
+    settings: settings.items[0] ?? null,
+  };
+}
+async function googleClientId() {
+  const names = await secrets.listSecretNames();
+  if (!names.includes('GOOGLE_PHOTOS_CLIENT_ID')) return null;
+  return secrets.readSecret('GOOGLE_PHOTOS_CLIENT_ID');
+}
+async function googleJson(
+  url: string,
+  accessToken: string,
+  init: RequestInit = {}
+) {
+  const response = await fetch(url, {
+    ...init,
+    headers: {
+      ...(init.headers ?? {}),
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok)
+    throw new Error(data?.error?.message ?? 'Google Photos request failed.');
+  return data;
+}
 const admin = [requireAuth(), requireAdminFromSecret];
 export const handler = router({
   'GET /api/_healthcheck': [async () => json({ message: 'Success' })],
   'GET /api/content': [async () => json(await content())],
-  'GET /api/events/:id': [async (ctx) => { await ensureSeeds(); const [item] = await db.get('events', [ctx.params.id]); if (!item || item.status === 'draft' || item.status === 'archived') return error('Event not found.', 404); const [resolved] = await withMediaUrls([item]); return json(resolved); }],
-  'GET /api/stories/:id': [async (ctx) => { await ensureSeeds(); const [item] = await db.get('stories', [ctx.params.id]); if (!item || item.status !== 'published') return error('Story not found.', 404); const [resolved] = await withMediaUrls([item]); return json(resolved); }],
-  'GET /api/experiences/:id': [async (ctx) => { await ensureSeeds(); const [item] = await db.get('experiences', [ctx.params.id]); if (!item || item.status !== 'published') return error('Experience not found.', 404); const [resolved] = await withMediaUrls([item]); return json(resolved); }],
-  'POST /api/messages': [async (ctx) => {
-    const body = (ctx.body ?? {}) as Record<string, unknown>;
-    if (body.website) return json({ ok: true });
-    const clean = (value: unknown, max: number) => String(value ?? '').trim().slice(0, max);
-    const name = clean(body.name, 120);
-    const email = clean(body.email, 200).toLowerCase();
-    const phone = clean(body.phone, 40);
-    const message = clean(body.message, 4000);
-    const type = CONTACT_TYPES.includes(String(body.type)) ? String(body.type) : 'General enquiry';
-    if (!name || !email || !message) return error('Name, email and message are required.', 400);
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return error('Please enter a valid email address.', 400);
-    const recent = await db.list('messages', { limit: 100 });
-    const cutoff = Date.now() - 10 * 60 * 1000;
-    if (recent.items.filter(item => String(item.email ?? '').toLowerCase() === email && Date.parse(String(item.createdAt)) > cutoff).length >= 3) return error('Too many messages. Please try again later.', 429);
-    const [id] = await db.add('messages', [{ name, email, phone, type, message, status: 'new', createdAt: new Date().toISOString() }]);
-    return json({ id, ok: Boolean(id) });
-  }],
-  'GET /api/media': [...admin, async () => { const { items } = await db.list('media', { limit: 80 }); const paths = items.map(item => item.path as string); const urls = paths.length ? await storage.url(paths) : []; const urlMap = new Map(urls.map(item => [item.path, item.url])); return json({ media: items.map(item => ({ id: item.id, caption: item.caption, experience: item.experience, eventId: item.eventId, createdAt: item.createdAt, url: urlMap.get(item.path as string) ?? null })) }); }],
-  'GET /api/admin/status': [...admin, async () => json({ ok: true, role: 'super_admin' })],
-  'GET /api/admin/dashboard': [...admin, async () => { const [events, stories, announcements, media, messages] = await Promise.all([db.list('events', { limit: 100 }), db.list('stories', { limit: 100 }), db.list('announcements', { limit: 100 }), db.list('media', { limit: 100 }), db.list('messages', { limit: 100 })]); return json({ metrics: { events: events.items.length, publishedEvents: events.items.filter(x => x.status === 'published').length, stories: stories.items.length, drafts: [...events.items, ...stories.items, ...announcements.items].filter(x => x.status === 'draft').length, media: media.items.length, newMessages: messages.items.filter(x => x.status === 'new').length, announcements: announcements.items.filter(x => x.status === 'published').length }, recentMessages: messages.items.slice(0, 8), recentEvents: events.items.slice(0, 8) }); }],
-  'GET /api/admin/events': [...admin, async () => { const rows = await db.list('events', { limit: 100 }); return json(rows.items.map(item => ({ ...item, computedStatus: publicEventStatus(item) }))); }],
-  'POST /api/admin/events': [...admin, async (ctx) => { const body = (ctx.body ?? {}) as Record<string, unknown>; if (!body.title || !body.date || !body.location || !body.description) return error('Title, date, location and description are required.', 400); if (body.capacity !== undefined && body.capacity !== '' && Number(body.capacity) < 1) return error('Capacity must be a positive number.', 400); const [id] = await db.add('events', [{ ...body, status: body.status ?? 'draft', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }]); return json({ id }); }],
-  'PUT /api/admin/events/:id': [...admin, async (ctx) => { const [existing] = await db.get('events', [ctx.params.id]); if (!existing) return error('Event not found.', 404); const body = (ctx.body ?? {}) as Record<string, unknown>; if (!body.title || !body.date || !body.location || !body.description) return error('Title, date, location and description are required.', 400); if (body.capacity !== undefined && body.capacity !== '' && Number(body.capacity) < 1) return error('Capacity must be a positive number.', 400); const [ok] = await db.update('events', [{ id: ctx.params.id, record: { ...existing, ...safe(body), updatedAt: new Date().toISOString() } }]); return json({ ok }); }],
-  'DELETE /api/admin/events/:id': [...admin, async (ctx) => { const [existing] = await db.get('events', [ctx.params.id]); if (!existing) return error('Event not found.', 404); const [ok] = await db.update('events', [{ id: ctx.params.id, record: { ...existing, status: 'archived', updatedAt: new Date().toISOString() } }]); return json({ ok }); }],
-  'GET /api/admin/experiences': [...admin, async () => json((await db.list('experiences', { limit: 50 })).items)],
-  'POST /api/admin/experiences': [...admin, async (ctx) => { const body = (ctx.body ?? {}) as Record<string, unknown>; if (!body.name || !body.description) return error('Name and description are required.', 400); const [id] = await db.add('experiences', [{ ...body, status: body.status ?? 'draft', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }]); return json({ id }); }],
-  'DELETE /api/admin/experiences/:id': [...admin, async (ctx) => { const [existing] = await db.get('experiences', [ctx.params.id]); if (!existing) return error('Experience not found.', 404); const [ok] = await db.update('experiences', [{ id: ctx.params.id, record: { ...existing, status: 'archived', updatedAt: new Date().toISOString() } }]); return json({ ok }); }],
-  'PUT /api/admin/experiences/:id': [...admin, async (ctx) => { const [existing] = await db.get('experiences', [ctx.params.id]); if (!existing) return error('Experience not found.', 404); const [ok] = await db.update('experiences', [{ id: ctx.params.id, record: { ...existing, ...safe(ctx.body), updatedAt: new Date().toISOString() } }]); return json({ ok }); }],
-  'GET /api/admin/stories': [...admin, async () => json((await db.list('stories', { limit: 100 })).items)],
-  'POST /api/admin/stories': [...admin, async (ctx) => { const body = (ctx.body ?? {}) as Record<string, unknown>; if (!body.title || !body.excerpt || !body.content) return error('Title, excerpt and story content are required.', 400); const [id] = await db.add('stories', [{ ...body, status: body.status ?? 'draft', createdAt: new Date().toISOString() }]); return json({ id }); }],
-  'PUT /api/admin/stories/:id': [...admin, async (ctx) => { const [existing] = await db.get('stories', [ctx.params.id]); if (!existing) return error('Story not found.', 404); const [ok] = await db.update('stories', [{ id: ctx.params.id, record: { ...existing, ...safe(ctx.body), updatedAt: new Date().toISOString() } }]); return json({ ok }); }],
-  'DELETE /api/admin/stories/:id': [...admin, async (ctx) => { const [existing] = await db.get('stories', [ctx.params.id]); if (!existing) return error('Story not found.', 404); const [ok] = await db.update('stories', [{ id: ctx.params.id, record: { ...existing, status: 'archived', updatedAt: new Date().toISOString() } }]); return json({ ok }); }],
-  'GET /api/admin/announcements': [...admin, async () => json((await db.list('announcements', { limit: 50 })).items)],
-  'POST /api/admin/announcements': [...admin, async (ctx) => { const body = (ctx.body ?? {}) as Record<string, unknown>; if (!body.title || !body.body) return error('Headline and message are required.', 400); if (body.startAt && body.expiresAt && new Date(String(body.expiresAt)) < new Date(String(body.startAt))) return error('Expiry must be after the start date.', 400); const [id] = await db.add('announcements', [{ ...body, status: body.status ?? 'draft', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }]); return json({ id }); }],
-  'DELETE /api/admin/announcements/:id': [...admin, async (ctx) => { const [existing] = await db.get('announcements', [ctx.params.id]); if (!existing) return error('Announcement not found.', 404); const [ok] = await db.update('announcements', [{ id: ctx.params.id, record: { ...existing, status: 'archived', updatedAt: new Date().toISOString() } }]); return json({ ok }); }],
-  'PUT /api/admin/announcements/:id': [...admin, async (ctx) => { const [existing] = await db.get('announcements', [ctx.params.id]); if (!existing) return error('Announcement not found.', 404); const body = (ctx.body ?? {}) as Record<string, unknown>; if (!body.title || !body.body) return error('Headline and message are required.', 400); if (body.startAt && body.expiresAt && new Date(String(body.expiresAt)) < new Date(String(body.startAt))) return error('Expiry must be after the start date.', 400); const [ok] = await db.update('announcements', [{ id: ctx.params.id, record: { ...existing, ...safe(body), updatedAt: new Date().toISOString() } }]); return json({ ok }); }],
-  'GET /api/admin/messages': [...admin, async () => json((await db.list('messages', { limit: 100 })).items)],
-  'PUT /api/admin/messages/:id': [...admin, async (ctx) => { const [existing] = await db.get('messages', [ctx.params.id]); if (!existing) return error('Message not found.', 404); const [ok] = await db.update('messages', [{ id: ctx.params.id, record: { ...existing, ...safe(ctx.body), updatedAt: new Date().toISOString() } }]); return json({ ok }); }],
-  'GET /api/admin/settings': [...admin, async () => { await ensureSeeds(); const rows = await db.list('site_settings', { limit: 5 }); return json(rows.items[0] ?? null); }],
-  'PUT /api/admin/settings': [...admin, async (ctx) => { await ensureSeeds(); const rows = await db.list('site_settings', { limit: 5 }); const existing = rows.items[0]; if (!existing) return error('Site settings not found.', 404); const body = (ctx.body ?? {}) as Record<string, unknown>; const [ok] = await db.update('site_settings', [{ id: existing.id, record: { ...existing, ...safe(body), key: 'global', updatedAt: new Date().toISOString() } }]); return json({ ok }); }],
-  'POST /api/admin/media/upload': [...admin, async (ctx) => { const body = (ctx.body ?? {}) as Record<string, unknown>; const name = String(body.name ?? 'upload.jpg'); const contentType = String(body.contentType ?? 'image/jpeg'); const base64 = String(body.base64 ?? ''); if (!base64 || !ALLOWED_IMAGE_TYPES.includes(contentType)) return error('Please upload a JPG, PNG, WebP or GIF image.', 400); if (base64.length > 8000000) return error('Image is too large. Please upload an image under 6 MB.', 413); const safeName = name.replace(/[^a-zA-Z0-9._-]/g, '-'); const path = `media/uploads/${Date.now()}-${safeName}`; const [written] = await storage.write([{ path, content: base64, contentType }]); if (!written) return error('Image upload failed.', 500); const [id] = await db.add('media', [{ path, caption: String(body.caption ?? ''), eventId: body.eventId ?? null, experience: body.experience ?? null, createdAt: new Date().toISOString() }]); return json({ id, path }); }],
-  'DELETE /api/admin/media/:id': [...admin, async (ctx) => { const [existing] = await db.get('media', [ctx.params.id]); if (!existing) return error('Media not found.', 404); if (existing.path) await storage.delete([String(existing.path)]); const [ok] = await db.delete('media', [ctx.params.id]); return json({ ok }); }],
-  'GET /api/admin/google-photos/config': [...admin, async () => { const clientId = await googleClientId(); return json({ configured: Boolean(clientId), clientId: clientId ?? null, scope: GOOGLE_PHOTOS_SCOPE }); }],
-  'POST /api/admin/google-photos/session': [...admin, async (ctx) => { const body = (ctx.body ?? {}) as { accessToken?: string; eventId?: string; experience?: string; maxItemCount?: number }; if (!body.accessToken) return error('Google Photos authorization is required.', 401); const data = await googleJson('https://photospicker.googleapis.com/v1/sessions', body.accessToken, { method: 'POST', body: JSON.stringify({ pickingConfig: { maxItemCount: String(Math.min(Math.max(body.maxItemCount ?? 30, 1), 100)) } }) }); await db.add('google_photos_picker_sessions', [{ sessionId: data.id, userId: ctx.user!.userId, eventId: body.eventId ?? null, experience: body.experience ?? null, createdAt: new Date().toISOString(), expireTime: data.expireTime ?? null }]); return json({ sessionId: data.id, pickerUri: `${data.pickerUri}/autoclose` }); }],
-  'POST /api/admin/google-photos/session/:sessionId/status': [...admin, async (ctx) => { const body = (ctx.body ?? {}) as { accessToken?: string }; if (!body.accessToken) return error('Google Photos authorization is required.', 401); const data = await googleJson(`https://photospicker.googleapis.com/v1/sessions/${encodeURIComponent(ctx.params.sessionId)}`, body.accessToken); return json({ mediaItemsSet: Boolean(data.mediaItemsSet), expireTime: data.expireTime ?? null }); }],
-  'POST /api/admin/google-photos/import/:sessionId': [...admin, async (ctx) => { const body = (ctx.body ?? {}) as { accessToken?: string }; if (!body.accessToken) return error('Google Photos authorization is required.', 401); const rows = await db.list('google_photos_picker_sessions', { limit: 50 }); const picker = rows.items.find(item => item.sessionId === ctx.params.sessionId && item.userId === ctx.user!.userId); if (!picker) return error('Picker session not found.', 404); const selected = await googleJson(`https://photospicker.googleapis.com/v1/mediaItems?sessionId=${encodeURIComponent(ctx.params.sessionId)}&pageSize=100`, body.accessToken); const photos = (selected.mediaItems ?? []).filter((item: any) => String(item.mediaFile?.mimeType ?? '').startsWith('image/')).slice(0, 100); let imported = 0; for (const item of photos) { if (!item.mediaFile?.baseUrl) continue; const response = await fetch(`${item.mediaFile.baseUrl}=w1000-h1000`, { headers: { Authorization: `Bearer ${body.accessToken}` } }); if (!response.ok) continue; const buffer = new Uint8Array(await response.arrayBuffer()); if (buffer.byteLength > 750000) continue; const mimeType = String(item.mediaFile.mimeType ?? 'image/jpeg'); const extension = mimeType.split('/')[1]?.replace('jpeg', 'jpg') ?? 'jpg'; const path = `media/google-photos/${ctx.params.sessionId}/${item.id}.${extension}`; const [written] = await storage.write([{ path, content: btoa(Array.from(buffer, byte => String.fromCharCode(byte)).join('')), contentType: mimeType }]); if (written) { await db.add('media', [{ path, googleMediaId: item.id, eventId: picker.eventId ?? null, experience: picker.experience ?? null, caption: item.mediaFile.filename ?? '', createdAt: new Date().toISOString() }]); imported += 1; } } await db.delete('google_photos_picker_sessions', [picker.id]); await googleJson(`https://photospicker.googleapis.com/v1/sessions/${encodeURIComponent(ctx.params.sessionId)}`, body.accessToken, { method: 'DELETE', body: '' }).catch(() => undefined); return json({ imported }); }],
+  'GET /api/events/:id': [
+    async ctx => {
+      await ensureSeeds();
+      const [item] = await db.get('events', [ctx.params.id]);
+      if (!item || item.status === 'draft' || item.status === 'archived')
+        return error('Event not found.', 404);
+      const [resolved] = await withMediaUrls([item]);
+      return json(resolved);
+    },
+  ],
+  'GET /api/stories/:id': [
+    async ctx => {
+      await ensureSeeds();
+      const [item] = await db.get('stories', [ctx.params.id]);
+      if (!item || item.status !== 'published')
+        return error('Story not found.', 404);
+      const [resolved] = await withMediaUrls([item]);
+      return json(resolved);
+    },
+  ],
+  'GET /api/experiences/:id': [
+    async ctx => {
+      await ensureSeeds();
+      const [item] = await db.get('experiences', [ctx.params.id]);
+      if (!item || item.status !== 'published')
+        return error('Experience not found.', 404);
+      const [resolved] = await withMediaUrls([item]);
+      return json(resolved);
+    },
+  ],
+  'POST /api/messages': [
+    async ctx => {
+      const body = (ctx.body ?? {}) as Record<string, unknown>;
+      if (body.website) return json({ ok: true }); // honeypot: bots fill hidden fields
+      const clean = (v: unknown, max: number) =>
+        String(v ?? '')
+          .trim()
+          .slice(0, max);
+      const name = clean(body.name, 120);
+      const email = clean(body.email, 200).toLowerCase();
+      const phone = clean(body.phone, 40);
+      const message = clean(body.message, 4000);
+      const type = CONTACT_TYPES.includes(String(body.type))
+        ? String(body.type)
+        : 'General enquiry';
+      if (!name || !email || !message)
+        return error('Name, email and message are required.', 400);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+        return error('Please enter a valid email address.', 400);
+      const recent = await db.list('messages', { limit: 100 });
+      const cutoff = Date.now() - 10 * 60 * 1000;
+      if (
+        recent.items.filter(
+          m => m.email === email && Date.parse(String(m.createdAt)) > cutoff
+        ).length >= 3
+      )
+        return error('Too many messages. Please try again later.', 429);
+      const [id] = await db.add('messages', [
+        {
+          name,
+          email,
+          phone,
+          type,
+          message,
+          status: 'new',
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      return json({ ok: Boolean(id) });
+    },
+  ],
+  'GET /api/media': [
+    ...admin,
+    async () => {
+      const { items } = await db.list('media', { limit: 80 });
+      const paths = items.map(item => item.path as string);
+      const urls = paths.length ? await storage.url(paths) : [];
+      const urlMap = new Map(urls.map(item => [item.path, item.url]));
+      return json({
+        media: items.map(item => ({
+          id: item.id,
+          caption: item.caption,
+          experience: item.experience,
+          eventId: item.eventId,
+          createdAt: item.createdAt,
+          url: urlMap.get(item.path as string) ?? null,
+        })),
+      });
+    },
+  ],
+  'GET /api/admin/status': [
+    ...admin,
+    async () => json({ ok: true, role: 'super_admin' }),
+  ],
+  'GET /api/admin/dashboard': [
+    ...admin,
+    async () => {
+      const [events, stories, announcements, media, messages] =
+        await Promise.all([
+          db.list('events', { limit: 100 }),
+          db.list('stories', { limit: 100 }),
+          db.list('announcements', { limit: 100 }),
+          db.list('media', { limit: 100 }),
+          db.list('messages', { limit: 100 }),
+        ]);
+      return json({
+        metrics: {
+          events: events.items.length,
+          publishedEvents: events.items.filter(x => x.status === 'published')
+            .length,
+          stories: stories.items.length,
+          drafts: [
+            ...events.items,
+            ...stories.items,
+            ...announcements.items,
+          ].filter(x => x.status === 'draft').length,
+          media: media.items.length,
+          newMessages: messages.items.filter(x => x.status === 'new').length,
+          announcements: announcements.items.filter(
+            x => x.status === 'published'
+          ).length,
+        },
+        recentMessages: messages.items.slice(0, 8),
+        recentEvents: events.items.slice(0, 8),
+      });
+    },
+  ],
+  'GET /api/admin/events': [
+    ...admin,
+    async () => json((await db.list('events', { limit: 100 })).items),
+  ],
+  'POST /api/admin/events': [
+    ...admin,
+    async ctx => {
+      const body = (ctx.body ?? {}) as Record<string, unknown>;
+      const [id] = await db.add('events', [
+        {
+          ...body,
+          status: body.status ?? 'draft',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ]);
+      return json({ id });
+    },
+  ],
+  'PUT /api/admin/events/:id': [
+    ...admin,
+    async ctx => {
+      const [existing] = await db.get('events', [ctx.params.id]);
+      if (!existing) return error('Event not found.', 404);
+      const [ok] = await db.update('events', [
+        {
+          id: ctx.params.id,
+          record: {
+            ...existing,
+            ...safe(ctx.body),
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      ]);
+      return json({ ok });
+    },
+  ],
+  'DELETE /api/admin/events/:id': [
+    ...admin,
+    async ctx => {
+      const [existing] = await db.get('events', [ctx.params.id]);
+      if (!existing) return error('Event not found.', 404);
+      const [ok] = await db.update('events', [
+        {
+          id: ctx.params.id,
+          record: {
+            ...existing,
+            status: 'archived',
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      ]);
+      return json({ ok });
+    },
+  ],
+  'GET /api/admin/experiences': [
+    ...admin,
+    async () => json((await db.list('experiences', { limit: 50 })).items),
+  ],
+  'POST /api/admin/experiences': [
+    ...admin,
+    async ctx => {
+      const body = (ctx.body ?? {}) as Record<string, unknown>;
+      if (!body.name || !body.description)
+        return error('Name and description are required.', 400);
+      const [id] = await db.add('experiences', [
+        {
+          ...body,
+          status: body.status ?? 'draft',
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      return json({ id });
+    },
+  ],
+  'DELETE /api/admin/experiences/:id': [
+    ...admin,
+    async ctx => {
+      const [existing] = await db.get('experiences', [ctx.params.id]);
+      if (!existing) return error('Experience not found.', 404);
+      const [ok] = await db.update('experiences', [
+        {
+          id: ctx.params.id,
+          record: {
+            ...existing,
+            status: 'archived',
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      ]);
+      return json({ ok });
+    },
+  ],
+  'PUT /api/admin/experiences/:id': [
+    ...admin,
+    async ctx => {
+      const [existing] = await db.get('experiences', [ctx.params.id]);
+      if (!existing) return error('Experience not found.', 404);
+      const [ok] = await db.update('experiences', [
+        {
+          id: ctx.params.id,
+          record: {
+            ...existing,
+            ...safe(ctx.body),
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      ]);
+      return json({ ok });
+    },
+  ],
+  'GET /api/admin/stories': [
+    ...admin,
+    async () => json((await db.list('stories', { limit: 100 })).items),
+  ],
+  'POST /api/admin/stories': [
+    ...admin,
+    async ctx => {
+      const body = (ctx.body ?? {}) as Record<string, unknown>;
+      if (!body.title || !body.excerpt || !body.content)
+        return error('Title, excerpt and story content are required.', 400);
+      const [id] = await db.add('stories', [
+        {
+          ...body,
+          status: body.status ?? 'draft',
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      return json({ id });
+    },
+  ],
+  'PUT /api/admin/stories/:id': [
+    ...admin,
+    async ctx => {
+      const [existing] = await db.get('stories', [ctx.params.id]);
+      if (!existing) return error('Story not found.', 404);
+      const [ok] = await db.update('stories', [
+        {
+          id: ctx.params.id,
+          record: {
+            ...existing,
+            ...safe(ctx.body),
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      ]);
+      return json({ ok });
+    },
+  ],
+  'DELETE /api/admin/stories/:id': [
+    ...admin,
+    async ctx => {
+      const [existing] = await db.get('stories', [ctx.params.id]);
+      if (!existing) return error('Story not found.', 404);
+      const [ok] = await db.update('stories', [
+        {
+          id: ctx.params.id,
+          record: {
+            ...existing,
+            status: 'archived',
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      ]);
+      return json({ ok });
+    },
+  ],
+  'GET /api/admin/announcements': [
+    ...admin,
+    async () => json((await db.list('announcements', { limit: 50 })).items),
+  ],
+  'POST /api/admin/announcements': [
+    ...admin,
+    async ctx => {
+      const body = (ctx.body ?? {}) as Record<string, unknown>;
+      if (!body.title || !body.body)
+        return error('Headline and message are required.', 400);
+      const [id] = await db.add('announcements', [
+        {
+          ...body,
+          status: body.status ?? 'draft',
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      return json({ id });
+    },
+  ],
+  'DELETE /api/admin/announcements/:id': [
+    ...admin,
+    async ctx => {
+      const [existing] = await db.get('announcements', [ctx.params.id]);
+      if (!existing) return error('Announcement not found.', 404);
+      const [ok] = await db.update('announcements', [
+        {
+          id: ctx.params.id,
+          record: {
+            ...existing,
+            status: 'archived',
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      ]);
+      return json({ ok });
+    },
+  ],
+  'PUT /api/admin/announcements/:id': [
+    ...admin,
+    async ctx => {
+      const [existing] = await db.get('announcements', [ctx.params.id]);
+      if (!existing) return error('Announcement not found.', 404);
+      const [ok] = await db.update('announcements', [
+        {
+          id: ctx.params.id,
+          record: {
+            ...existing,
+            ...safe(ctx.body),
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      ]);
+      return json({ ok });
+    },
+  ],
+  'GET /api/admin/messages': [
+    ...admin,
+    async () => json((await db.list('messages', { limit: 100 })).items),
+  ],
+  'PUT /api/admin/messages/:id': [
+    ...admin,
+    async ctx => {
+      const [existing] = await db.get('messages', [ctx.params.id]);
+      if (!existing) return error('Message not found.', 404);
+      const [ok] = await db.update('messages', [
+        {
+          id: ctx.params.id,
+          record: {
+            ...existing,
+            ...safe(ctx.body),
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      ]);
+      return json({ ok });
+    },
+  ],
+  'GET /api/admin/settings': [
+    ...admin,
+    async () => {
+      await ensureSeeds();
+      const rows = await db.list('site_settings', { limit: 5 });
+      return json(rows.items[0] ?? null);
+    },
+  ],
+  'PUT /api/admin/settings': [
+    ...admin,
+    async ctx => {
+      await ensureSeeds();
+      const rows = await db.list('site_settings', { limit: 5 });
+      const existing = rows.items[0];
+      if (!existing) return error('Site settings not found.', 404);
+      const [ok] = await db.update('site_settings', [
+        {
+          id: existing.id,
+          record: {
+            ...existing,
+            ...safe(ctx.body),
+            key: 'global',
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      ]);
+      return json({ ok });
+    },
+  ],
+  'POST /api/admin/media/upload': [
+    ...admin,
+    async ctx => {
+      const body = (ctx.body ?? {}) as Record<string, unknown>;
+      const name = String(body.name ?? 'upload.jpg');
+      const contentType = String(body.contentType ?? 'image/jpeg');
+      const base64 = String(body.base64 ?? '');
+      if (!base64 || !ALLOWED_IMAGE_TYPES.includes(contentType))
+        return error('Please upload a JPG, PNG, WebP or GIF image.', 400);
+      if (base64.length > 8000000)
+        return error(
+          'Image is too large. Please upload an image under 6 MB.',
+          413
+        );
+      const safeName = name.replace(/[^a-zA-Z0-9._-]/g, '-');
+      const path = `media/uploads/${Date.now()}-${safeName}`;
+      const [written] = await storage.write([
+        { path, content: base64, contentType },
+      ]);
+      if (!written) return error('Image upload failed.', 500);
+      const [id] = await db.add('media', [
+        {
+          path,
+          caption: String(body.caption ?? ''),
+          eventId: body.eventId ?? null,
+          experience: body.experience ?? null,
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      return json({ id, path });
+    },
+  ],
+  'DELETE /api/admin/media/:id': [
+    ...admin,
+    async ctx => {
+      const [existing] = await db.get('media', [ctx.params.id]);
+      if (!existing) return error('Media not found.', 404);
+      if (existing.path) await storage.delete([String(existing.path)]);
+      const [ok] = await db.delete('media', [ctx.params.id]);
+      return json({ ok });
+    },
+  ],
+  'GET /api/admin/google-photos/config': [
+    ...admin,
+    async () => {
+      const clientId = await googleClientId();
+      return json({
+        configured: Boolean(clientId),
+        clientId: clientId ?? null,
+        scope: GOOGLE_PHOTOS_SCOPE,
+      });
+    },
+  ],
+  'POST /api/admin/google-photos/session': [
+    ...admin,
+    async ctx => {
+      const body = (ctx.body ?? {}) as {
+        accessToken?: string;
+        eventId?: string;
+        experience?: string;
+        maxItemCount?: number;
+      };
+      if (!body.accessToken)
+        return error('Google Photos authorization is required.', 401);
+      const data = await googleJson(
+        'https://photospicker.googleapis.com/v1/sessions',
+        body.accessToken,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            pickingConfig: {
+              maxItemCount: String(
+                Math.min(Math.max(body.maxItemCount ?? 30, 1), 100)
+              ),
+            },
+          }),
+        }
+      );
+      await db.add('google_photos_picker_sessions', [
+        {
+          sessionId: data.id,
+          userId: ctx.user!.userId,
+          eventId: body.eventId ?? null,
+          experience: body.experience ?? null,
+          createdAt: new Date().toISOString(),
+          expireTime: data.expireTime ?? null,
+        },
+      ]);
+      return json({
+        sessionId: data.id,
+        pickerUri: `${data.pickerUri}/autoclose`,
+      });
+    },
+  ],
+  'POST /api/admin/google-photos/session/:sessionId/status': [
+    ...admin,
+    async ctx => {
+      const body = (ctx.body ?? {}) as { accessToken?: string };
+      if (!body.accessToken)
+        return error('Google Photos authorization is required.', 401);
+      const data = await googleJson(
+        `https://photospicker.googleapis.com/v1/sessions/${encodeURIComponent(ctx.params.sessionId)}`,
+        body.accessToken
+      );
+      return json({
+        mediaItemsSet: Boolean(data.mediaItemsSet),
+        expireTime: data.expireTime ?? null,
+      });
+    },
+  ],
+  'POST /api/admin/google-photos/import/:sessionId': [
+    ...admin,
+    async ctx => {
+      const body = (ctx.body ?? {}) as { accessToken?: string };
+      if (!body.accessToken)
+        return error('Google Photos authorization is required.', 401);
+      const rows = await db.list('google_photos_picker_sessions', {
+        limit: 50,
+      });
+      const picker = rows.items.find(
+        item =>
+          item.sessionId === ctx.params.sessionId &&
+          item.userId === ctx.user!.userId
+      );
+      if (!picker) return error('Picker session not found.', 404);
+      const selected = await googleJson(
+        `https://photospicker.googleapis.com/v1/mediaItems?sessionId=${encodeURIComponent(ctx.params.sessionId)}&pageSize=100`,
+        body.accessToken
+      );
+      const photos = (selected.mediaItems ?? [])
+        .filter((item: any) =>
+          String(item.mediaFile?.mimeType ?? '').startsWith('image/')
+        )
+        .slice(0, 100);
+      let imported = 0;
+      for (const item of photos) {
+        if (!item.mediaFile?.baseUrl) continue;
+        const response = await fetch(`${item.mediaFile.baseUrl}=w1000-h1000`, {
+          headers: { Authorization: `Bearer ${body.accessToken}` },
+        });
+        if (!response.ok) continue;
+        const buffer = new Uint8Array(await response.arrayBuffer());
+        if (buffer.byteLength > 5 * 1024 * 1024) continue;
+        const mimeType = String(item.mediaFile.mimeType ?? 'image/jpeg');
+        const extension =
+          mimeType.split('/')[1]?.replace('jpeg', 'jpg') ?? 'jpg';
+        const path = `media/google-photos/${ctx.params.sessionId}/${item.id}.${extension}`;
+        const [written] = await storage.write([
+          {
+            path,
+            content: btoa(
+              Array.from(buffer, byte => String.fromCharCode(byte)).join('')
+            ),
+            contentType: mimeType,
+          },
+        ]);
+        if (written) {
+          await db.add('media', [
+            {
+              path,
+              googleMediaId: item.id,
+              eventId: picker.eventId ?? null,
+              experience: picker.experience ?? null,
+              caption: item.mediaFile.filename ?? '',
+              createdAt: new Date().toISOString(),
+            },
+          ]);
+          imported += 1;
+        }
+      }
+      await db.delete('google_photos_picker_sessions', [picker.id]);
+      await googleJson(
+        `https://photospicker.googleapis.com/v1/sessions/${encodeURIComponent(ctx.params.sessionId)}`,
+        body.accessToken,
+        { method: 'DELETE', body: '' }
+      ).catch(() => undefined);
+      return json({ imported });
+    },
+  ],
 });
