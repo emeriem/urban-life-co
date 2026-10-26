@@ -9,7 +9,7 @@ This document records the routes visible in source, their broad purpose, the aut
 ## Middleware and access model
 
 - `admin = [requireAuth(), requireAdminFromSecret]` is applied to routes labelled **Admin** below.
-- `requireAdminFromSecret` checks the signed-in user's email against `ADMIN_EMAILS` from AppDeploy secrets, falling back to an email literal in source if the secret is missing or empty.
+- `requireAdminFromSecret` checks the signed-in user's email against `ADMIN_EMAILS` from AppDeploy secrets. If the secret is missing or empty, the allowlist is empty and admin access is denied (fail closed).
 - Public routes have no explicit auth middleware in this file.
 - This is a single-admin allowlist pattern, not a complete platform/brand role model.
 - No tenant/workspace identifier or systematic tenant scoping was visible in the inspected route handlers. Do not expose this backend to multiple independent brands without designing and testing tenant isolation.
@@ -73,7 +73,7 @@ This document records the routes visible in source, their broad purpose, the aut
 These are source-level observations to verify and address deliberately; they are not claims of exploited vulnerabilities.
 
 1. **Tenant boundary absent:** route handlers read/write shared collections without an active brand/tenant scope. Multi-tenant rollout is blocked until server-side ownership and authorization are implemented.
-2. **Admin allowlist fallback:** a literal email address is embedded in backend source as fallback. Confirm whether this is required by the deployment platform; prefer secret-backed configuration and document safe failure behavior without accidentally locking out the authorized owner.
+2. **Admin allowlist configuration:** source-code fallback email removed; admin access now depends exclusively on the AppDeploy `ADMIN_EMAILS` secret. Verify the secret contains the intended administrator emails and test authorized, unauthorized, missing-secret, and empty-secret cases before release.
 3. **Public message abuse controls:** the contact route has a honeypot and limits recent messages by email after listing a bounded recent set. Validate its effectiveness under concurrent/high-volume requests and consider provider-level throttling or a more robust abuse control.
 4. **Request validation:** several admin create/update handlers accept broad body objects. Add schema validation and explicit allowlisted fields; preserve server-owned identity/timestamp/status rules.
 5. **Media integrity:** upload validates declared MIME type and encoded string length, but source inspection does not establish that the file bytes match the MIME type. Verify size limits and failure cleanup.
