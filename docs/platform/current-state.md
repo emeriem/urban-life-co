@@ -32,7 +32,11 @@ The project has an existing deployed PWA and an in-progress GitHub source-reconc
 
 See [source reconciliation log](source-reconciliation.md) for file-level history.
 
-## Backend documentation added\n\n- [x] Added [backend route and data inventory](backend-route-data-inventory.md) based on static inspection of the reconciliation branch. It includes the visible route catalogue, access middleware, collections/resources, source-level risks, and verification checklist. This is not yet runtime test evidence.\n\n## Prioritized work queue
+## Backend documentation added
+
+- [x] Added [backend route and data inventory](backend-route-data-inventory.md) based on static inspection of the reconciliation branch. It includes the visible route catalogue, access middleware, collections/resources, source-level risks, and verification checklist. This is not yet runtime test evidence.
+
+## Prioritized work queue
 
 ### P0 — Make the repo trustworthy
 - [ ] Recover the exact approved logo asset and verify all referenced static resources.
@@ -44,7 +48,8 @@ See [source reconciliation log](source-reconciliation.md) for file-level history
 - [ ] Ensure PR checks are complete and review PR #12 before merge.
 
 ### P1 — Establish a maintainable engineering baseline
-- [x] Add an initial route-and-data inventory from source inspection.\n- [ ] Verify the route inventory against runtime behavior and extend it with test evidence, schema details, and failure-path results.
+- [x] Add an initial route-and-data inventory from source inspection.
+- [ ] Verify the route inventory against runtime behavior and extend it with test evidence, schema details, and failure-path results.
 - [ ] Document environment variables/secrets by name and purpose only—never values.
 - [ ] Add automated checks for type/build and the most critical regression flows.
 - [ ] Document backup, rollback, deployment verification, and incident response.
