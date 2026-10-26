@@ -1,0 +1,48 @@
+# Source Reconciliation Log
+**Version 0.1 · 26 October 2026**
+
+## Goal
+Bring the GitHub repository into alignment with the current working AppDeploy source without overwriting the production deployment or losing existing capabilities.
+
+## Source-of-truth rules during reconciliation
+- AppDeploy snapshot 1793038200898 is the source reference for the currently deployed application code.
+- AppDeploy is the official deployment and release record.
+- GitHub remains the version-controlled source repository and documentation home.
+- Reconciliation work happens on branch reconcile/appdeploy-source-2026-10-26, not directly on main.
+- No production deployment is part of the source-copy step.
+- Keep local development dependencies and scripts needed for reproducible builds even where AppDeploy's generated package.json differs.
+- Do not copy secrets or OAuth tokens into GitHub.
+- Keep required static resources; verify the logo asset separately rather than replacing it with a placeholder.
+
+## Known drift at start
+| Path | AppDeploy snapshot | GitHub main | Handling |
+|---|---:|---:|---|
+| src/App.tsx | 2,401 lines | 841 lines | Copy snapshot to reconciliation branch; review diff and build |
+| backend/index.ts | 836 lines | 114 lines | Copy snapshot to reconciliation branch; inspect routes and auth |
+| src/index.css | 3,614 lines | 3,088 lines | Copy snapshot to reconciliation branch; review visual changes |
+| index.html | 43 lines | 32 lines | Copy snapshot to reconciliation branch; review metadata and script tags |
+| package.json | 30 lines | 30 lines | Merge intentionally; preserve @appdeploy/client and check:types local tooling |
+| Other source/config files | Not yet compared in detail | Existing files | Compare path-by-path before deciding |
+
+## Safe sequence
+1. Preserve the current production snapshot and record its ID.
+2. Create a dedicated reconciliation branch from GitHub main.
+3. Copy the latest AppDeploy text source files to that branch, preserving required local development tooling and existing assets.
+4. Add the platform roadmap and audit notes under docs/platform/.
+5. Review diffs and run build/type checks where tooling permits.
+6. Create a pull request for review; do not merge automatically.
+7. After reconciliation is reviewed and merged, define the controlled deployment workflow and verify the exact commit before any production release.
+
+## Current status
+- [x] Current AppDeploy snapshot identified.
+- [x] GitHub drift confirmed for key application files.
+- [x] Reconciliation branch created.
+- [ ] Full source and asset inventory compared.
+- [ ] Source files copied and reviewed on the branch.
+- [ ] Build/type checks completed.
+- [ ] Pull request created and reviewed.
+- [ ] GitHub main reconciled.
+- [ ] Controlled deployment from reconciled source verified.
+
+## Safety note
+The reconciliation branch is not automatically safe to deploy merely because it contains a newer AppDeploy snapshot. Build configuration, environment assumptions, secret bindings, asset resources, and runtime behaviour must be checked first.
