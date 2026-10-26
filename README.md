@@ -22,7 +22,8 @@ Urban Life Co. is the parent lifestyle ecosystem for experiences, communities, p
 | Handoff guide | [docs/START-HERE.md](docs/START-HERE.md) |
 | Current status and next actions | [docs/platform/current-state.md](docs/platform/current-state.md) |
 | Platform vision and roadmap | [docs/platform/vision-and-roadmap.md](docs/platform/vision-and-roadmap.md) |
-| Architecture and gap audit | [docs/platform/architecture-gap-audit.md](docs/platform/architecture-gap-audit.md) |\n| Backend route/data inventory | [docs/platform/backend-route-data-inventory.md](docs/platform/backend-route-data-inventory.md) |
+| Architecture and gap audit | [docs/platform/architecture-gap-audit.md](docs/platform/architecture-gap-audit.md) |
+| Backend route/data inventory | [docs/platform/backend-route-data-inventory.md](docs/platform/backend-route-data-inventory.md) |
 | Source reconciliation log | [docs/platform/source-reconciliation.md](docs/platform/source-reconciliation.md) |
 | Contribution and safety workflow | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | AppDeploy dashboard | https://dashboard.appdeploy.ai |
