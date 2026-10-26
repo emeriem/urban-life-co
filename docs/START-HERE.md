@@ -14,8 +14,9 @@ The current application is the starting product, not a disposable prototype. The
 2. [Current state](platform/current-state.md) — what is known, unknown, blocked, and next.
 3. [Source reconciliation log](platform/source-reconciliation.md) — why the current branch exists and what was copied or intentionally preserved.
 4. [Architecture and gap audit](platform/architecture-gap-audit.md) — risks and technical priorities.
-5. [Vision and roadmap](platform/vision-and-roadmap.md) — product direction and phased plan.
-[Contribution guide](../CONTRIBUTING.md) — safe development and release rules.
+5. [Backend route and data inventory](platform/backend-route-data-inventory.md) — endpoints, access model, collections, and source-level follow-ups.
+6. [Vision and roadmap](platform/vision-and-roadmap.md) — product direction and phased plan.
+7. [Contribution guide](../CONTRIBUTING.md) — safe development and release rules.
 
 ## 3. What exists today
 
