@@ -29,11 +29,11 @@ const forbiddenRuntimePatterns = [
 for (const [pattern, label] of forbiddenRuntimePatterns) {
   if (pattern.test(backend)) throw new Error(`Deployment compatibility regression: ${label} detected.`);
 }
-if (!/const ADMIN_EMAILS = \[\s*['"][^'"]+@[^'"]+['"]\s*\]/.test(backend)) {
-  throw new Error('Deployment compatibility regression: AppDeploy requires a literal fallback admin allowlist.');
+if (/const ADMIN_EMAILS\s*=/.test(backend) || /configured\.length\s*\?\s*configured\s*:/.test(backend)) {
+  throw new Error('Admin authorization regression: source-code fallback allowlists are forbidden; access must fail closed without configured secret emails.');
 }
-if (!/configured\.length\s*\?\s*configured\s*:\s*ADMIN_EMAILS/.test(backend)) {
-  throw new Error('Admin allowlist regression: configured ADMIN_EMAILS secret must take precedence over the source fallback.');
+if (!/names\.includes\('ADMIN_EMAILS'\)/.test(backend) || !/return emails;/.test(backend) || !/if \(!email \|\| !emails\.includes\(email\)\)/.test(backend)) {
+  throw new Error('Admin authorization regression: the configured ADMIN_EMAILS secret must be the sole source of allowed administrator emails.');
 }
 if (!/new Uint8Array\(await response\.arrayBuffer\(\)\)/.test(backend) || !/btoa\(/.test(backend)) {
   throw new Error('Google Photos import must use runtime-compatible Uint8Array/base64 conversion.');

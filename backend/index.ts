@@ -2,9 +2,8 @@ import { router, json, error, requireAuth } from '@appdeploy/sdk';
 import { db, secrets, storage } from '@appdeploy/sdk';
 import type { RouterMiddleware } from '@appdeploy/sdk';
 
-// The platform's deployment validator requires an explicit, user-provided admin allowlist.
-// A configured ADMIN_EMAILS app secret takes precedence; the explicit allowlist is the safe fallback.
-const ADMIN_EMAILS = ['njemtrybe@gmail.com'];
+// Admin access is configured only through the AppDeploy ADMIN_EMAILS secret.
+// Fail closed when the secret is absent or empty; never grant access from source code.
 let adminCache: { emails: string[]; at: number } | null = null;
 async function adminEmails(): Promise<string[]> {
   if (adminCache && Date.now() - adminCache.at < 5 * 60 * 1000)
@@ -13,13 +12,10 @@ async function adminEmails(): Promise<string[]> {
   const raw = names.includes('ADMIN_EMAILS')
     ? await secrets.readSecret('ADMIN_EMAILS')
     : '';
-  const configured = String(raw ?? '')
+  const emails = String(raw ?? '')
     .split(',')
     .map(e => e.trim().toLowerCase())
     .filter(Boolean);
-  const emails = configured.length
-    ? configured
-    : ADMIN_EMAILS.map(e => e.toLowerCase());
   adminCache = { emails, at: Date.now() };
   return emails;
 }
