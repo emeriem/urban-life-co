@@ -1,11 +1,28 @@
 {
-  "name": "Urban Life Co.",
+  "name": "Urban Life Co. — Live. Connect. Explore.",
   "short_name": "Urban Life",
-  "description": "Live. Connect. Explore.",
-  "start_url": "./",
+  "description": "Experiences, communities and places to live, connect and explore.",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "background_color": "#f5f3ef",
-  "theme_color": "#111111",
+  "theme_color": "#171a16",
   "orientation": "portrait-primary",
-  "icons": [{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+  "categories": [
+    "lifestyle",
+    "travel",
+    "social"
+  ],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
 }
