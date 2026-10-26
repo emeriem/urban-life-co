@@ -5,7 +5,9 @@ import './index.css';
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=4', { updateViaCache: 'none' }).then(registration => registration.update()).catch(() => undefined);
+    navigator.serviceWorker
+      .register('./sw.js?v=3', { updateViaCache: 'none' })
+      .catch(() => undefined);
   });
 }
 
