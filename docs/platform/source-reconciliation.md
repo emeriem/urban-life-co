@@ -36,14 +36,13 @@ Bring the GitHub repository into alignment with the current working AppDeploy so
 - [x] Preserved the existing GitHub `tests/tests.json` suite pending deliberate review rather than silently replacing it with the smaller snapshot test file.
 - [x] PR #12 merged into `main` as merge commit `3346e6aef032a971613418772e1fc1bb3dbd68fe`.
 - [x] Verified GitHub Actions run #37 for the merge commit: dependency setup, TypeScript check, Vite production build, and static contract checks all passed. [Run details](https://github.com/emeriem/urban-life-co/actions/runs/40405648219).
-- [ ] Resolve the failed Vercel status check.
 - [ ] Recover or add the required logo resource at `public/resources/urban-life-logo.png`.
 - [ ] Verify runtime behavior and define a controlled deployment/rollback workflow.
 
 ## Post-merge verification — 26 October 2026
 - PR #12 is merged and closed. The merge commit is `3346e6aef032a971613418772e1fc1bb3dbd68fe`.
 - AppDeploy reports the existing app as Ready at snapshot `1793038200898`. This does not mean GitHub `main` has been deployed; no deployment was triggered by the merge.
-- The combined status endpoint reports a failed Vercel check for the merge commit. The underlying Vercel target could not be inspected with the available access, so the cause remains unknown.
+- A third-party deployment status was present on the commit, but it is outside the chosen toolchain. GitHub is the source-control/CI system and AppDeploy is the application deployment system; no external deployment platform is required for this project.
 - The repository has `.github/workflows/ci.yml`, configured to run type checks, a Vite build, and static API/contract checks on pushes and pull requests. GitHub Actions run #37 completed successfully on merge commit `3346e6aef032a971613418772e1fc1bb3dbd68fe`; dependency setup, TypeScript checking, Vite production build, and static contract checks all passed. [View run](https://github.com/emeriem/urban-life-co/actions/runs/40405648219). This is not browser/end-to-end test evidence.
 - The required resource `public/resources/urban-life-logo.png` is present in AppDeploy's resource inventory but absent from GitHub `main`. The original binary could not be retrieved through the available GitHub file access. Do not substitute a generated or placeholder logo.
 - AppDeploy logs include a Google Identity script-load warning. Verify user-facing Google sign-in and Photos workflows before treating this as a defect or dismissing it as harmless.
@@ -54,6 +53,12 @@ Bring the GitHub repository into alignment with the current working AppDeploy so
 - The GitHub test suite is intentionally preserved. Its difference from the AppDeploy snapshot's `tests/tests.json` remains to be reviewed.
 - Static contract checks are not browser tests and do not prove end-to-end runtime behavior.
 - No production deployment was triggered during reconciliation or merge.
+
+## Approved toolchain boundary
+- Use GitHub for source control, code review, documentation, and CI.
+- Use AppDeploy for the running app, application resources, secrets, QA/deployment status, and production releases.
+- Do not add, configure, or rely on another deployment, hosting, analytics, or workflow service unless the owner explicitly approves it.
+- This documentation change does not remove third-party integrations from GitHub account/repository settings. The available GitHub connection supports repository content and status reads, but not administration of external app installations or status integrations. No external settings were changed.
 
 ## Safety note
 A source merge is not proof that the merged source is safe to deploy. Build configuration, environment assumptions, secret bindings, resource assets, authorization boundaries, and runtime behavior must be checked first.

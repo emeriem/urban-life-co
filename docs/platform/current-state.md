@@ -17,7 +17,7 @@ The current AppDeploy PWA is reported **Ready** at snapshot `1793038200898`. Sou
 | Live deployment | Ready in latest status check | AppDeploy app ID `urban-life-co-zk9nyq`; snapshot `1793038200898`; QA response reported no frontend or network errors in its snapshot, but a later Google Identity script-load warning exists in logs | Verify current user journeys and logs before release |
 | GitHub reconciliation | Merged | PR #12 merged; merge commit `3346e6aef032a971613418772e1fc1bb3dbd68fe` | Keep `main` as the reviewed code baseline |
 | GitHub Actions CI | Passed on merge commit | Run #37 completed successfully for commit `3346e6aef032a971613418772e1fc1bb3dbd68fe`; dependency setup, TypeScript check, Vite build, and contract checks all passed. [View run](https://github.com/emeriem/urban-life-co/actions/runs/40405648219) | Add browser-level tests and keep CI green |
-| Vercel check | Failed on merge commit at last check | Combined commit status returned a failed Vercel check. The target is not accessible through the current inspection path, so root cause is unknown; do not assume this is harmless or a source build failure | Inspect the Vercel deployment/check details in GitHub or Vercel and determine whether this project should use Vercel at all |
+| External deployment integrations | Out of scope | Urban Life Co. will use GitHub for source control/CI and AppDeploy for application development/deployment. External deployment services are not part of the approved workflow | Keep future work within GitHub and AppDeploy unless explicitly approved otherwise |
 | Local/reproducible build | Unverified | A configured CI workflow is not proof that the merged commit passed it | Confirm the exact merge-commit CI result and fix any failure |
 | Required logo asset | Blocked for GitHub-source reproducibility | AppDeploy resource inventory lists `public/resources/urban-life-logo.png`, but the path is absent from GitHub `main`. Do not fabricate a replacement | Recover the exact approved original and add it through a reviewed change if repository tracking is required |
 | Admin authentication | Implemented in source; full security review pending | Email allowlist exists; it is not a complete roles/tenant permissions model | Review authentication and authorization route-by-route |
@@ -35,7 +35,7 @@ The repository has a GitHub Actions workflow at [`.github/workflows/ci.yml`](../
 
 These checks are useful but have limits: the workflow creates a temporary CI-only shim for the AppDeploy runtime client, and the contract script checks test definitions and source patterns rather than executing browser journeys. A green result would be evidence for those checks only—not proof that the deployed app works end-to-end.
 
-The GitHub Actions workflow passed on merge commit `3346e6aef032a971613418772e1fc1bb3dbd68fe` (run #37). Its successful steps include dependency setup with the CI-only AppDeploy client shim, TypeScript checking, the Vite production build, and static contract checks. This does not establish end-to-end browser behavior. The separate combined status still reports **Vercel: failure** on that commit; its root cause remains unresolved.
+The GitHub Actions workflow passed on merge commit `3346e6aef032a971613418772e1fc1bb3dbd68fe` (run #37). Its successful steps include dependency setup with the CI-only AppDeploy client shim, TypeScript checking, the Vite production build, and static contract checks. This does not establish end-to-end browser behavior. A third-party status check may still appear on GitHub commits, but it is not part of the approved release workflow and must not drive work or deployment decisions.
 
 ## Backend documentation
 
@@ -46,7 +46,6 @@ The GitHub Actions workflow passed on merge commit `3346e6aef032a971613418772e1f
 ## Prioritized work queue
 
 ### P0 — Prove the code baseline
-- [ ] Inspect the failed Vercel check and determine its root cause.
 - [x] Verify the GitHub Actions result for merge commit `3346e6aef032a971613418772e1fc1bb3dbd68fe`; run #37 passed. [Run details](https://github.com/emeriem/urban-life-co/actions/runs/40405648219).
 - [ ] Recover the exact approved logo asset and verify all referenced static resources.
 - [ ] Run or verify dependency installation, TypeScript checks, and production build; document exact versions/results.
@@ -60,7 +59,7 @@ The GitHub Actions workflow passed on merge commit `3346e6aef032a971613418772e1f
 - [x] Configure a GitHub Actions type/build/contract-check workflow.
 - [x] Verify type/build/contract CI on the merged `main` commit.
 - [ ] Add real browser regression tests.
-- [ ] Document backup, rollback, deployment verification, and incident response.
+- [ ] Document backup, rollback, deployment verification, and incident response within the GitHub + AppDeploy workflow.
 - [ ] Define and test the relationship between AppDeploy snapshots and GitHub commits.
 
 ### P2 — Prepare multi-brand architecture
@@ -84,5 +83,5 @@ No production release from GitHub until:
 3. Critical browser smoke tests pass.
 4. Authentication and backend routes have been reviewed.
 5. A known-good rollback point and release verification checklist exist.
-6. The Vercel failure is understood and the intended deployment path is clear.
+6. The release path uses only GitHub for source control/CI and AppDeploy for application deployment; unrelated status integrations are not release gates.
 7. The owner explicitly approves deployment.
