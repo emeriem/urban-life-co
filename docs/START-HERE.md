@@ -15,7 +15,7 @@ The current application is the starting product, not a disposable prototype. The
 3. [Source reconciliation log](platform/source-reconciliation.md) — why the current branch exists and what was copied or intentionally preserved.
 4. [Architecture and gap audit](platform/architecture-gap-audit.md) — risks and technical priorities.
 5. [Vision and roadmap](platform/vision-and-roadmap.md) — product direction and phased plan.
-6. [Contribution guide](../CONTRIBUTING.md) — safe development and release rules.
+[Contribution guide](../CONTRIBUTING.md) — safe development and release rules.
 
 ## 3. What exists today
 
