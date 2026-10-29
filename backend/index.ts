@@ -997,8 +997,7 @@ export const handler = router({
         const buffer = new Uint8Array(await response.arrayBuffer());
         if (buffer.byteLength > 5 * 1024 * 1024) continue;
         const content = btoa(
-          Array.from(buffer, byte => String.fromCharCode(byte)).join('')
-        );
+          Array.from(buffer, byte => String.fromCharCode(byte)).join('')        );
         const mimeType = sniffImageType(content);
         if (!mimeType) continue;
         const extension =
