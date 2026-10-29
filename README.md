@@ -1,6 +1,6 @@
 # Urban Life Co.
 
-Urban Life Co. is the parent lifestyle ecosystem for experiences that help people **Live. Connect. Explore.**
+Urban Life Co. is the parent lifestyle ecosystem for experiences that help people "Live. Connect. Explore".
 
 ## Project
 
