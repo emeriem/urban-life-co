@@ -39,6 +39,26 @@ if (!/new Uint8Array\(await response\.arrayBuffer\(\)\)/.test(backend) || !/btoa
   throw new Error('Google Photos import must use runtime-compatible Uint8Array/base64 conversion.');
 }
 
+const requiredHardeningContracts = [
+  [/const EVENT_FIELDS = \[/, 'event write allowlist'],
+  [/const EXPERIENCE_FIELDS = \[/, 'experience write allowlist'],
+  [/const STORY_FIELDS = \[/, 'journal write allowlist'],
+  [/const ANNOUNCEMENT_FIELDS = \[/, 'announcement write allowlist'],
+  [/const MESSAGE_FIELDS = \['status'\]/, 'message status allowlist'],
+  [/const SETTINGS_FIELDS = \[/, 'site settings write allowlist'],
+  [/function validatePayload\(/, 'server-side payload validation'],
+  [/Capacity must be a whole number/, 'integer event capacity validation'],
+  [/must be an http\(s\) URL or a site-relative path/, 'strict URL validation'],
+  [/function sniffImageType\(/, 'image signature inspection'],
+  [/sniffImageType\(base64\) !== contentType/, 'upload MIME/signature matching'],
+  [/const mimeType = sniffImageType\(content\)/, 'Google Photos image signature validation'],
+  [/ownsPickerSession\(ctx\.params\.sessionId, ctx\.user!\.userId\)/, 'Google Photos polling ownership check'],
+  [/item\.userId === ctx\.user!\.userId/, 'Google Photos import ownership check'],
+];
+for (const [pattern, label] of requiredHardeningContracts) {
+  if (!pattern.test(backend)) throw new Error(`Missing CMS security contract: ${label}.`);
+}
+
 const routes = [...backend.matchAll(/['"](GET|POST|PUT|PATCH|DELETE)\s+([^'"]+)['"]\s*:/g)]
   .map(match => ({ method: match[1], path: normalizePath(match[2]) }));
 const calls = [...frontend.matchAll(/\bapi\.(get|post|put|patch|delete)\(\s*(['"`])([\s\S]*?)\2/g)]
