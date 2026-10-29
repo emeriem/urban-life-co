@@ -497,8 +497,7 @@ function App() {
       {page === 'about' && (
         <PageIntro
           eyebrow="OUR STORY"
-          title="A life lived together."
-          copy="Urban Life Co. exists to create spaces and experiences where people can live, connect and explore. We are building a modern lifestyle ecosystem from Enugu, Nigeria, with a long view toward communities across Africa."
+          title="A life lived together."          copy="Urban Life Co. exists to create spaces and experiences where people can live, connect and explore. We are building a modern lifestyle ecosystem from Enugu, Nigeria, with a long view toward communities across Africa."
         />
       )}
       {page === 'experiences' && (
@@ -997,8 +996,7 @@ function ExperienceShowcase({
   return (
     <section className="ecosystem-section modern-experiences">
       <div className="section-head ecosystem-head">
-        <div>
-          <p className="eyebrow">02 / FIND YOUR PEOPLE</p>
+        <div>          <p className="eyebrow">02 / FIND YOUR PEOPLE</p>
           <h2>Different ways to live more.</h2>
           <p className="modern-section-subtitle">One ecosystem. Many ways to belong.</p>
         </div>
@@ -1497,8 +1495,7 @@ function EventsManager({
           </select>
         </label>
         <label className="full">
-          Description
-          <textarea
+          Description          <textarea
             rows={4}
             value={form.description ?? ''}
             onChange={e => setForm({ ...form, description: e.target.value })}
@@ -1997,8 +1994,7 @@ function MediaManager({
         }}
       />
       <div className="cms-panel" style={{ marginTop: 18 }}>
-        <h3>Direct image upload</h3>
-        <p>
+        <h3>Direct image upload</h3>        <p>
           Upload a cover, gallery or campaign image directly into the Urban Life
           media library.
         </p>
