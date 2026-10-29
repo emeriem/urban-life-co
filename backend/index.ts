@@ -133,6 +133,34 @@ function pick(body: unknown, fields: string[]) {
   }
   return out;
 }
+function validatePayload(body: unknown, fields: string[]): string | null {
+  if (!body || typeof body !== 'object' || Array.isArray(body))
+    return 'Request body must be an object.';
+  const source = body as Record<string, unknown>;
+  for (const key of fields) {
+    if (!(key in source) || source[key] === undefined) continue;
+    const value = source[key];
+    if (key === 'capacity') {
+      if (value === '' || value === null) continue;
+      const n = typeof value === 'number' ? value : Number(value);
+      if (!Number.isFinite(n) || !Number.isInteger(n) || n < 0 || n > 100000)
+        return 'Capacity must be a whole number between 0 and 100000.';
+      continue;
+    }
+    if (['featured'].includes(key) && typeof value !== 'boolean')
+      return `${key} must be true or false.`;
+    if (value === null) continue;
+    if (typeof value !== 'string')
+      return `${key} must be text.`;
+    if (URL_FIELDS.includes(key) && !isSafeUrl(value.trim()))
+      return `${key} must be an http(s) URL or a site-relative path.`;
+    if (key === 'priority' && !['normal', 'high'].includes(value))
+      return 'Priority must be normal or high.';
+    if (['startAt', 'expiresAt'].includes(key) && value && !Number.isFinite(Date.parse(value)))
+      return `${key} must be a valid date and time.`;
+  }
+  return null;
+}
 function validStatus(data: Record<string, unknown>, allowed: string[]) {
   return data.status === undefined || allowed.includes(String(data.status));
 }
@@ -499,6 +527,8 @@ export const handler = router({
   'POST /api/admin/events': [
     ...admin,
     async ctx => {
+      const validationError = validatePayload(ctx.body, EVENT_FIELDS);
+      if (validationError) return error(validationError, 400);
       const body = pick(ctx.body, EVENT_FIELDS);
       if (!validStatus(body, EVENT_STATUSES))
         return error('Invalid status.', 400);
@@ -518,6 +548,8 @@ export const handler = router({
     async ctx => {
       const [existing] = await db.get('events', [ctx.params.id]);
       if (!existing) return error('Event not found.', 404);
+      const validationError = validatePayload(ctx.body, EVENT_FIELDS);
+      if (validationError) return error(validationError, 400);
       const clean = pick(ctx.body, EVENT_FIELDS);
       if (!validStatus(clean, EVENT_STATUSES))
         return error('Invalid status.', 400);
@@ -559,6 +591,8 @@ export const handler = router({
   'POST /api/admin/experiences': [
     ...admin,
     async ctx => {
+      const validationError = validatePayload(ctx.body, EXPERIENCE_FIELDS);
+      if (validationError) return error(validationError, 400);
       const body = pick(ctx.body, EXPERIENCE_FIELDS);
       if (!validStatus(body, CONTENT_STATUSES))
         return error('Invalid status.', 400);
@@ -596,6 +630,8 @@ export const handler = router({
     ...admin,
     async ctx => {
       const [existing] = await db.get('experiences', [ctx.params.id]);      if (!existing) return error('Experience not found.', 404);
+      const validationError = validatePayload(ctx.body, EXPERIENCE_FIELDS);
+      if (validationError) return error(validationError, 400);
       const clean = pick(ctx.body, EXPERIENCE_FIELDS);
       if (!validStatus(clean, CONTENT_STATUSES))
         return error('Invalid status.', 400);
@@ -619,6 +655,8 @@ export const handler = router({
   'POST /api/admin/stories': [
     ...admin,
     async ctx => {
+      const validationError = validatePayload(ctx.body, STORY_FIELDS);
+      if (validationError) return error(validationError, 400);
       const body = pick(ctx.body, STORY_FIELDS);
       if (!validStatus(body, CONTENT_STATUSES))
         return error('Invalid status.', 400);
@@ -639,6 +677,8 @@ export const handler = router({
     async ctx => {
       const [existing] = await db.get('stories', [ctx.params.id]);
       if (!existing) return error('Story not found.', 404);
+      const validationError = validatePayload(ctx.body, STORY_FIELDS);
+      if (validationError) return error(validationError, 400);
       const clean = pick(ctx.body, STORY_FIELDS);
       if (!validStatus(clean, CONTENT_STATUSES))
         return error('Invalid status.', 400);
@@ -680,6 +720,8 @@ export const handler = router({
   'POST /api/admin/announcements': [
     ...admin,
     async ctx => {
+      const validationError = validatePayload(ctx.body, ANNOUNCEMENT_FIELDS);
+      if (validationError) return error(validationError, 400);
       const body = pick(ctx.body, ANNOUNCEMENT_FIELDS);
       if (!validStatus(body, CONTENT_STATUSES))
         return error('Invalid status.', 400);
@@ -718,6 +760,8 @@ export const handler = router({
     async ctx => {
       const [existing] = await db.get('announcements', [ctx.params.id]);
       if (!existing) return error('Announcement not found.', 404);
+      const validationError = validatePayload(ctx.body, ANNOUNCEMENT_FIELDS);
+      if (validationError) return error(validationError, 400);
       const clean = pick(ctx.body, ANNOUNCEMENT_FIELDS);
       if (!validStatus(clean, CONTENT_STATUSES))
         return error('Invalid status.', 400);
@@ -743,6 +787,8 @@ export const handler = router({
     async ctx => {
       const [existing] = await db.get('messages', [ctx.params.id]);
       if (!existing) return error('Message not found.', 404);
+      const validationError = validatePayload(ctx.body, MESSAGE_FIELDS);
+      if (validationError) return error(validationError, 400);
       const clean = pick(ctx.body, MESSAGE_FIELDS);
       if (!validStatus(clean, MESSAGE_STATUSES))
         return error('Invalid status.', 400);
@@ -770,6 +816,8 @@ export const handler = router({
   'PUT /api/admin/settings': [
     ...admin,
     async ctx => {
+      const validationError = validatePayload(ctx.body, SETTINGS_FIELDS);
+      if (validationError) return error(validationError, 400);
       await ensureSeeds();
       const rows = await db.list('site_settings', { limit: 5 });
       const existing = rows.items[0];
@@ -802,7 +850,8 @@ export const handler = router({
           413
         );
       if (
-        !/^[A-Za-z0-9+/]+={0,2}$/.test(base64) ||
+        !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(base64) ||
+        base64.length % 4 !== 0 ||
         sniffImageType(base64) !== contentType
       )
         return error('That file is not a valid image of the declared type.', 400);
