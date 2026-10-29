@@ -98,11 +98,18 @@ const URL_FIELDS = ['image', 'coverImage', 'registrationLink', 'website', 'socia
 const LONG_FIELDS = ['content'];
 const MEDIUM_FIELDS = ['description', 'body', 'excerpt', 'heroCopy', 'communityCopy'];
 function isSafeUrl(value: string) {
-  return (
-    value === '' ||
-    /^https?:\/\//i.test(value) ||
-    (value.startsWith('/') && !value.startsWith('//'))
-  );
+  if (value === '') return true;
+  if (value.startsWith('/') && !value.startsWith('//') && !value.startsWith('/\\\\'))
+    return true;
+  try {
+    const parsed = new URL(value);
+    return (
+      (parsed.protocol === 'http:' || parsed.protocol === 'https:') &&
+      Boolean(parsed.hostname)
+    );
+  } catch {
+    return false;
+  }
 }
 function pick(body: unknown, fields: string[]) {
   const source = (body ?? {}) as Record<string, unknown>;
@@ -865,7 +872,7 @@ export const handler = router({
       const [id] = await db.add('media', [
         {
           path,
-          caption: String(body.caption ?? ''),
+          caption: String(body.caption ?? '').slice(0, 2000),
           eventId: body.eventId ?? null,
           experience: body.experience ?? null,
           createdAt: new Date().toISOString(),
@@ -961,7 +968,7 @@ export const handler = router({
       if (!body.accessToken)
         return error('Google Photos authorization is required.', 401);
       const rows = await db.list('google_photos_picker_sessions', {
-        limit: 50,
+        limit: 100,
       });
       const picker = rows.items.find(
         item =>
@@ -969,6 +976,8 @@ export const handler = router({
           item.userId === ctx.user!.userId
       );
       if (!picker) return error('Picker session not found.', 404);
+      if (picker.expireTime && Date.parse(String(picker.expireTime)) <= Date.now())
+        return error('Picker session has expired. Start a new selection.', 410);
       const selected = await googleJson(
         `https://photospicker.googleapis.com/v1/mediaItems?sessionId=${encodeURIComponent(ctx.params.sessionId)}&pageSize=100`,
         body.accessToken
@@ -1005,7 +1014,7 @@ export const handler = router({
               googleMediaId: item.id,
               eventId: picker.eventId ?? null,
               experience: picker.experience ?? null,
-              caption: item.mediaFile.filename ?? '',
+              caption: String(item.mediaFile.filename ?? '').slice(0, 2000),
               createdAt: new Date().toISOString(),
             },
           ]);
