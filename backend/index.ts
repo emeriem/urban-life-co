@@ -99,7 +99,7 @@ const LONG_FIELDS = ['content'];
 const MEDIUM_FIELDS = ['description', 'body', 'excerpt', 'heroCopy', 'communityCopy'];
 function isSafeUrl(value: string) {
   if (value === '') return true;
-  if (value.startsWith('/') && !value.startsWith('//') && !value.startsWith('/\\\\'))
+  if (value.startsWith('/') && !value.startsWith('//') && !value.startsWith('/\\'))
     return true;
   try {
     const parsed = new URL(value);
