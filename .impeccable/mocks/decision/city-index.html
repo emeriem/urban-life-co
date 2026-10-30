@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The City Index</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #f3f1e9; color: #101820; font-family: Arial, sans-serif; }
+      .page { min-height: 100vh; padding: 34px 7vw 46px; }
+      nav { display: flex; align-items: center; justify-content: space-between; min-height: 54px; border-bottom: 1px solid #101820; font-size: 12px; font-weight: 700; letter-spacing: .13em; }
+      .links { display: flex; align-items: center; gap: 28px; }
+      .links span:last-child { padding: 13px 18px; background: #101820; color: #d8ff3e; }
+      .eyebrow { margin: 36px 0 20px; font-size: 12px; font-weight: 800; letter-spacing: .18em; }
+      .hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: 5vw; align-items: center; }
+      h1 { max-width: 680px; margin: 0; font-size: clamp(74px, 9.5vw, 138px); line-height: .8; letter-spacing: -.095em; font-weight: 900; }
+      h1 span { color: #3366ff; }
+      .copy { max-width: 470px; margin: 30px 0; color: #47515a; font-size: 19px; line-height: 1.55; }
+      .search { display: flex; max-width: 530px; border: 1px solid #101820; background: white; }
+      .search div { flex: 1; padding: 17px; color: #66717a; }
+      .search b { padding: 17px 19px; background: #d8ff3e; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+      .index { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; background: #101820; transform: rotate(1deg); }
+      .tile { display: flex; min-height: 210px; flex-direction: column; justify-content: space-between; padding: 24px; background: #d8ff3e; }
+      .tile:nth-child(2) { background: #3366ff; color: white; }
+      .tile:nth-child(3) { background: #101820; color: white; }
+      .tile:nth-child(4) { background: #f05b43; color: white; }
+      .tile small { font-size: 11px; font-weight: 700; letter-spacing: .15em; }
+      .tile strong { font-size: clamp(26px, 3vw, 41px); line-height: .95; letter-spacing: -.06em; }
+      .foot { display: flex; justify-content: space-between; margin-top: 46px; padding-top: 18px; border-top: 1px solid #101820; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+      @media (max-width: 760px) { .page { padding: 24px; } .links { display: none; } .hero { grid-template-columns: 1fr; padding: 42px 0; } h1 { font-size: 76px; } .tile { min-height: 150px; padding: 16px; } .foot { gap: 16px; flex-wrap: wrap; } }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <nav><span>URBAN LIFE CO.</span><div class="links"><span>Experiences</span><span>Journal</span><span>Community</span><span>Events ↗</span></div></nav>
+      <p class="eyebrow">A CITY INDEX FOR LIFE IN MOTION · ENUGU, NIGERIA</p>
+      <section class="hero">
+        <div>
+          <h1>Find your <span>next.</span></h1>
+          <p class="copy">A clear route into the experiences, people, and places that make life feel bigger.</p>
+          <div class="search"><div>Search events, places or experiences</div><b>Find an event ↗</b></div>
+        </div>
+        <div class="index"><article class="tile"><small>01 / OUTDOORS</small><strong>Urban Hikers</strong></article><article class="tile"><small>02 / WELLNESS</small><strong>Move well.</strong></article><article class="tile"><small>03 / COMMUNITY</small><strong>Urban Connect</strong></article><article class="tile"><small>04 / CULTURE</small><strong>Go further.</strong></article></div>
+      </section>
+      <div class="foot"><span>Live · Connect · Explore</span><span>One ecosystem. Many ways to belong.</span></div>
+    </main>
+  </body>
+</html>

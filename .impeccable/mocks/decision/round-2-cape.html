@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Drawcord Silhouette</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 34px 7vw; background: #111; color: #f0eee8; font-family: Arial, sans-serif; }
+      nav { display: flex; justify-content: space-between; padding-bottom: 20px; border-bottom: 1px solid #737373; font-size: 12px; letter-spacing: .14em; }
+      .hero { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 4vw; min-height: 680px; }
+      h1 { font-size: clamp(72px, 9vw, 126px); line-height: .82; letter-spacing: -.09em; }
+      p { max-width: 440px; color: #c4c0b9; font-size: 18px; line-height: 1.6; }
+      .shape { position: relative; height: 480px; background: #191919; }
+      .cloth { position: absolute; inset: 9% 5%; background: linear-gradient(120deg, #34363b 0 35%, #151515 36% 55%, #50545a 56%); clip-path: polygon(50% 0, 100% 25%, 83% 100%, 17% 100%, 0 25%); }
+      .cord { position: absolute; left: 49%; top: 8%; width: 5px; height: 82%; background: #d5a74a; transform: rotate(9deg); }
+      .label { position: absolute; left: 10%; bottom: 7%; padding: 14px; background: #111; color: #d5a74a; font-weight: 800; letter-spacing: .13em; }
+      .action { display: inline-block; margin-top: 26px; padding: 15px 20px; background: #d5a74a; color: #111; font-weight: 800; }
+      @media (max-width: 760px) { body { padding: 24px; } .hero { grid-template-columns: 1fr; } h1 { font-size: 74px; } .shape { height: 330px; } }
+    </style>
+  </head>
+  <body>
+    <nav><span>URBAN LIFE CO.</span><span>LIVE · CONNECT · EXPLORE</span></nav>
+    <section class="hero"><div><p>ONE SURFACE · MANY SHAPES</p><h1>Make room for life.</h1><p>A continuous canvas gathers movement, connection, and discovery into one silhouette.</p><span class="action">Find an experience ↗</span></div><div class="shape"><div class="cloth"></div><i class="cord"></i><span class="label">URBAN LIFE / 01</span></div></section>
+  </body>
+</html>

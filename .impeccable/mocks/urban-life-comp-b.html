@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Urban Life Co. — Gathered Field</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root { color-scheme: dark; font-family: "DM Sans", sans-serif; background: #111213; color: #f0eee8; font-synthesis: none; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-width: 320px; background: #111213; }
+      a { color: inherit; text-decoration: none; }
+      button, input { font: inherit; }
+      button { cursor: pointer; }
+      .site { overflow: hidden; max-width: 1600px; margin: auto; }
+      header { height: 86px; padding: 0 6.5%; display: flex; align-items: center; justify-content: space-between; position: absolute; inset: 0 0 auto; z-index: 3; border-bottom: 1px solid #ffffff26; }
+      .brand { font-size: 13px; font-weight: 700; letter-spacing: .2em; display: flex; align-items: center; gap: 11px; }
+      .mark { display: grid; place-items: center; width: 25px; height: 25px; border: 1px solid #d5b36c; color: #d5b36c; border-radius: 50%; font: 12px Georgia, serif; }
+      nav { display: flex; gap: 35px; align-items: center; font-size: 12px; color: #dad6cd; }
+      .nav-action { border: 1px solid #d5b36c; padding: 11px 16px; color: #e1c47f; }
+      .field { min-height: 790px; position: relative; isolation: isolate; overflow: hidden; background: radial-gradient(ellipse at 65% 35%, #484b4e 0, #27292b 23%, #141516 57%, #101112 83%); }
+      .field:before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: .7; background: repeating-linear-gradient(115deg, transparent 0 8%, #ffffff08 8.2% 8.5%, transparent 9% 15%), linear-gradient(95deg, #101112 6%, transparent 58%, #08090a 95%); }
+      .drape { position: absolute; z-index: -1; left: 31%; top: 8%; width: 89%; height: 98%; background: linear-gradient(103deg, #171819 0 12%, #393c3f 16%, #1d1e20 27%, #55585b 39%, #1a1b1d 50%, #303236 64%, #111213 80%); clip-path: polygon(24% 0, 58% 0, 100% 24%, 98% 79%, 65% 100%, 11% 91%, 0 67%, 15% 28%); filter: drop-shadow(-22px 18px 34px #0009); }
+      .drape:before { content: ""; position: absolute; inset: 0; background: linear-gradient(96deg, transparent 0 24%, #0009 25% 27%, #ffffff14 35%, transparent 39% 47%, #000a 48% 50%, #ffffff18 57%, transparent 65% 71%, #0009 72% 75%, transparent 83%); }
+      .drape:after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(175deg, transparent 0 15%, #ffffff09 15.1% 15.35%, transparent 15.5% 23%); }
+      .cord { position: absolute; z-index: 1; left: 69%; top: 7%; width: 2px; height: 66%; background: linear-gradient(#f0d48f, #a27a36); transform: rotate(-7deg); }
+      .cord:after { content: ""; position: absolute; bottom: -6px; left: -5px; width: 12px; height: 12px; border: 2px solid #d3ad60; border-radius: 50%; background: #171819; }
+      .copy { position: relative; z-index: 2; width: min(530px, 47%); padding: 204px 0 160px 10%; }
+      h1 { margin: 0; font: 600 clamp(68px, 8.5vw, 122px)/.87 "Manrope", sans-serif; letter-spacing: -.085em; }
+      h1 span { display: block; color: #d3ad60; }
+      .intro { max-width: 370px; color: #d0cdc5; line-height: 1.65; font-size: 15px; margin: 22px 0 25px; }
+      .search { display: flex; width: min(530px, 76vw); min-height: 61px; background: #171819ee; border: 1px solid #c5a65f88; }
+      .search input { flex: 1; min-width: 0; background: transparent; color: white; border: 0; padding: 0 17px; outline: none; }
+      .search input::placeholder { color: #b6b2a9; }
+      .search button { border: 0; color: #141414; background: #d1ad65; padding: 0 22px; font-size: 12px; font-weight: 700; }
+      .state { font-size: 11px; color: #c1bdb5; margin: 12px 0 0; }
+      .state strong { color: #f0ebe1; font-weight: 500; }
+      .current { position: absolute; z-index: 2; right: 7%; bottom: 7%; width: 285px; background: #111213; border: 1px solid #ffffff46; box-shadow: 0 16px 38px #0008; }
+      .current img { display: block; width: 100%; height: 132px; object-fit: cover; }
+      .current-copy { padding: 13px 15px 15px; }
+      .current small { color: #d5b56d; letter-spacing: .14em; font-size: 8px; text-transform: uppercase; }
+      .current p { margin: 7px 0 0; color: #f0eee8; font: 500 14px/1.35 "Manrope", sans-serif; }
+      .current span { display: block; color: #c1bdb5; font-size: 10px; margin-top: 6px; }
+      .next { min-height: 205px; padding: 38px 7%; display: grid; grid-template-columns: 1.1fr 1fr 1fr; align-items: center; gap: 35px; border-top: 1px solid #ffffff26; }
+      .next h2 { margin: 0; font: 500 27px "Manrope", sans-serif; letter-spacing: -.05em; }
+      .next p { color: #b7b3ab; font-size: 12px; line-height: 1.65; margin: 0; }
+      .archive { border-left: 1px solid #d1ad65; padding-left: 16px; }
+      @media (max-width: 760px) {
+        header { height: 70px; padding: 0 22px; } nav { gap: 0; } nav a:not(.nav-action) { display: none; } .nav-action { padding: 10px 12px; font-size: 11px; }
+        .field { min-height: 930px; } .drape { left: 9%; top: 27%; width: 125%; height: 75%; } .cord { left: 66%; top: 25%; height: 43%; }
+        .copy { width: 100%; padding: 140px 24px 355px; } h1 { font-size: clamp(56px, 15vw, 78px); } .intro { max-width: 330px; }
+        .search { width: 100%; } .search button { padding: 0 13px; } .current { right: 24px; bottom: 28px; width: 205px; }
+        .current img { height: 96px; } .next { padding: 29px 24px; grid-template-columns: 1fr; gap: 15px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="site">
+      <header>
+        <a class="brand" href="#"><span class="mark">U</span> URBAN LIFE CO.</a>
+        <nav aria-label="Main navigation"><a href="#">Experiences</a><a href="#">Journal</a><a href="#">Community</a><a class="nav-action" href="#">Discover ↗</a></nav>
+      </header>
+      <section class="field">
+        <div class="drape" aria-hidden="true"></div><i class="cord" aria-hidden="true"></i>
+        <div class="copy">
+          <h1>Make room<br />for <span>life.</span></h1>
+          <p class="intro">Find your people in experiences made for movement, connection and discovery — rooted in Enugu.</p>
+          <form class="search" onsubmit="event.preventDefault();document.querySelector('#state').textContent='No upcoming events match yet. Browse the archive below.'">
+            <input aria-label="Search events, communities or places" placeholder="Search events" />
+            <button type="submit">Explore events</button>
+          </form>
+          <p class="state" id="state"><strong>No upcoming events at the moment.</strong> New experiences will appear here.</p>
+        </div>
+        <aside class="current"><img src="https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&amp;fit=crop&amp;w=700&amp;q=80" alt="A group outdoors during a community activity" /><div class="current-copy"><small>FROM THE ARCHIVE · 12 SEP 2026</small><p>Urban Hikers × Eastern United</p><span>Ngwo Park · Free</span></div></aside>
+      </section>
+      <section class="next">
+        <h2>Find your people on the trail.</h2>
+        <p>A return to the trail: movement, exploration and community. Browse the archive for more from Urban Hikers.</p>
+        <p class="archive">From the archive<br />Urban Hikers — Reactivation Hike<br />Urban Hangout · Enugu</p>
+      </section>
+    </main>
+  </body>
+</html>

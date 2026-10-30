@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  ArrowLeft,
+  ArrowRight,
   CalendarDays,
   ChevronRight,
   Compass,
@@ -7,6 +9,8 @@ import {
   Menu,
   Megaphone,
   Mountain,
+  Pause,
+  Play,
   Search,
   Sparkles,
   X,
@@ -25,11 +29,12 @@ type EventItem = {
   location: string;
   category: string;
   status: string;
-  price: string;
+  price?: string;
   description: string;
   image: string;
   experience?: string;
   registrationLink?: string;
+  registrationLabel?: string;
   capacity?: number;
 };
 type ExperienceItem = {
@@ -166,6 +171,48 @@ const fallbackEvents: EventItem[] = [
     image:
       'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=1400&q=80',
   },
+  {
+    id: 'urban-fitness-walk-2026',
+    title: 'Urban Fitness Walk',
+    date: '2026-10-31',
+    time: '8:00 AM',
+    location: 'Okpara Square, Enugu',
+    category: 'Fitness & wellness',
+    status: 'published',
+    description:
+      'A brisk-walk challenge open to all levels. The target is 10 km or more in two hours.',
+    image: '/events/urban-fitness-walk-poster.jpg',
+    experience: 'Urban Fitness',
+    registrationLink: 'https://www.instagram.com/theurbanfitnessclub/',
+    registrationLabel: 'Get event details',
+  },
+];
+const fallbackExperiences: ExperienceItem[] = [
+  {
+    id: 'urban-hikers',
+    name: 'Urban Hikers',
+    description:
+      'Find the trail, take the long way up and meet a community that makes every step feel shared.',
+    category: 'Outdoor lifestyle',
+    coverImage: '/events/urban-hikers-hillside-group.jpg',
+    socialLink: 'https://www.instagram.com/urbanhikersng/',
+  },
+  {
+    id: 'urban-fitness',
+    name: 'Urban Fitness',
+    description:
+      'Move together through approachable fitness experiences, outdoor challenges and shared momentum.',
+    category: 'Fitness & wellness',
+    coverImage: '/events/urban-fitness-walk-poster.jpg',
+    socialLink: 'https://www.instagram.com/theurbanfitnessclub/',
+  },
+  {
+    id: 'urban-connect',
+    name: 'Urban Connect',
+    description:
+      'Make room for new friendships, useful connections and more ways to belong.',
+    category: 'Community',
+  },
 ];
 const fallbackStories: Story[] = [
   {
@@ -175,6 +222,7 @@ const fallbackStories: Story[] = [
     date: '2026-08-28',
     excerpt:
       'Why the trail is only the beginning of what Urban Hikers is building.',
+    coverImage: '/events/urban-hikers-community.jpg',
   },
   {
     id: 's2',
@@ -182,6 +230,7 @@ const fallbackStories: Story[] = [
     category: 'Urban Life Co.',
     date: '2026-08-20',
     excerpt: 'The three ideas at the centre of every experience we create.',
+    coverImage: '/events/urban-hikers-trail-pair.jpg',
   },
   {
     id: 's3',
@@ -189,6 +238,79 @@ const fallbackStories: Story[] = [
     category: 'Journal',
     date: '2026-08-10',
     excerpt: 'A growing archive of places, people and experiences.',
+    coverImage: '/events/urban-hikers-enugu-view.jpg',
+  },
+];
+
+const fieldMoments = [
+  {
+    src: '/events/urban-hikers-trail-walk.jpg',
+    alt: 'Urban Hikers walking together along a trail',
+    caption: 'Find your pace',
+  },
+  {
+    src: '/events/urban-hikers-enugu-view.jpg',
+    alt: 'Hikers taking in a view across the city',
+    caption: 'Take in the view',
+  },
+  {
+    src: '/events/urban-hikers-summit-group.jpg',
+    alt: 'Urban Hikers celebrating together at the summit',
+    caption: 'Make it to the top',
+  },
+  {
+    src: '/events/urban-hikers-trail-pair.jpg',
+    alt: 'Two hikers standing together at a scenic overlook',
+    caption: 'Bring a friend',
+  },
+  {
+    src: '/events/urban-hikers-hillside-group.jpg',
+    alt: 'A group of hikers resting on a green hillside',
+    caption: 'Pause along the way',
+  },
+  {
+    src: '/events/urban-hikers-trail-rest.jpg',
+    alt: 'Urban Hikers taking a break on a hillside',
+    caption: 'Catch your breath',
+  },
+  {
+    src: '/events/urban-hikers-city-walk.jpg',
+    alt: 'Hikers walking together through town',
+    caption: 'Keep moving together',
+  },
+  {
+    src: '/events/urban-hikers-city-walk-2.jpg',
+    alt: 'Urban Hikers making their way through the city',
+    caption: 'The long way home',
+  },
+];
+const heroMemories = fieldMoments.slice(0, 4);
+
+const communityPosters = [
+  {
+    src: '/events/urban-hikers-ije-ugwu-hike.jpg',
+    alt: 'Urban Hikers Ije Ugwu group hike poster',
+    caption: 'Ije Ugwu trail day',
+  },
+  {
+    src: '/events/urban-fitness-walk-poster.jpg',
+    alt: 'Urban Fitness Walk poster',
+    caption: 'Urban Fitness Walk',
+  },
+  {
+    src: '/events/urban-hikers-ball-and-banter-poster.jpg',
+    alt: 'Urban Hikers and Urban Fitness Ball & Banter poster',
+    caption: 'Ball & Banter',
+  },
+  {
+    src: '/events/urban-hikers-hangout-poster.jpg',
+    alt: 'Urban Hikers community hangout poster',
+    caption: 'Community hangout',
+  },
+  {
+    src: '/events/urban-hikers-story.jpg',
+    alt: 'Urban Hikers editorial poster about why we hike',
+    caption: 'Why we hike',
   },
 ];
 function formatDate(value: string) {
@@ -201,7 +323,8 @@ function formatDate(value: string) {
 function App() {
   const [events, setEvents] = useState<EventItem[]>(fallbackEvents);
   const [stories, setStories] = useState<Story[]>(fallbackStories);
-  const [experiences, setExperiences] = useState<ExperienceItem[]>([]);
+  const [experiences, setExperiences] =
+    useState<ExperienceItem[]>(fallbackExperiences);
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [page, setPage] = useState(() =>
     window.location.hash.startsWith('#admin') ? 'admin' : 'home'
@@ -211,11 +334,41 @@ function App() {
   const [adminAuthorised, setAdminAuthorised] = useState(false);
   const [adminError, setAdminError] = useState('');
   const [query, setQuery] = useState('');
+  const [heroMemoryIndex, setHeroMemoryIndex] = useState(0);
+  const [heroPaused, setHeroPaused] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
   const [selectedExperience, setSelectedExperience] =
     useState<ExperienceItem | null>(null);
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [settings, setSettings] = useState<any>({});
+  useEffect(() => {
+    const motionPreference = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    );
+    let timer: number | undefined;
+    const syncPlayback = () => {
+      if (timer !== undefined) window.clearInterval(timer);
+      timer = undefined;
+      if (
+        page === 'home' &&
+        !heroPaused &&
+        !document.hidden &&
+        !motionPreference.matches
+      ) {
+        timer = window.setInterval(() => {
+          setHeroMemoryIndex(index => (index + 1) % heroMemories.length);
+        }, 6500);
+      }
+    };
+    syncPlayback();
+    document.addEventListener('visibilitychange', syncPlayback);
+    motionPreference.addEventListener('change', syncPlayback);
+    return () => {
+      if (timer !== undefined) window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', syncPlayback);
+      motionPreference.removeEventListener('change', syncPlayback);
+    };
+  }, [heroPaused, page]);
   useEffect(() => {
     auth
       .getUser()
@@ -354,15 +507,24 @@ function App() {
           </button>
         </div>
       )}
+      {page !== 'admin' && (
       <header className="nav-wrap modern-nav-wrap">
         <button
           className="brand"
           onClick={() => nav('home')}
           aria-label="Urban Life Co. home"
         >
-          <span className="brand">URBAN LIFE CO.</span>
+          <img
+            className="brand-logo"
+            src="/brand/urban-life-co-logo.png"
+            alt=""
+          />
         </button>
-        <nav className={menu ? 'nav modern-nav open' : 'nav modern-nav'}>
+        <nav
+          id="primary-navigation"
+          className={menu ? 'nav modern-nav open' : 'nav modern-nav'}
+          aria-label="Primary navigation"
+        >
           {[
             'home',
             'about',
@@ -388,10 +550,13 @@ function App() {
           className="menu-btn"
           onClick={() => setMenu(!menu)}
           aria-label="Toggle navigation"
+          aria-expanded={menu}
+          aria-controls="primary-navigation"
         >
           {menu ? <X /> : <Menu />}
         </button>
       </header>
+      )}
       {page === 'admin' && (
         <AdminPanel
           user={adminUser}
@@ -404,7 +569,14 @@ function App() {
       {page === 'home' && (
         <>
           <section className="hero modern-hero">
-            <div className="hero-image" />
+            <div className="hero-image" aria-hidden="true">
+              <img
+                key={heroMemories[heroMemoryIndex].src}
+                className="hero-memory-photo"
+                src={heroMemories[heroMemoryIndex].src}
+                alt=""
+              />
+            </div>
             <div className="hero-content">
               <p className="eyebrow">
                 {settings.heroEyebrow ?? 'A LIFESTYLE ECOSYSTEM FROM NIGERIA'}
@@ -436,7 +608,65 @@ function App() {
               <div className="hero-meta">
                 <span>ENUGU, NIGERIA</span>
                 <span>BUILT FOR LIFE IN MOTION</span>
-                <span>01 / 04</span>
+                <span>
+                  {String(heroMemoryIndex + 1).padStart(2, '0')} /{' '}
+                  {String(heroMemories.length).padStart(2, '0')}
+                </span>
+              </div>
+            </div>
+            <div
+              className="hero-memory-panel"
+              role="group"
+              aria-label="Urban Hikers field memories"
+            >
+              <div className="hero-memory-panel-heading">
+                <span>URBAN HIKERS / FIELD NOTES</span>
+                <strong>{heroMemories[heroMemoryIndex].caption}</strong>
+              </div>
+              <div className="hero-memory-controls">
+                <button
+                  type="button"
+                  aria-label="Previous field memory"
+                  onClick={() =>
+                    setHeroMemoryIndex(
+                      index =>
+                        (index - 1 + heroMemories.length) % heroMemories.length
+                    )
+                  }
+                >
+                  <ArrowLeft size={17} />
+                </button>
+                <div className="hero-memory-pagination">
+                  {heroMemories.map((memory, index) => (
+                    <button
+                      key={memory.src}
+                      type="button"
+                      aria-label={`Show memory ${index + 1}: ${memory.caption}`}
+                      aria-pressed={heroMemoryIndex === index}
+                      onClick={() => setHeroMemoryIndex(index)}
+                    >
+                      <span />
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  aria-label={heroPaused ? 'Resume slideshow' : 'Pause slideshow'}
+                  aria-pressed={heroPaused}
+                  className="hero-memory-playback"
+                  onClick={() => setHeroPaused(paused => !paused)}
+                >
+                  {heroPaused ? <Play size={16} /> : <Pause size={16} />}
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next field memory"
+                  onClick={() =>
+                    setHeroMemoryIndex(index => (index + 1) % heroMemories.length)
+                  }
+                >
+                  <ArrowRight size={17} />
+                </button>
               </div>
             </div>
           </section>
@@ -468,6 +698,7 @@ function App() {
           </section>
           <Pillars />
           <ExperienceShowcase onNavigate={nav} />
+          <FieldworkPreview onNavigate={nav} />
           <section className="section">
             <div className="section-head">
               <div>
@@ -526,6 +757,7 @@ function App() {
                   )
                 }
                 copy={experience.description}
+                image={experience.coverImage}
                 onOpen={() => openExperience(experience)}
               />
             ))}
@@ -580,44 +812,19 @@ function App() {
         </section>
       )}
       {page === 'journal' && (
-        <section className="section page-section">
-          <PageHeading
-            eyebrow="JOURNAL"
-            title="Field notes from the community."
-            copy="Stories, reflections, guides and recaps from the Urban Life ecosystem."
-          />
-          <StoryStrip
-            stories={stories}
-            onView={() => undefined}
-            onOpen={openStory}
-          />
-        </section>
+        <JournalPage stories={stories} onOpen={openStory} />
       )}
       {page === 'contact' && <ContactPage />}
       {page === 'community' && (
-        <section className="community-page">
-          <div className="community-copy">
-            <p className="eyebrow">COMMUNITY</p>
-            <h1>
-              Come for the experience.
-              <br />
-              <em>Stay for the people.</em>
-            </h1>
-            <p>
-              Urban Life Co. is being built around the belief that life gets
-              better when people have places to meet, move, explore and build
-              something together.
-            </p>
-            <button className="button dark" onClick={() => nav('events')}>
-              Find an experience <ChevronRight size={17} />
-            </button>
-          </div>
-          <div className="community-image" />
-        </section>
+        <CommunityPage onNavigate={nav} />
       )}
-      <footer>
+      {page !== 'admin' && <footer>
         <div>
-          <span className="footer-wordmark">URBAN LIFE CO.</span>
+          <img
+            className="footer-logo"
+            src="/brand/urban-life-co-logo.png"
+            alt="Urban Life Co."
+          />
           <p>Live. Connect. Explore.</p>
         </div>
         <div className="footer-links">
@@ -638,7 +845,7 @@ function App() {
             <Instagram size={17} />
           </a>
         </div>
-      </footer>
+      </footer>}
     </div>
   );
 }
@@ -701,7 +908,9 @@ function EventCard({
         <div className="date">{formatDate(event.date)}</div>
         <h3>{event.title}</h3>
         <p>
-          {event.location} · {event.price}
+          {event.time ? `${event.time} · ` : ''}
+          {event.location}
+          {event.price ? ` · ${event.price}` : ''}
         </p>
         <button className="link-button" onClick={() => onOpen?.(event)}>
           View event <ChevronRight size={15} />
@@ -742,10 +951,10 @@ function EventDetail({
               target="_blank"
               rel="noreferrer"
             >
-              Register <ChevronRight size={16} />
+              {event.registrationLabel ?? 'Register'} <ChevronRight size={16} />
             </a>
           )}
-          <span>{event.price}</span>
+          {event.price && <span>{event.price}</span>}
         </div>
         <div className="event-detail-grid">
           <div>
@@ -780,10 +989,30 @@ function ExperienceDetail({
       <button className="link-button" onClick={onBack}>
         ← Back to experiences
       </button>
-      <div className="page-heading">
-        <p className="eyebrow">{experience.category}</p>
-        <h1>{experience.name}</h1>
-        <p>{experience.description}</p>
+      <div className="experience-detail">
+        {experience.coverImage && (
+          <div className="experience-detail-image">
+            <img
+              src={experience.coverImage}
+              alt={`${experience.name} in the community`}
+            />
+          </div>
+        )}
+        <div className="experience-detail-intro">
+          <p className="eyebrow">{experience.category}</p>
+          <h1>{experience.name}</h1>
+          <p>{experience.description}</p>
+          <div className="experience-detail-actions">
+            <button className="button dark" onClick={() => onOpenEvent(events[0])} disabled={!events.length}>
+              {events.length ? 'See the next event' : 'No events scheduled'} <ChevronRight size={16} />
+            </button>
+            {experience.socialLink && (
+              <a href={experience.socialLink} target="_blank" rel="noreferrer">
+                Follow the community <ChevronRight size={15} />
+              </a>
+            )}
+          </div>
+        </div>
       </div>
       <div className="subhead">Events</div>
       {events.length ? (
@@ -804,6 +1033,11 @@ function StoryDetail({ story, onBack }: { story: Story; onBack: () => void }) {
       <button className="link-button" onClick={onBack}>
         ← Back to journal
       </button>
+      {story.coverImage && (
+        <div className="story-detail-image">
+          <img src={story.coverImage} alt="" />
+        </div>
+      )}
       <div className="page-heading">
         <p className="eyebrow">
           {story.category} · {formatDate(story.date)}
@@ -855,7 +1089,23 @@ function ContactPage() {
         title="Let’s build something together."
         copy="For partnerships, events, community enquiries and general conversations, send us a note."
       />
-      {sent ? (
+      <div className="contact-layout">
+        <aside className="contact-aside">
+          <p className="eyebrow">A GOOD PLACE TO START</p>
+          <h2>Tell us what you have in mind.</h2>
+          <p>
+            A collaboration, a question about an experience or just a hello —
+            we’ll make sure your message finds the right person.
+          </p>
+          <a
+            href="https://www.instagram.com/urbanhikersng/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Instagram size={17} /> @urbanhikersng <ChevronRight size={15} />
+          </a>
+        </aside>
+        {sent ? (
         <div className="admin-notice">
           <ShieldCheck size={28} />
           <h2>Message received.</h2>
@@ -919,9 +1169,154 @@ function ContactPage() {
           </button>
         </form>
       )}
+      </div>
     </section>
   );
 }
+
+function CommunityPage({
+  onNavigate,
+}: {
+  onNavigate: (target: string) => void;
+}) {
+  return (
+    <>
+      <section className="community-page">
+        <div className="community-copy">
+          <p className="eyebrow">PEOPLE MAKE THE PLACE</p>
+          <h1>
+            Come for the experience.
+            <br />
+            <em>Stay for the people.</em>
+          </h1>
+          <p>
+            Urban Life Co. is a home for people who want to meet, move, explore
+            and build something together. Start with one experience; see where
+            the people take you.
+          </p>
+          <div className="community-actions">
+            <button className="button dark" onClick={() => onNavigate('events')}>
+              Find your next experience <ChevronRight size={17} />
+            </button>
+            <a
+              href="https://www.instagram.com/urbanhikersng/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Instagram size={17} /> Follow Urban Hikers
+            </a>
+          </div>
+        </div>
+        <div className="community-image">
+          <img
+            src="/events/urban-hikers-summit-group.jpg"
+            alt="Urban Hikers celebrating together at the summit"
+          />
+          <span>OUT HERE, TOGETHER</span>
+        </div>
+      </section>
+      <section className="community-fieldnotes">
+        <div className="community-fieldnotes-heading">
+          <div>
+            <p className="eyebrow">A FEW MOMENTS FROM THE FIELD</p>
+            <h2>Life is better out there.</h2>
+          </div>
+          <p>
+            From trail days to city meet-ups, every gathering is a new way to
+            find your people.
+          </p>
+        </div>
+        <div className="community-moments">
+          {fieldMoments.map(moment => (
+            <figure key={moment.src}>
+              <img src={moment.src} alt={moment.alt} loading="lazy" />
+              <figcaption>{moment.caption}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+      <section className="community-posters">
+        <div className="community-posters-heading">
+          <h2>From the community archive.</h2>
+          <p>Promotional artwork and trail stories shared with us.</p>
+        </div>
+        <div className="community-posters-grid">
+          {communityPosters.map(poster => (
+            <figure key={poster.src}>
+              <img src={poster.src} alt={poster.alt} loading="lazy" />
+              <figcaption>{poster.caption}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+    </>
+  );
+}
+
+function JournalPage({
+  stories,
+  onOpen,
+}: {
+  stories: Story[];
+  onOpen: (story: Story) => void;
+}) {
+  const [query, setQuery] = useState('');
+  const filteredStories = stories.filter(story =>
+    `${story.title} ${story.category} ${story.excerpt}`
+      .toLowerCase()
+      .includes(query.trim().toLowerCase())
+  );
+
+  return (
+    <section className="section page-section journal-page">
+      <PageHeading
+        eyebrow="JOURNAL"
+        title="Field notes from the community."
+        copy="Stories, reflections, guides and recaps from the Urban Life ecosystem."
+      />
+      <label className="search journal-search">
+        <Search size={17} />
+        <span className="sr-only">Search journal stories</span>
+        <input
+          type="search"
+          value={query}
+          onChange={event => setQuery(event.target.value)}
+          placeholder="Search stories and topics"
+        />
+      </label>
+      <div className="story-grid">
+        {filteredStories.map((story, index) => (
+          <article className={`story story-${index}`} key={story.id}>
+            {story.coverImage && (
+              <div className="story-image">
+                <img src={story.coverImage} alt="" loading="lazy" />
+              </div>
+            )}
+            <div className="story-content">
+              <div className="story-meta">
+                {story.category} · {formatDate(story.date)}
+              </div>
+              <h3>{story.title}</h3>
+              <p>{story.excerpt}</p>
+              <button className="text-button" onClick={() => onOpen(story)}>
+                Read story <ChevronRight size={16} />
+              </button>
+            </div>
+          </article>
+        ))}
+        {!filteredStories.length && (
+          <div className="journal-empty">
+            <p>No stories match “{query}”.</p>
+            <button className="link-button" onClick={() => setQuery('')}>
+              Clear search <ChevronRight size={15} />
+            </button>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function StoryStrip({
   stories,
   onView,
@@ -945,6 +1340,12 @@ function StoryStrip({
       <div className="story-grid">
         {stories.map((s, i) => (
           <article className={`story story-${i}`} key={s.id}>
+            {s.coverImage && (
+              <div className="story-image">
+                <img src={s.coverImage} alt="" loading="lazy" />
+              </div>
+            )}
+            <div className="story-content">
             <div className="story-meta">
               {s.category} · {formatDate(s.date)}
             </div>
@@ -953,6 +1354,7 @@ function StoryStrip({
             <button className="text-button" onClick={() => onOpen(s)}>
               Read story <ChevronRight size={16} />
             </button>
+            </div>
           </article>
         ))}
       </div>
@@ -965,6 +1367,7 @@ function Experience({
   tone,
   icon,
   copy,
+  image,
   onOpen,
 }: {
   title: string;
@@ -972,12 +1375,32 @@ function Experience({
   tone: 'hikers' | 'fitness' | 'connect';
   icon: React.ReactNode;
   copy: string;
+  image?: string;
   onOpen: () => void;
 }) {
   return (
-    <article className={`experience experience-${tone}`}>
+    <article className={`experience experience-${tone} experience-feature`}>
+      {image && (
+        <div className="experience-media">
+          <img src={image} alt="" loading="lazy" />
+        </div>
+      )}
       <div className="experience-top">
         <span className="experience-label">{eyebrow}</span>
+        {tone === 'hikers' && (
+          <img
+            className="experience-brand"
+            src="/brand/urban-hikers-logo.jpg"
+            alt=""
+          />
+        )}
+        {tone === 'fitness' && (
+          <img
+            className="experience-brand"
+            src="/brand/urban-fitness-logo.png"
+            alt=""
+          />
+        )}
         <div className="experience-icon">{icon}</div>
       </div>
       <h3>{title}</h3>
@@ -1004,9 +1427,11 @@ function ExperienceShowcase({
       </div>
       <div className="ecosystem-grid modern-bento-grid">
         <button className="ecosystem-tile hikers modern-bento-hikers" onClick={() => onNavigate('experiences')}>
+          <img className="ecosystem-logo" src="/brand/urban-hikers-logo.jpg" alt="" />
           <span>URBAN HIKERS</span><strong>Move outside.</strong><small>Outdoor lifestyle · Exploration · Community</small><span className="modern-card-arrow" aria-hidden="true">↗</span>
         </button>
         <button className="ecosystem-tile fitness modern-bento-fitness" onClick={() => onNavigate('experiences')}>
+          <img className="ecosystem-logo" src="/brand/urban-fitness-logo.png" alt="" />
           <span>FITNESS &amp; WELLNESS</span><strong>Move well.</strong><small>Movement · Wellness · Energy</small><span className="modern-card-arrow" aria-hidden="true">↗</span>
         </button>
         <button className="ecosystem-tile connect modern-bento-connect" onClick={() => onNavigate('community')}>
@@ -1019,6 +1444,32 @@ function ExperienceShowcase({
     </section>
   );
 }
+
+function FieldworkPreview({
+  onNavigate,
+}: {
+  onNavigate: (target: string) => void;
+}) {
+  return (
+    <section className="fieldwork-preview">
+      <div className="fieldwork-preview-heading">
+        <h2>Out here, together.</h2>
+        <button className="link-button" onClick={() => onNavigate('community')}>
+          Meet the community <ChevronRight size={16} />
+        </button>
+      </div>
+      <div className="fieldwork-preview-grid">
+        {fieldMoments.slice(0, 4).map(moment => (
+          <figure key={moment.src}>
+            <img src={moment.src} alt={moment.alt} loading="lazy" />
+            <figcaption>{moment.caption}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function BrandFeature({
   onNavigate,
 }: {

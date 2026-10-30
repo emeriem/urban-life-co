@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sleeping City Fold</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 32px 7vw; background: #101a37; color: #edf2eb; font-family: Arial, sans-serif; }
+      nav { display: flex; justify-content: space-between; padding-bottom: 18px; border-bottom: 1px solid #728096; font-size: 12px; letter-spacing: .14em; }
+      .hero { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 4vw; min-height: 700px; }
+      h1 { max-width: 650px; font-size: clamp(68px, 8vw, 112px); line-height: .84; letter-spacing: -.09em; }
+      p { color: #c1cbd2; font-size: 18px; line-height: 1.6; }
+      .map { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 24px; background: #202e54; transform: perspective(600px) rotateX(7deg) rotateZ(-5deg); box-shadow: 0 25px 60px #080f24; }
+      .district { min-height: 180px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; background: #435b80; border-radius: 4px 28px 4px 24px; }
+      .district:nth-child(2) { background: #b6a36e; color: #101a37; }
+      .district:nth-child(3) { background: #587d8b; }
+      .district:nth-child(4) { background: #6a6e95; }
+      .district b { font-size: 22px; }
+      .search { margin-top: 24px; padding: 16px; background: #e3c66e; color: #101a37; font-weight: 700; }
+      @media (max-width: 760px) { body { padding: 24px; } .hero { grid-template-columns: 1fr; } h1 { font-size: 72px; } .district { min-height: 125px; } }
+    </style>
+  </head>
+  <body>
+    <nav><span>URBAN LIFE CO.</span><span>LIVE · CONNECT · EXPLORE</span></nav>
+    <section class="hero"><div><p>ONE CITY · MANY WORLDS</p><h1>Follow the light home.</h1><p>Four distinct experience neighborhoods fold around one shared community.</p><div class="search">Find events and experiences ↗</div></div><div class="map"><article class="district"><small>01 / OUTDOORS</small><b>Urban Hikers</b></article><article class="district"><small>02 / WELLNESS</small><b>Move well</b></article><article class="district"><small>03 / COMMUNITY</small><b>Urban Connect</b></article><article class="district"><small>04 / CULTURE</small><b>Go further</b></article></div></section>
+  </body>
+</html>

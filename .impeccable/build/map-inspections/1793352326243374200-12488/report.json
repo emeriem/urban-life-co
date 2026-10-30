@@ -1,0 +1,1163 @@
+{
+  "tool": "comp-spec inspect-map",
+  "version": 1,
+  "referenceOnly": true,
+  "stateChanged": false,
+  "comp": ".impeccable/mocks/urban-life-comp-b-approved.png",
+  "compSize": {
+    "width": 1440,
+    "height": 1000
+  },
+  "inputRegionCount": 20,
+  "regions": [
+    {
+      "id": "silk-ground",
+      "kind": "texture",
+      "note": "Near-black silk ground with a subtle diagonal sheen.",
+      "grid": "A1:A1",
+      "box": {
+        "x": 0,
+        "y": 0.1,
+        "w": 0.1,
+        "h": 0.1
+      },
+      "px": {
+        "x": 0,
+        "y": 100,
+        "w": 144,
+        "h": 100
+      },
+      "aspect": 1.44,
+      "palette": [
+        {
+          "hex": "#181818",
+          "coverage": 1
+        }
+      ],
+      "detail": {
+        "energy": 0.1733
+      },
+      "medium": "raster",
+      "plate": "assets/plates/silk-ground.png",
+      "text": null,
+      "number": 1,
+      "reference": {
+        "policy": "plate-reference-v2",
+        "excludedPixels": 0,
+        "totalPixels": 14400,
+        "remainingPixels": 14400,
+        "excludedFraction": 0.0,
+        "fullyExcluded": false,
+        "regions": [],
+        "ignoredContainers": []
+      },
+      "cropPath": "region-1.png",
+      "referencePath": "reference-1.png"
+    },
+    {
+      "id": "folded-silk",
+      "kind": "texture",
+      "note": "Broad graphite folds with soft highlights and deep channels.",
+      "grid": "F1:F1",
+      "box": {
+        "x": 0.5,
+        "y": 0.1,
+        "w": 0.1,
+        "h": 0.1
+      },
+      "px": {
+        "x": 720,
+        "y": 100,
+        "w": 144,
+        "h": 100
+      },
+      "aspect": 1.44,
+      "palette": [
+        {
+          "hex": "#191a1e",
+          "coverage": 0.9013
+        },
+        {
+          "hex": "#273535",
+          "coverage": 0.0987
+        }
+      ],
+      "detail": {
+        "energy": 0.6442
+      },
+      "medium": "raster",
+      "plate": "assets/plates/folded-silk.png",
+      "text": null,
+      "number": 2,
+      "reference": {
+        "policy": "plate-reference-v2",
+        "excludedPixels": 0,
+        "totalPixels": 14400,
+        "remainingPixels": 14400,
+        "excludedFraction": 0.0,
+        "fullyExcluded": false,
+        "regions": [],
+        "ignoredContainers": []
+      },
+      "cropPath": "region-2.png",
+      "referencePath": "reference-2.png"
+    },
+    {
+      "id": "gold-drawcord",
+      "kind": "texture",
+      "note": "A single fine warm-gold drawcord descends through the folded field.",
+      "grid": null,
+      "box": {
+        "x": 0.6611,
+        "y": 0.068,
+        "w": 0.0611,
+        "h": 0.648
+      },
+      "px": {
+        "x": 952,
+        "y": 68,
+        "w": 88,
+        "h": 648
+      },
+      "aspect": 0.1358,
+      "palette": [
+        {
+          "hex": "#474a4c",
+          "coverage": 0.8742
+        },
+        {
+          "hex": "#25282c",
+          "coverage": 0.1098
+        },
+        {
+          "hex": "#d4b673",
+          "coverage": 0.0072
+        },
+        {
+          "hex": "#b39151",
+          "coverage": 0.005
+        },
+        {
+          "hex": "#605947",
+          "coverage": 0.0038
+        }
+      ],
+      "detail": {
+        "energy": 2.2288
+      },
+      "medium": "raster",
+      "plate": "assets/plates/gold-drawcord.png",
+      "text": null,
+      "number": 3,
+      "reference": {
+        "policy": "plate-reference-v2",
+        "excludedPixels": 2816,
+        "totalPixels": 57024,
+        "remainingPixels": 54208,
+        "excludedFraction": 0.04938271604938271,
+        "fullyExcluded": false,
+        "regions": [
+          {
+            "id": "masthead",
+            "kind": "chrome",
+            "cropPx": {
+              "x": 0,
+              "y": 0,
+              "w": 88,
+              "h": 32
+            },
+            "pixels": 2816
+          }
+        ],
+        "ignoredContainers": []
+      },
+      "cropPath": "region-3.png",
+      "referencePath": "reference-3.png"
+    },
+    {
+      "id": "masthead",
+      "kind": "chrome",
+      "note": "Transparent top navigation band with a fine lower seam.",
+      "grid": "A0:J0",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 0.1
+      },
+      "px": {
+        "x": 0,
+        "y": 0,
+        "w": 1440,
+        "h": 100
+      },
+      "aspect": 14.4,
+      "palette": [
+        {
+          "hex": "#18191b",
+          "coverage": 0.9641
+        },
+        {
+          "hex": "#47494b",
+          "coverage": 0.0348
+        },
+        {
+          "hex": "#e8e8e8",
+          "coverage": 0.0006
+        },
+        {
+          "hex": "#f8e8c8",
+          "coverage": 0.0006
+        }
+      ],
+      "detail": {
+        "energy": 8.6583
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "number": 4,
+      "cropPath": "region-4.png"
+    },
+    {
+      "id": "brand-lockup",
+      "kind": "text",
+      "note": "Circular U mark followed by the URBAN LIFE CO. wordmark.",
+      "grid": null,
+      "box": {
+        "x": 0.0653,
+        "y": 0.028,
+        "w": 0.1181,
+        "h": 0.029
+      },
+      "px": {
+        "x": 94,
+        "y": 28,
+        "w": 170,
+        "h": 29
+      },
+      "aspect": 5.8621,
+      "palette": [
+        {
+          "hex": "#181818",
+          "coverage": 0.9198
+        },
+        {
+          "hex": "#f3e8e8",
+          "coverage": 0.0305
+        },
+        {
+          "hex": "#a2cee8",
+          "coverage": 0.0191
+        },
+        {
+          "hex": "#982018",
+          "coverage": 0.0153
+        },
+        {
+          "hex": "#c6e8e8",
+          "coverage": 0.0153
+        }
+      ],
+      "detail": {
+        "energy": 33.3896
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "number": 5,
+      "cropPath": "region-5.png"
+    },
+    {
+      "id": "nav-experiences",
+      "kind": "text",
+      "note": "Experiences navigation label.",
+      "grid": null,
+      "box": {
+        "x": 0.675,
+        "y": 0.034,
+        "w": 0.0514,
+        "h": 0.018
+      },
+      "px": {
+        "x": 972,
+        "y": 34,
+        "w": 74,
+        "h": 18
+      },
+      "aspect": 4.1111,
+      "palette": [
+        {
+          "hex": "#1a1c21",
+          "coverage": 0.7852
+        },
+        {
+          "hex": "#cdcdbe",
+          "coverage": 0.0963
+        },
+        {
+          "hex": "#d1ba88",
+          "coverage": 0.0519
+        },
+        {
+          "hex": "#4b4848",
+          "coverage": 0.037
+        },
+        {
+          "hex": "#98c0c8",
+          "coverage": 0.0296
+        }
+      ],
+      "detail": {
+        "energy": 23.5211
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "number": 6,
+      "cropPath": "region-6.png"
+    },
+    {
+      "id": "nav-journal",
+      "kind": "text",
+      "note": "Journal navigation label.",
+      "grid": null,
+      "box": {
+        "x": 0.7472,
+        "y": 0.034,
+        "w": 0.0361,
+        "h": 0.018
+      },
+      "px": {
+        "x": 1076,
+        "y": 34,
+        "w": 52,
+        "h": 18
+      },
+      "aspect": 2.8889,
+      "palette": [
+        {
+          "hex": "#181818",
+          "coverage": 0.8542
+        },
+        {
+          "hex": "#96c0c8",
+          "coverage": 0.0833
+        },
+        {
+          "hex": "#1888a8",
+          "coverage": 0.0208
+        },
+        {
+          "hex": "#581818",
+          "coverage": 0.0208
+        },
+        {
+          "hex": "#881818",
+          "coverage": 0.0208
+        }
+      ],
+      "detail": {
+        "energy": 14.1806
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "number": 7,
+      "cropPath": "region-7.png"
+    },
+    {
+      "id": "nav-community",
+      "kind": "text",
+      "note": "Community navigation label.",
+      "grid": null,
+      "box": {
+        "x": 0.8,
+        "y": 0.034,
+        "w": 0.0479,
+        "h": 0.018
+      },
+      "px": {
+        "x": 1152,
+        "y": 34,
+        "w": 69,
+        "h": 18
+      },
+      "aspect": 3.8333,
+      "palette": [
+        {
+          "hex": "#181818",
+          "coverage": 0.8374
+        },
+        {
+          "hex": "#181b78",
+          "coverage": 0.0488
+        },
+        {
+          "hex": "#95bec8",
+          "coverage": 0.0407
+        },
+        {
+          "hex": "#d5d5c2",
+          "coverage": 0.0407
+        },
+        {
+          "hex": "#ccd0a0",
+          "coverage": 0.0325
+        }
+      ],
+      "detail": {
+        "energy": 22.557
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "number": 8,
+      "cropPath": "region-8.png"
+    },
+    {
+      "id": "nav-discover",
+      "kind": "control",
+      "note": "Fine gold outlined Discover action.",
+      "grid": null,
+      "box": {
+        "x": 0.8694,
+        "y": 0.022,
+        "w": 0.066,
+        "h": 0.041
+      },
+      "px": {
+        "x": 1252,
+        "y": 22,
+        "w": 95,
+        "h": 41
+      },
+      "aspect": 2.3171,
+      "palette": [
+        {
+          "hex": "#171818",
+          "coverage": 0.8174
+        },
+        {
+          "hex": "#d8b869",
+          "coverage": 0.1507
+        },
+        {
+          "hex": "#d5982d",
+          "coverage": 0.0137
+        },
+        {
+          "hex": "#a5b278",
+          "coverage": 0.0114
+        },
+        {
+          "hex": "#681818",
+          "coverage": 0.0068
+        }
+      ],
+      "detail": {
+        "energy": 16.7152
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "number": 9,
+      "cropPath": "region-9.png"
+    },
+    {
+      "id": "hero-heading",
+      "kind": "text",
+      "note": "Large four-line Make room for life. headline, with life. in gold.",
+      "grid": null,
+      "box": {
+        "x": 0.1,
+        "y": 0.208,
+        "w": 0.2083,
+        "h": 0.412
+      },
+      "px": {
+        "x": 144,
+        "y": 208,
+        "w": 300,
+        "h": 412
+      },
+      "aspect": 0.7282,
+      "palette": [
+        {
+          "hex": "#181818",
+          "coverage": 0.7422
+        },
+        {
+          "hex": "#f6e7e7",
+          "coverage": 0.1929
+        },
+        {
+          "hex": "#d7a867",
+          "coverage": 0.0473
+        },
+        {
+          "hex": "#636363",
+          "coverage": 0.0089
+        },
+        {
+          "hex": "#9f9f9e",
+          "coverage": 0.0087
+        }
+      ],
+      "detail": {
+        "energy": 23.4519
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "number": 10,
+      "cropPath": "region-10.png"
+    },
+    {
+      "id": "hero-description",
+      "kind": "text",
+      "note": "Two-line Enugu-rooted experiences description.",
+      "grid": null,
+      "box": {
+        "x": 0.1,
+        "y": 0.656,
+        "w": 0.2722,
+        "h": 0.042
+      },
+      "px": {
+        "x": 144,
+        "y": 656,
+        "w": 392,
+        "h": 42
+      },
+      "aspect": 9.3333,
+      "palette": [
+        {
+          "hex": "#191919",
+          "coverage": 0.8692
+        },
+        {
+          "hex": "#293237",
+          "coverage": 0.0521
+        },
+        {
+          "hex": "#b0c7c0",
+          "coverage": 0.0327
+        },
+        {
+          "hex": "#69a2bc",
+          "coverage": 0.0303
+        },
+        {
+          "hex": "#463f30",
+          "coverage": 0.0157
+        }
+      ],
+      "detail": {
+        "energy": 62.4459
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "number": 11,
+      "cropPath": "region-11.png"
+    },
+    {
+      "id": "event-search",
+      "kind": "control",
+      "note": "Search events input with gold Explore events submit action.",
+      "grid": null,
+      "box": {
+        "x": 0.1,
+        "y": 0.725,
+        "w": 0.3681,
+        "h": 0.062
+      },
+      "px": {
+        "x": 144,
+        "y": 725,
+        "w": 530,
+        "h": 62
+      },
+      "aspect": 8.5484,
+      "palette": [
+        {
+          "hex": "#181818",
+          "coverage": 0.6759
+        },
+        {
+          "hex": "#d8a868",
+          "coverage": 0.2166
+        },
+        {
+          "hex": "#786838",
+          "coverage": 0.102
+        },
+        {
+          "hex": "#18184e",
+          "coverage": 0.0036
+        },
+        {
+          "hex": "#3d1818",
+          "coverage": 0.0019
+        }
+      ],
+      "detail": {
+        "energy": 10.1194
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "number": 12,
+      "cropPath": "region-12.png"
+    },
+    {
+      "id": "search-placeholder",
+      "kind": "text",
+      "note": "Search events placeholder.",
+      "grid": null,
+      "box": {
+        "x": 0.1118,
+        "y": 0.746,
+        "w": 0.1007,
+        "h": 0.022
+      },
+      "px": {
+        "x": 161,
+        "y": 746,
+        "w": 145,
+        "h": 22
+      },
+      "aspect": 6.5909,
+      "palette": [
+        {
+          "hex": "#181818",
+          "coverage": 0.9003
+        },
+        {
+          "hex": "#ae8251",
+          "coverage": 0.0296
+        },
+        {
+          "hex": "#8a561a",
+          "coverage": 0.027
+        },
+        {
+          "hex": "#313326",
+          "coverage": 0.0243
+        },
+        {
+          "hex": "#6896a8",
+          "coverage": 0.0189
+        }
+      ],
+      "detail": {
+        "energy": 24.9011
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "number": 13,
+      "cropPath": "region-13.png"
+    },
+    {
+      "id": "search-action",
+      "kind": "text",
+      "note": "Explore events button label.",
+      "grid": null,
+      "box": {
+        "x": 0.3903,
+        "y": 0.748,
+        "w": 0.0681,
+        "h": 0.018
+      },
+      "px": {
+        "x": 562,
+        "y": 748,
+        "w": 98,
+        "h": 18
+      },
+      "aspect": 5.4444,
+      "palette": [
+        {
+          "hex": "#d7a767",
+          "coverage": 0.8588
+        },
+        {
+          "hex": "#1a1818",
+          "coverage": 0.0395
+        },
+        {
+          "hex": "#182335",
+          "coverage": 0.0339
+        },
+        {
+          "hex": "#d5a850",
+          "coverage": 0.0339
+        },
+        {
+          "hex": "#9b7d50",
+          "coverage": 0.0339
+        }
+      ],
+      "detail": {
+        "energy": 23.3156
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "number": 14,
+      "cropPath": "region-14.png"
+    },
+    {
+      "id": "event-availability",
+      "kind": "text",
+      "note": "Honest no-upcoming-events status and archive invitation.",
+      "grid": null,
+      "box": {
+        "x": 0.1,
+        "y": 0.8,
+        "w": 0.2743,
+        "h": 0.017
+      },
+      "px": {
+        "x": 144,
+        "y": 800,
+        "w": 395,
+        "h": 17
+      },
+      "aspect": 23.2353,
+      "palette": [
+        {
+          "hex": "#181818",
+          "coverage": 0.8208
+        },
+        {
+          "hex": "#383838",
+          "coverage": 0.1053
+        },
+        {
+          "hex": "#b6a57d",
+          "coverage": 0.0267
+        },
+        {
+          "hex": "#c8cbc4",
+          "coverage": 0.0252
+        },
+        {
+          "hex": "#a69b90",
+          "coverage": 0.022
+        }
+      ],
+      "detail": {
+        "energy": 66.2925
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "number": 15,
+      "cropPath": "region-15.png"
+    },
+    {
+      "id": "archive-image",
+      "kind": "image",
+      "note": "Photograph for the existing Urban Hikers × Eastern United archive event.",
+      "grid": null,
+      "box": {
+        "x": 0.7319,
+        "y": 0.676,
+        "w": 0.1972,
+        "h": 0.133
+      },
+      "px": {
+        "x": 1054,
+        "y": 676,
+        "w": 284,
+        "h": 133
+      },
+      "aspect": 2.1353,
+      "palette": [
+        {
+          "hex": "#e6ad08",
+          "coverage": 0.8099
+        },
+        {
+          "hex": "#8fb6c0",
+          "coverage": 0.0567
+        },
+        {
+          "hex": "#b98508",
+          "coverage": 0.0501
+        },
+        {
+          "hex": "#e2ba9c",
+          "coverage": 0.0435
+        },
+        {
+          "hex": "#575757",
+          "coverage": 0.0399
+        }
+      ],
+      "detail": {
+        "energy": 12.5909
+      },
+      "medium": "raster",
+      "clipped": [
+        "left",
+        "right",
+        "top",
+        "bottom"
+      ],
+      "plate": "assets/plates/archive-image.png",
+      "text": null,
+      "number": 16,
+      "reference": {
+        "policy": "plate-reference-v2",
+        "excludedPixels": 0,
+        "totalPixels": 37772,
+        "remainingPixels": 37772,
+        "excludedFraction": 0.0,
+        "fullyExcluded": false,
+        "regions": [],
+        "ignoredContainers": []
+      },
+      "cropPath": "region-16.png",
+      "referencePath": "reference-16.png"
+    },
+    {
+      "id": "archive-date",
+      "kind": "text",
+      "note": "FROM THE ARCHIVE · 12 SEP 2026 label.",
+      "grid": null,
+      "box": {
+        "x": 0.7431,
+        "y": 0.83,
+        "w": 0.1257,
+        "h": 0.011
+      },
+      "px": {
+        "x": 1070,
+        "y": 830,
+        "w": 181,
+        "h": 11
+      },
+      "aspect": 16.4545,
+      "palette": [
+        {
+          "hex": "#181818",
+          "coverage": 0.8519
+        },
+        {
+          "hex": "#b89635",
+          "coverage": 0.0463
+        },
+        {
+          "hex": "#9f9a48",
+          "coverage": 0.0417
+        },
+        {
+          "hex": "#9a3a18",
+          "coverage": 0.0324
+        },
+        {
+          "hex": "#1d5553",
+          "coverage": 0.0278
+        }
+      ],
+      "detail": {
+        "energy": 41.7948
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "number": 17,
+      "cropPath": "region-17.png"
+    },
+    {
+      "id": "archive-title",
+      "kind": "text",
+      "note": "Urban Hikers × Eastern United event title.",
+      "grid": null,
+      "box": {
+        "x": 0.7431,
+        "y": 0.852,
+        "w": 0.1319,
+        "h": 0.018
+      },
+      "px": {
+        "x": 1070,
+        "y": 852,
+        "w": 190,
+        "h": 18
+      },
+      "aspect": 10.5556,
+      "palette": [
+        {
+          "hex": "#181818",
+          "coverage": 0.8742
+        },
+        {
+          "hex": "#87bce1",
+          "coverage": 0.0368
+        },
+        {
+          "hex": "#f7e7bb",
+          "coverage": 0.0368
+        },
+        {
+          "hex": "#d1e3e1",
+          "coverage": 0.0276
+        },
+        {
+          "hex": "#2076b2",
+          "coverage": 0.0245
+        }
+      ],
+      "detail": {
+        "energy": 74.5841
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "number": 18,
+      "cropPath": "region-18.png"
+    },
+    {
+      "id": "archive-location",
+      "kind": "text",
+      "note": "Ngwo Park · Free event location and price.",
+      "grid": null,
+      "box": {
+        "x": 0.7431,
+        "y": 0.875,
+        "w": 0.0833,
+        "h": 0.015
+      },
+      "px": {
+        "x": 1070,
+        "y": 875,
+        "w": 120,
+        "h": 15
+      },
+      "aspect": 8,
+      "palette": [
+        {
+          "hex": "#181818",
+          "coverage": 0.8516
+        },
+        {
+          "hex": "#b6884b",
+          "coverage": 0.0549
+        },
+        {
+          "hex": "#bcac9c",
+          "coverage": 0.044
+        },
+        {
+          "hex": "#182262",
+          "coverage": 0.0275
+        },
+        {
+          "hex": "#481818",
+          "coverage": 0.022
+        }
+      ],
+      "detail": {
+        "energy": 21.0363
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": false
+      },
+      "number": 19,
+      "cropPath": "region-19.png"
+    },
+    {
+      "id": "next-section",
+      "kind": "chrome",
+      "note": "Thin seam at the start of the next section.",
+      "grid": null,
+      "box": {
+        "x": 0,
+        "y": 0.972,
+        "w": 1,
+        "h": 0.028
+      },
+      "px": {
+        "x": 0,
+        "y": 972,
+        "w": 1440,
+        "h": 28
+      },
+      "aspect": 51.4286,
+      "palette": [
+        {
+          "hex": "#181818",
+          "coverage": 0.9
+        },
+        {
+          "hex": "#383838",
+          "coverage": 0.1
+        }
+      ],
+      "detail": {
+        "energy": 1.75
+      },
+      "medium": "semantic",
+      "plate": null,
+      "text": null,
+      "surface": {
+        "flat": false,
+        "rules": true
+      },
+      "number": 20,
+      "cropPath": "region-20.png"
+    }
+  ],
+  "issues": [
+    {
+      "severity": "warning",
+      "code": "foreground-mask",
+      "regionId": "gold-drawcord",
+      "message": "masthead exclude 4.9% of this reference. Check that the excluded pixels contain foreground, not artwork between separate text elements. Split overly broad foreground bounds; review grouping must not change geometry."
+    },
+    {
+      "severity": "warning",
+      "code": "measurement-warning",
+      "regionId": null,
+      "message": "region archive-image: the artwork runs off the box on the left and right and top and bottom (its ink reaches the edge over 35% of that side). Widen the region so the box holds the whole shape with a margin; a plate placed with object-fit: cover on this box would be cut there."
+    },
+    {
+      "severity": "warning",
+      "code": "uncovered-ink",
+      "regionId": null,
+      "message": "6 grid cells have detail outside named regions. This is a coverage heuristic, not proof of missing components."
+    }
+  ],
+  "overlaps": [
+    {
+      "a": "gold-drawcord",
+      "b": "masthead",
+      "pixels": 2816.0,
+      "relationship": "overlapping elements"
+    },
+    {
+      "a": "masthead",
+      "b": "brand-lockup",
+      "pixels": 4930.0,
+      "relationship": "overlapping elements"
+    },
+    {
+      "a": "masthead",
+      "b": "nav-experiences",
+      "pixels": 1332.0,
+      "relationship": "overlapping elements"
+    },
+    {
+      "a": "masthead",
+      "b": "nav-journal",
+      "pixels": 936.0,
+      "relationship": "overlapping elements"
+    },
+    {
+      "a": "masthead",
+      "b": "nav-community",
+      "pixels": 1242.0,
+      "relationship": "overlapping elements"
+    },
+    {
+      "a": "masthead",
+      "b": "nav-discover",
+      "pixels": 3895.0,
+      "relationship": "overlapping elements"
+    },
+    {
+      "a": "event-search",
+      "b": "search-placeholder",
+      "pixels": 3190.0,
+      "relationship": "overlapping elements"
+    },
+    {
+      "a": "event-search",
+      "b": "search-action",
+      "pixels": 1764.0,
+      "relationship": "overlapping elements"
+    }
+  ],
+  "reviewGroups": {},
+  "uncoveredInkCells": [
+    "B6",
+    "C6",
+    "H6",
+    "B8",
+    "H8",
+    "I8"
+  ],
+  "comparisonSheets": [
+    {
+      "path": "comparison-1.png",
+      "regionIds": [
+        "gold-drawcord"
+      ]
+    }
+  ]
+}

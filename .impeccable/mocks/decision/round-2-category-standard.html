@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Category Standard</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 34px 7vw; background: #fff; color: #111827; font-family: Arial, sans-serif; }
+      nav { display: flex; justify-content: space-between; padding-bottom: 20px; border-bottom: 1px solid #d8dce2; font-size: 12px; font-weight: 700; }
+      .links { display: flex; gap: 24px; }
+      .hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 5vw; align-items: center; min-height: 600px; }
+      h1 { max-width: 600px; font-size: clamp(58px, 7vw, 94px); line-height: .9; letter-spacing: -.07em; }
+      p { color: #586174; font-size: 18px; line-height: 1.6; }
+      .button { display: inline-block; margin-top: 18px; padding: 16px 21px; background: #2563eb; color: #fff; font-weight: 700; }
+      .photo { min-height: 370px; background: linear-gradient(140deg, #b6c4ce, #667980 54%, #293842); }
+      .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      .card { min-height: 100px; padding: 20px; border: 1px solid #d8dce2; }
+      @media (max-width: 760px) { body { padding: 24px; } .links { display: none; } .hero { grid-template-columns: 1fr; padding: 30px 0; } .cards { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <nav><span>URBAN LIFE CO.</span><div class="links"><span>About</span><span>Experiences</span><span>Journal</span><span>Events</span></div></nav>
+    <section class="hero"><div><p>LIVE · CONNECT · EXPLORE</p><h1>Make your next experience count.</h1><p>Discover communities and events that make everyday life more meaningful.</p><span class="button">Explore events ↗</span></div><div class="photo"></div></section>
+    <section class="cards"><article class="card">Experiences</article><article class="card">Upcoming events</article><article class="card">From the journal</article></section>
+  </body>
+</html>

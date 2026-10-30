@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The Common Ground</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #171a28; color: #f1eee4; font-family: Arial, sans-serif; }
+      main { min-height: 100vh; padding: 34px 7vw; overflow: hidden; }
+      nav { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid #676977; font-size: 12px; font-weight: 700; letter-spacing: .14em; }
+      nav div { display: flex; gap: 30px; align-items: center; }
+      nav b { padding: 13px 18px; background: #d8ff43; color: #171a28; }
+      .hero { position: relative; display: grid; min-height: 690px; grid-template-columns: 1fr 1fr; align-items: center; gap: 5vw; }
+      .hero:before { content: ''; position: absolute; width: 52vw; height: 52vw; max-height: 650px; max-width: 650px; right: 3%; top: 8%; border: 1px solid #777986; border-radius: 48% 52% 43% 57%; box-shadow: inset 0 0 0 48px #171a28, inset 0 0 0 49px #777986, inset 0 0 0 122px #171a28, inset 0 0 0 123px #777986; opacity: .8; }
+      .copy { position: relative; z-index: 1; }
+      .eyebrow { color: #d8ff43; font-size: 12px; font-weight: 700; letter-spacing: .2em; }
+      h1 { max-width: 720px; margin: 24px 0; font-size: clamp(72px, 9vw, 130px); line-height: .82; letter-spacing: -.09em; }
+      .copy p:last-of-type { max-width: 480px; color: #c4c5cc; font-size: 18px; line-height: 1.55; }
+      .finder { position: relative; z-index: 1; margin-top: 30px; display: flex; max-width: 530px; background: #f1eee4; color: #171a28; }
+      .finder span { flex: 1; padding: 18px; color: #62656e; }
+      .finder b { padding: 18px 22px; background: #e17417; color: white; }
+      .court { position: relative; z-index: 1; justify-self: center; width: min(390px, 88%); aspect-ratio: .94; padding: 28px; border: 1px solid #d8ff43; background: #20283a; clip-path: polygon(8% 0, 100% 0, 91% 100%, 0 90%); display: flex; flex-direction: column; justify-content: space-between; }
+      .court small { color: #d8ff43; font-weight: 700; letter-spacing: .14em; }
+      .court strong { max-width: 280px; font-size: 47px; line-height: .91; letter-spacing: -.06em; }
+      .court span { color: #c4c5cc; font-size: 13px; }
+      footer { display: flex; justify-content: space-between; padding-top: 18px; border-top: 1px solid #676977; color: #c4c5cc; font-size: 11px; letter-spacing: .13em; text-transform: uppercase; }
+      @media (max-width: 760px) { main { padding: 24px; } nav div { display: none; } .hero { grid-template-columns: 1fr; padding: 52px 0; } .hero:before { width: 85vw; height: 85vw; right: -25%; top: 23%; } h1 { font-size: 76px; } .court { width: 72%; justify-self: end; } footer { gap: 16px; flex-wrap: wrap; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <nav><span>URBAN LIFE CO.</span><div><span>Experiences</span><span>Journal</span><span>Community</span><b>Events ↗</b></div></nav>
+      <section class="hero">
+        <div class="copy"><p class="eyebrow">A SHARED PLACE TO START · ENUGU, NIGERIA</p><h1>Find your common ground.</h1><p>Real experiences bring us together. Choose a date, find your people, and make room for more life.</p><div class="finder"><span>Search events, places or experiences</span><b>Explore events ↗</b></div></div>
+        <article class="court"><small>01 / URBAN HIKERS</small><strong>Out there, together.</strong><span>Movement · Exploration · Community</span></article>
+      </section>
+      <footer><span>Live · Connect · Explore</span><span>Experience, not just another day.</span></footer>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,137 @@
+{
+  "regions": [
+    {
+      "id": "silk-ground",
+      "kind": "texture",
+      "grid": "A1:A1",
+      "note": "Near-black silk ground with a subtle diagonal sheen."
+    },
+    {
+      "id": "folded-silk",
+      "kind": "texture",
+      "grid": "F1:F1",
+      "note": "Broad graphite folds with soft highlights and deep channels."
+    },
+    {
+      "id": "gold-drawcord",
+      "kind": "texture",
+      "pixelBox": { "x": 952, "y": 68, "w": 88, "h": 648 },
+      "note": "A single fine warm-gold drawcord descends through the folded field."
+    },
+    {
+      "id": "masthead",
+      "kind": "chrome",
+      "grid": "A0:J0",
+      "note": "Transparent top navigation band with a fine lower seam."
+    },
+    {
+      "id": "brand-lockup",
+      "kind": "text",
+      "pixelBox": { "x": 94, "y": 28, "w": 170, "h": 29 },
+      "note": "Circular U mark followed by the URBAN LIFE CO. wordmark."
+    },
+    {
+      "id": "nav-experiences",
+      "kind": "text",
+      "pixelBox": { "x": 972, "y": 34, "w": 74, "h": 18 },
+      "note": "Experiences navigation label."
+    },
+    {
+      "id": "nav-journal",
+      "kind": "text",
+      "pixelBox": { "x": 1076, "y": 34, "w": 52, "h": 18 },
+      "note": "Journal navigation label."
+    },
+    {
+      "id": "nav-community",
+      "kind": "text",
+      "pixelBox": { "x": 1152, "y": 34, "w": 69, "h": 18 },
+      "note": "Community navigation label."
+    },
+    {
+      "id": "nav-discover",
+      "kind": "control",
+      "pixelBox": { "x": 1252, "y": 22, "w": 95, "h": 41 },
+      "note": "Fine gold outlined Discover action."
+    },
+    {
+      "id": "hero-heading",
+      "kind": "text",
+      "pixelBox": { "x": 144, "y": 208, "w": 300, "h": 412 },
+      "note": "Large four-line Make room for life. headline, with life. in gold."
+    },
+    {
+      "id": "hero-description",
+      "kind": "text",
+      "grid": "B6:C6",
+      "note": "Two-line Enugu-rooted experiences description."
+    },
+    {
+      "id": "event-search",
+      "kind": "control",
+      "pixelBox": { "x": 144, "y": 725, "w": 530, "h": 62 },
+      "note": "Search events input with gold Explore events submit action."
+    },
+    {
+      "id": "search-placeholder",
+      "kind": "text",
+      "pixelBox": { "x": 161, "y": 746, "w": 145, "h": 22 },
+      "note": "Search events placeholder."
+    },
+    {
+      "id": "search-action",
+      "kind": "text",
+      "pixelBox": { "x": 562, "y": 748, "w": 98, "h": 18 },
+      "note": "Explore events button label."
+    },
+    {
+      "id": "event-availability",
+      "kind": "text",
+      "grid": "B8:C8",
+      "note": "Honest no-upcoming-events status and archive invitation."
+    },
+    {
+      "id": "archive-card",
+      "kind": "chrome",
+      "grid": "H6:I8",
+      "container": true,
+      "note": "Thin CSS-drawn border around the archive-event card.",
+      "codeDrawn": true
+    },
+    {
+      "id": "archive-image",
+      "kind": "image",
+      "pixelBox": { "x": 1054, "y": 676, "w": 284, "h": 133 },
+      "bleed": true,
+      "parentId": "archive-card",
+      "note": "Photograph for the existing Urban Hikers × Eastern United archive event."
+    },
+    {
+      "id": "archive-date",
+      "kind": "text",
+      "pixelBox": { "x": 1070, "y": 830, "w": 181, "h": 11 },
+      "parentId": "archive-card",
+      "note": "FROM THE ARCHIVE · 12 SEP 2026 label."
+    },
+    {
+      "id": "archive-title",
+      "kind": "text",
+      "pixelBox": { "x": 1070, "y": 852, "w": 190, "h": 18 },
+      "parentId": "archive-card",
+      "note": "Urban Hikers × Eastern United event title."
+    },
+    {
+      "id": "archive-location",
+      "kind": "text",
+      "pixelBox": { "x": 1070, "y": 875, "w": 120, "h": 15 },
+      "parentId": "archive-card",
+      "note": "Ngwo Park · Free event location and price."
+    },
+    {
+      "id": "next-section",
+      "kind": "chrome",
+      "pixelBox": { "x": 0, "y": 972, "w": 1440, "h": 28 },
+      "note": "Thin seam at the start of the next section."
+    }
+  ]
+}

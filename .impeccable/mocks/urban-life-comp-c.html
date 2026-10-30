@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Urban Life Co. — Seam Index</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root { color-scheme: dark; font-family: "DM Sans", sans-serif; background: #101112; color: #efede8; font-synthesis: none; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-width: 320px; background: #101112; }
+      a { color: inherit; text-decoration: none; }
+      button, input, select { font: inherit; }
+      button { cursor: pointer; }
+      .site { max-width: 1600px; margin: auto; overflow: hidden; }
+      header { height: 88px; border-bottom: 1px solid #ffffff26; display: flex; align-items: center; justify-content: space-between; padding: 0 7%; }
+      .brand { display: flex; gap: 12px; align-items: center; font-size: 13px; font-weight: 700; letter-spacing: .2em; }
+      .mark { width: 25px; height: 25px; border: 1px solid #cba459; border-radius: 50%; display: grid; place-items: center; color: #cba459; font: 12px Georgia, serif; }
+      nav { display: flex; align-items: center; gap: 34px; color: #c9c5bd; font-size: 12px; }
+      nav a:last-child { color: #e3c77f; border-bottom: 1px solid #cba459; padding: 11px 0; }
+      .intro { padding: 88px 7% 63px; display: grid; grid-template-columns: 1.06fr .94fr; gap: 8%; align-items: end; position: relative; }
+      .intro:after { content: ""; position: absolute; left: 7%; right: 7%; bottom: 0; height: 1px; background: #c6a45e70; }
+      h1 { max-width: 700px; margin: 0; font: 600 clamp(62px, 8vw, 112px)/.9 "Manrope", sans-serif; letter-spacing: -.08em; }
+      h1 span { color: #cba459; }
+      .summary { max-width: 430px; padding-bottom: 8px; }
+      .summary p { color: #c2beb6; line-height: 1.7; font-size: 15px; margin: 0 0 21px; }
+      .summary a { display: inline-block; border: 1px solid #cba459; color: #e7cc88; font-size: 12px; padding: 13px 18px; }
+      .index { padding: 32px 7% 82px; display: grid; grid-template-columns: 1.03fr .97fr; gap: 8%; }
+      .finder-label { color: #d7b86f; letter-spacing: .16em; font-size: 9px; text-transform: uppercase; }
+      .finder { margin-top: 11px; border-bottom: 1px solid #e8e4da75; display: flex; align-items: center; }
+      .finder input { flex: 1; min-width: 0; height: 53px; color: #f3efe7; background: transparent; border: 0; outline: 0; font-size: 16px; }
+      .finder input::placeholder { color: #a5a29b; }
+      .finder button { background: none; border: 0; color: #d9b96d; font-size: 12px; padding: 10px 0 10px 14px; }
+      .empty { color: #c8c4bc; margin: 17px 0 29px; font-size: 12px; }
+      .empty strong { color: #f1eee8; display: block; font-size: 14px; font-weight: 500; margin-bottom: 5px; }
+      .filters { border-top: 1px solid #ffffff25; padding-top: 15px; display: flex; flex-wrap: wrap; gap: 8px; }
+      .filters button { color: #c9c5bd; background: transparent; border: 1px solid #ffffff3a; padding: 8px 11px; font-size: 10px; }
+      .filters button:first-child { border-color: #cba459; color: #e5c779; }
+      .fabric { min-height: 310px; position: relative; overflow: hidden; align-self: stretch; margin: 0; background: linear-gradient(120deg, #171819, #34373a 29%, #191a1c 47%, #484b4d 62%, #18191a 79%); }
+      .fabric img { position: absolute; inset: 14px; width: calc(100% - 28px); height: calc(100% - 28px); object-fit: cover; }
+      .fabric:before { content: ""; position: absolute; z-index: 1; inset: -14% -4%; background: repeating-linear-gradient(103deg, transparent 0 13%, #00000068 13.2% 15%, #ffffff08 15.5% 16.3%, transparent 17% 25%); transform: skewY(-5deg); pointer-events: none; }
+      .fabric:after { content: ""; position: absolute; z-index: 2; left: 47%; top: -10%; height: 125%; width: 2px; background: linear-gradient(#f0d795, #a77f37); transform: rotate(7deg); box-shadow: 0 0 17px #e1bd6e3b; }
+      .fabric-label { position: absolute; z-index: 3; bottom: 25px; left: 28px; padding: 8px 10px; background: #111213d9; font-size: 9px; letter-spacing: .14em; color: #dcc17f; }
+      .story { padding: 29px 7% 38px; border-top: 1px solid #ffffff25; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 30px; }
+      .story h2 { margin: 0 0 7px; font: 500 22px "Manrope", sans-serif; letter-spacing: -.04em; }
+      .story p { margin: 0; color: #c5c1b9; font-size: 12px; line-height: 1.6; }
+      .story a { justify-self: end; color: #dfc479; font-size: 12px; text-decoration: underline; text-underline-offset: 5px; }
+      @media (max-width: 760px) {
+        header { height: 70px; padding: 0 22px; } nav { gap: 0; } nav a:not(:last-child) { display: none; }
+        .intro { padding: 68px 24px 32px; grid-template-columns: 1fr; gap: 22px; } .intro:after { left: 24px; right: 24px; } h1 { font-size: clamp(58px, 15vw, 84px); }
+        .summary p { margin-bottom: 14px; } .index { padding: 27px 24px 50px; grid-template-columns: 1fr; gap: 28px; } .fabric { min-height: 220px; }
+        .story { padding: 25px 24px; grid-template-columns: 1fr; gap: 13px; } .story a { justify-self: start; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="site">
+      <header>
+        <a class="brand" href="#"><span class="mark">U</span> URBAN LIFE CO.</a>
+        <nav aria-label="Main navigation"><a href="#">Experiences</a><a href="#">Journal</a><a href="#">Community</a><a href="#">Contact ↗</a></nav>
+      </header>
+      <section class="intro">
+        <h1>Find your<br />kind of <span>life.</span></h1>
+        <div class="summary"><p>Experiences for moving, connecting and exploring — with a community rooted in Enugu.</p><a href="#events">Find an experience ↗</a></div>
+      </section>
+      <section class="index" id="events">
+        <div>
+          <label class="finder-label" for="find">Search experiences & events</label>
+          <form class="finder" onsubmit="event.preventDefault();document.querySelector('#empty').innerHTML='<strong>No upcoming events match that search.</strong>Explore the archive or check back soon.'">
+            <input id="find" placeholder="Try Urban Hikers or Enugu" /><button type="submit">Search ↗</button>
+          </form>
+          <p class="empty" id="empty"><strong>No upcoming events at the moment.</strong>There are past experiences to discover while the next ones take shape.</p>
+          <div class="filters"><button>All experiences</button><button>Community</button><button>Outdoors</button><button>Journal</button></div>
+        </div>
+        <figure class="fabric"><img src="https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&amp;fit=crop&amp;w=900&amp;q=80" alt="Hikers following a trail through the landscape" /><figcaption class="fabric-label">URBAN HIKERS · COAL CAMP, ENUGU · 22 AUG 2026</figcaption></figure>
+      </section>
+      <section class="story"><div><h2>More Than a Hike. It’s a Community.</h2><p>Why the trail is only the beginning of what Urban Hikers is building.</p></div><a href="#">Read the story ↗</a></section>
+    </main>
+  </body>
+</html>

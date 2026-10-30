@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Urban Life Co. — Open Fold</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root { color-scheme: dark; font-family: "DM Sans", sans-serif; background: #101112; color: #f1eee8; font-synthesis: none; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-width: 320px; background: #101112; }
+      button, input, select { font: inherit; }
+      button { cursor: pointer; }
+      .site { max-width: 1600px; margin: auto; overflow: hidden; }
+      .topbar { height: 92px; padding: 0 7.2%; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #ffffff20; position: relative; z-index: 4; }
+      .brand { display: flex; align-items: center; gap: 12px; color: #f2eee7; text-decoration: none; font-size: 13px; font-weight: 700; letter-spacing: .19em; }
+      .mark { width: 25px; height: 25px; border: 1px solid #cda85d; border-radius: 50%; display: grid; place-items: center; color: #cda85d; font: 12px Georgia, serif; }
+      nav { display: flex; gap: 36px; align-items: center; }
+      nav a { color: #c5c1ba; text-decoration: none; font-size: 12px; }
+      nav a:first-child { color: #fff; }
+      .nav-action { border: 1px solid #b48b49; color: #e4c57f; padding: 12px 17px; }
+      .hero { display: grid; grid-template-columns: 48% 52%; min-height: 700px; position: relative; align-items: center; }
+      .copy { padding: 58px 0 72px 15%; position: relative; z-index: 2; }
+      h1 { margin: 0; max-width: 620px; font: 600 clamp(62px, 7.3vw, 106px)/.93 "Manrope", sans-serif; letter-spacing: -.075em; }
+      h1 span { color: #cda85d; }
+      .intro { max-width: 410px; color: #c5c1ba; font-size: 16px; line-height: 1.7; margin: 24px 0 28px; }
+      .finder { max-width: 435px; border-top: 1px solid #ffffff35; padding-top: 18px; }
+      .finder label { display: block; color: #d3b46d; font-size: 10px; letter-spacing: .16em; margin-bottom: 10px; text-transform: uppercase; }
+      .find-row { display: flex; border: 1px solid #ffffff45; min-height: 54px; }
+      .find-row input { min-width: 0; flex: 1; background: transparent; border: 0; padding: 0 15px; color: #fff; outline: none; }
+      .find-row input::placeholder { color: #a9a69f; }
+      .find-row button { background: #cda85d; color: #151413; border: 0; padding: 0 19px; font-weight: 700; font-size: 12px; }
+      .availability { margin: 12px 0 0; color: #aba8a2; font-size: 11px; }
+      .availability strong { color: #e8e4dc; font-weight: 500; }
+      .quiet-link { display: inline-block; margin-top: 23px; color: #d5d0c6; font-size: 12px; text-underline-offset: 5px; }
+      .fold-field { height: 100%; min-height: 700px; position: relative; overflow: hidden; }
+      .cloth { position: absolute; inset: 3% -7% -9% -8%; background: linear-gradient(119deg, #1b1c1e 0 13%, #33363a 14% 20%, #171819 27% 37%, #484b4f 38% 44%, #1c1d1e 49% 62%, #383a3d 63% 70%, #151617 78% 100%); clip-path: polygon(30% 2%, 82% 0, 100% 14%, 96% 87%, 72% 100%, 12% 94%, 0 76%, 11% 25%); filter: drop-shadow(0 28px 30px #0008); }
+      .cloth:before, .cloth:after { content: ""; position: absolute; inset: 0; }
+      .cloth:before { background: repeating-linear-gradient(105deg, transparent 0 8%, #ffffff06 8.3% 8.6%, #00000036 9.5% 10.1%, transparent 14% 19%); clip-path: polygon(33% 0, 58% 0, 27% 100%, 12% 94%); }
+      .cloth:after { background: linear-gradient(100deg, transparent 22%, #00000090 23% 24%, transparent 36% 43%, #ffffff16 48%, #00000060 59%, transparent 73%); }
+      .cord { position: absolute; z-index: 1; left: 47%; top: -1%; width: 2px; height: 75%; background: linear-gradient(#f2d794, #aa7e36); transform: rotate(9deg); box-shadow: 0 0 15px #d6ad5d50; }
+      .cord:before, .cord:after { content: ""; position: absolute; left: -5px; width: 12px; height: 12px; border-radius: 50%; background: #d4ae63; box-shadow: inset 0 0 0 3px #8e6931; }
+      .cord:before { top: 0; } .cord:after { bottom: 0; }
+      .woven-label { position: absolute; z-index: 2; right: 12%; bottom: 13%; color: #d4b36c; font-size: 10px; letter-spacing: .25em; }
+      .edge-note { position: absolute; z-index: 2; right: 9%; top: 18%; writing-mode: vertical-rl; color: #c4c0b9; font-size: 9px; letter-spacing: .18em; }
+      .moment { position: absolute; z-index: 3; left: 3%; bottom: 7%; width: min(250px, 62%); background: #111213; border: 1px solid #ffffff38; box-shadow: 0 15px 32px #0008; }
+      .moment img { display: block; width: 100%; height: 118px; object-fit: cover; }
+      .moment-copy { padding: 11px 13px 13px; }
+      .moment-copy small { color: #d6b66f; font-size: 8px; letter-spacing: .14em; }
+      .moment-copy strong { display: block; color: #f0eee8; font: 500 13px/1.35 "Manrope", sans-serif; margin-top: 6px; }
+      .moment-copy span { display: block; color: #bcb8b0; font-size: 10px; margin-top: 5px; }
+      .below { min-height: 210px; padding: 39px 7.2%; border-top: 1px solid #ffffff24; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: center; }
+      .below h2 { font: 500 25px "Manrope", sans-serif; letter-spacing: -.04em; margin: 0 0 8px; }
+      .below p { color: #aaa69f; font-size: 13px; line-height: 1.6; margin: 0; max-width: 470px; }
+      .past { justify-self: end; border-left: 1px solid #cda85d75; padding-left: 20px; color: #c5c1ba; font-size: 12px; line-height: 1.8; }
+      .past strong { display: block; color: #e9e2d4; font-weight: 500; }
+      @media (max-width: 760px) {
+        .topbar { height: 70px; padding: 0 22px; } nav { gap: 0; } nav a:not(.nav-action) { display: none; } .nav-action { padding: 10px 12px; font-size: 11px; }
+        .hero { display: flex; flex-direction: column; align-items: stretch; min-height: auto; }
+        .copy { order: 1; padding: 72px 24px 35px; } h1 { font-size: clamp(58px, 15vw, 82px); }
+        .fold-field { order: 2; min-height: 470px; } .cloth { inset: -2% -5% -5% 0; }
+        .moment { left: 6%; bottom: 6%; width: 225px; } .moment img { height: 98px; }
+        .below { padding: 30px 24px; grid-template-columns: 1fr; } .past { justify-self: stretch; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="site">
+      <header class="topbar">
+        <a class="brand" href="#"><span class="mark">U</span> URBAN LIFE CO.</a>
+        <nav aria-label="Main navigation"><a href="#">Experiences</a><a href="#">Journal</a><a href="#">Community</a><a class="nav-action" href="#">Find an event ↗</a></nav>
+      </header>
+      <section class="hero">
+        <div class="copy">
+          <h1>Live.<br />Connect.<br /><span>Explore.</span></h1>
+          <p class="intro">Experiences that bring people together, encourage exploration and make everyday life more meaningful.</p>
+          <form class="finder" onsubmit="event.preventDefault();document.querySelector('#availability').textContent='No upcoming events match yet. Browse past experiences below.'">
+            <label for="event-search">Find your next experience</label>
+            <div class="find-row"><input id="event-search" placeholder="Search events or places" /><button type="submit">Search events</button></div>
+            <p class="availability" id="availability"><strong>No upcoming events at the moment.</strong> Check back soon.</p>
+          </form>
+          <a class="quiet-link" href="#past">Explore the community and past experiences</a>
+        </div>
+        <div class="fold-field"><div class="cloth"></div><i class="cord" aria-hidden="true"></i><span class="edge-note">ONE COMMUNITY · MANY WAYS TO CONNECT</span><span class="woven-label">ENUGU, NIGERIA</span><article class="moment"><img src="https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&amp;fit=crop&amp;w=700&amp;q=80" alt="Hikers following a trail through the landscape" /><div class="moment-copy"><small>FROM THE ARCHIVE · 22 AUG 2026</small><strong>Urban Hikers — Reactivation Hike</strong><span>Coal Camp, Enugu · ₦2,500</span></div></article></div>
+      </section>
+      <section class="below" id="past">
+        <div><h2>More than a hike. It’s a community.</h2><p>Why the trail is only the beginning of what Urban Hikers is building.</p></div>
+        <div class="past"><strong>Keep exploring</strong>Browse past events and stories<br />Find an experience that feels like yours ↗</div>
+      </section>
+    </main>
+  </body>
+</html>

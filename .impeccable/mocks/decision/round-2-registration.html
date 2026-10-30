@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Registered Color Plates</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #eadfc8; color: #191919; font-family: Arial, sans-serif; }
+      main { min-height: 100vh; padding: 36px 7vw; }
+      nav { display: flex; justify-content: space-between; padding-bottom: 18px; border-bottom: 2px solid #191919; font-size: 12px; font-weight: 700; letter-spacing: .15em; }
+      nav span:last-child { padding: 10px 15px; background: #191919; color: #eadfc8; }
+      .hero { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 5vw; min-height: 680px; }
+      .kicker { font-size: 12px; font-weight: 800; letter-spacing: .2em; }
+      h1 { margin: 25px 0; font-size: clamp(70px, 9vw, 128px); line-height: .83; letter-spacing: -.09em; }
+      h1 span { color: #d4553b; }
+      p { max-width: 420px; font-size: 18px; line-height: 1.5; }
+      .finder { display: flex; max-width: 520px; margin-top: 28px; border: 2px solid #191919; background: #f8f2e6; }
+      .finder span { flex: 1; padding: 16px; }
+      .finder b { padding: 16px; background: #284a70; color: white; }
+      .plates { position: relative; height: 440px; border: 2px solid #191919; }
+      .plate { position: absolute; width: 72%; height: 72%; border: 2px solid #191919; }
+      .one { left: 6%; top: 5%; background: #284a70; }
+      .two { right: 6%; top: 15%; background: #d4553b; mix-blend-mode: multiply; }
+      .three { left: 15%; bottom: 4%; background: #eadfc8; mix-blend-mode: multiply; }
+      .plates span { position: absolute; left: 25px; bottom: 24px; z-index: 1; padding: 10px; background: #eadfc8; font-size: 12px; font-weight: 800; letter-spacing: .12em; }
+      @media (max-width: 760px) { main { padding: 24px; } .hero { grid-template-columns: 1fr; padding: 42px 0; } h1 { font-size: 75px; } .plates { height: 300px; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <nav><span>URBAN LIFE CO.</span><span>EVENTS · EXPERIENCES · STORIES</span></nav>
+      <section class="hero">
+        <div><p class="kicker">ONE ECOSYSTEM · MANY EXPERIENCES</p><h1>Color in <span>company.</span></h1><p>Distinct communities, held in one precise system. Find the people and events that feel like your kind of life.</p><div class="finder"><span>Search events and places</span><b>Explore ↗</b></div></div>
+        <div class="plates"><i class="plate one"></i><i class="plate two"></i><i class="plate three"></i><span>REGISTERED / 01–04</span></div>
+      </section>
+    </main>
+  </body>
+</html>

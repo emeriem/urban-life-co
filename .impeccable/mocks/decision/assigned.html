@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The City Bill</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #f3ead8; color: #1b2a52; font-family: Arial, sans-serif; }
+      .page { min-height: 100vh; padding: 38px 7vw 52px; }
+      nav { display: flex; align-items: center; justify-content: space-between; padding-bottom: 24px; border-bottom: 1px solid #1b2a52; font-size: 13px; font-weight: 700; }
+      .brand { letter-spacing: .16em; }
+      .links { display: flex; gap: 30px; text-transform: uppercase; letter-spacing: .08em; }
+      .links span:last-child { padding: 12px 18px; background: #1b2a52; color: #f3ead8; }
+      .hero { display: grid; grid-template-columns: 1.15fr .85fr; gap: 5vw; align-items: center; min-height: 660px; }
+      .kicker { margin: 0 0 28px; color: #e8452c; font-size: 13px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
+      h1 { max-width: 780px; margin: 0; font-size: clamp(68px, 8.5vw, 124px); line-height: .84; letter-spacing: -.08em; font-weight: 900; text-transform: uppercase; }
+      h1 span { color: #e8452c; }
+      .copy { max-width: 480px; margin: 28px 0; font-size: 19px; line-height: 1.5; }
+      .search { display: flex; max-width: 540px; padding: 8px; border: 1px solid #1b2a52; background: #fffaf0; }
+      .search div { flex: 1; padding: 14px; color: #656b75; }
+      .search b { padding: 15px 20px; background: #e8452c; color: white; text-transform: uppercase; }
+      .bill { position: relative; min-height: 460px; padding: 34px; background: #f5d64c; overflow: hidden; }
+      .bill:before { content: ''; position: absolute; width: 450px; height: 450px; border: 70px solid #e8452c; border-radius: 50%; left: 22%; top: 17%; opacity: .94; }
+      .bill:after { content: ''; position: absolute; width: 190px; height: 190px; background: #1b2a52; transform: rotate(45deg); right: -40px; top: -50px; }
+      .bill-top, .bill-bottom { position: relative; z-index: 1; }
+      .bill-top { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; letter-spacing: .14em; }
+      .bill-bottom { position: absolute; left: 34px; right: 34px; bottom: 30px; display: flex; justify-content: space-between; align-items: end; gap: 24px; }
+      .bill-bottom strong { max-width: 260px; font-size: 43px; line-height: .9; text-transform: uppercase; }
+      .bill-bottom span { max-width: 135px; font-size: 13px; line-height: 1.5; }
+      .foot { display: flex; justify-content: space-between; padding-top: 20px; border-top: 1px solid #1b2a52; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+      @media (max-width: 760px) { .page { padding: 24px; } .links { display: none; } .hero { grid-template-columns: 1fr; padding: 64px 0; } h1 { font-size: 72px; } .bill { min-height: 350px; } .foot { gap: 16px; flex-wrap: wrap; } }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <nav><span class="brand">URBAN LIFE CO.</span><div class="links"><span>Experiences</span><span>Journal</span><span>Community</span><span>Events</span></div></nav>
+      <section class="hero">
+        <div>
+          <p class="kicker">Live. Connect. Explore. · Enugu, Nigeria</p>
+          <h1>Make a day <span>of it.</span></h1>
+          <p class="copy">Find experiences that bring people together and give the calendar something worth looking forward to.</p>
+          <div class="search"><div>Search events, places or experiences</div><b>Explore events ↗</b></div>
+        </div>
+        <article class="bill"><div class="bill-top"><span>URBAN HIKERS</span><span>01 / FIND YOUR PEOPLE</span></div><div class="bill-bottom"><strong>Out there, together.</strong><span>Outdoor lifestyle<br />Exploration<br />Community</span></div></article>
+      </section>
+      <div class="foot"><span>One community. Many ways to belong.</span><span>Events · Experiences · Stories</span></div>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Urban Life Co. — Composition Review</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 38px; background: #e8e6e1; color: #171717; font: 14px/1.5 "Segoe UI", sans-serif; }
+      header { max-width: 1500px; margin: 0 auto 30px; display: flex; justify-content: space-between; align-items: end; gap: 20px; }
+      h1 { font-size: clamp(26px, 4vw, 42px); letter-spacing: -.055em; margin: 0; font-weight: 650; }
+      header p { max-width: 460px; margin: 0; color: #4a4946; }
+      .options { max-width: 1500px; margin: auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+      article { background: white; border: 1px solid #d2d0cb; }
+      .caption { min-height: 127px; padding: 17px 18px 15px; display: flex; flex-direction: column; align-items: start; }
+      .caption small { color: #79602f; font-size: 10px; text-transform: uppercase; letter-spacing: .14em; font-weight: 700; }
+      h2 { font-size: 19px; margin: 6px 0 3px; letter-spacing: -.035em; }
+      .caption p { color: #62605b; font-size: 12px; margin: 0; }
+      .preview { width: 100%; aspect-ratio: 1.36; overflow: hidden; background: #101112; border-top: 1px solid #d2d0cb; position: relative; }
+      .preview iframe { width: 1440px; height: 1000px; border: 0; transform: scale(.30); transform-origin: top left; pointer-events: none; }
+      .open { display: inline-block; padding: 12px 18px; margin-top: 14px; color: #171717; border: 1px solid #282725; text-decoration: none; font-size: 12px; font-weight: 650; }
+      .open:hover, .open:focus-visible { background: #171717; color: white; outline: 2px solid #bb9550; outline-offset: 2px; }
+      footer { max-width: 1500px; margin: 26px auto 0; color: #53514d; font-size: 12px; }
+      .admin { max-width: 1500px; margin: 52px auto 0; }
+      .admin h2 { font-size: 25px; margin: 0 0 5px; letter-spacing: -.04em; }
+      .admin > p { max-width: 620px; color: #62605b; font-size: 12px; margin: 0 0 18px; }
+      .workspace { min-height: 480px; background: #111213; color: #f0eee8; display: grid; grid-template-columns: 220px 1fr; border: 1px solid #2c2d2e; }
+      .side { padding: 27px 19px; border-right: 1px solid #ffffff24; }
+      .side-brand { color: #f0eee8; font-size: 10px; font-weight: 700; letter-spacing: .16em; margin-bottom: 35px; }
+      .side-label { color: #c9a65a; font-size: 9px; letter-spacing: .15em; margin: 0 0 10px; }
+      .side nav { display: grid; gap: 5px; }
+      .side nav span { padding: 10px 11px; color: #b6b3ac; font-size: 11px; }
+      .side nav .active { background: #242526; color: #f1eee8; border-left: 1px solid #d5b36c; }
+      .admin-main { padding: 30px 34px 34px; }
+      .admin-head { display: flex; justify-content: space-between; gap: 20px; align-items: start; border-bottom: 1px solid #ffffff25; padding-bottom: 22px; }
+      .admin-head h3 { margin: 0; font: 500 32px "Segoe UI", sans-serif; letter-spacing: -.05em; }
+      .admin-head p { color: #bdb9b1; font-size: 11px; margin: 7px 0 0; }
+      .admin-actions { display: flex; gap: 9px; }
+      .admin-actions span { border: 1px solid #c9a65a; color: #e3c77f; padding: 11px 13px; font-size: 10px; white-space: nowrap; }
+      .admin-lists { display: grid; grid-template-columns: 1.2fr .8fr; gap: 14px; margin-top: 18px; }
+      .admin-panel { min-height: 225px; padding: 17px; border: 1px solid #ffffff28; }
+      .admin-panel h4 { margin: 0; color: #d4b36b; font-size: 9px; font-weight: 500; letter-spacing: .14em; }
+      .admin-panel h5 { margin: 6px 0 12px; font-size: 15px; font-weight: 500; }
+      .event-row { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-top: 1px solid #ffffff24; align-items: center; }
+      .event-row strong { display: block; color: #f0eee8; font-size: 11px; font-weight: 500; }
+      .event-row small { display: block; color: #aaa69f; margin-top: 4px; font-size: 9px; }
+      .event-row em { color: #d4b36b; font-size: 8px; font-style: normal; white-space: nowrap; }
+      .admin-empty { min-height: 95px; border-top: 1px solid #ffffff24; padding-top: 12px; color: #c2beb6; font-size: 11px; line-height: 1.6; }
+      .admin-empty strong { color: #f0eee8; font-weight: 500; display: block; }
+      .admin-empty a { display: inline-block; color: #e3c77f; margin-top: 9px; }
+      @media(max-width: 1000px) { body { padding: 24px; } header { align-items: start; flex-direction: column; } .options { grid-template-columns: 1fr; max-width: 650px; } .preview { aspect-ratio: 1.5; } .preview iframe { transform: scale(.45); } }
+      @media(max-width: 760px) { .workspace { grid-template-columns: 1fr; } .side { padding: 16px; border-right: 0; border-bottom: 1px solid #ffffff24; } .side-brand, .side-label { display: none; } .side nav { grid-template-columns: repeat(4, 1fr); } .side nav span { padding: 8px; text-align: center; } .admin-main { padding: 22px 16px; } .admin-head { flex-direction: column; } .admin-head h3 { font-size: 25px; } .admin-lists { grid-template-columns: 1fr; } }
+      @media(max-width: 600px) { body { padding: 18px; } .preview { aspect-ratio: 1.1; } .preview iframe { transform: scale(.32); } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div><h1>Three ways to gather the world.</h1></div>
+      <p>Each direction keeps the chosen silk-and-drawcord visual world. Compare how the home page can lead people toward real Urban Life Co. experiences.</p>
+    </header>
+    <main class="options">
+      <article>
+        <div class="caption"><small>Composition A · Open Fold</small><h2>Message beside the silhouette</h2><p>A high-impact brand opening; a real Urban Hikers moment and event search share the first view.</p><a class="open" href="urban-life-comp-a.html">Open full composition ↗</a></div>
+        <div class="preview"><iframe title="Open Fold full-page composition" src="urban-life-comp-a.html" loading="eager"></iframe></div>
+      </article>
+      <article>
+        <div class="caption"><small>Composition B · Gathered Field</small><h2>The world becomes the canvas</h2><p>A bold full-bleed textile scene; discover events and meet Urban Hikers inside the fold.</p><a class="open" href="urban-life-comp-b.html">Open full composition ↗</a></div>
+        <div class="preview"><iframe title="Gathered Field full-page composition" src="urban-life-comp-b.html" loading="eager"></iframe></div>
+      </article>
+      <article>
+        <div class="caption"><small>Composition C · Seam Index</small><h2>Discovery as an index</h2><p>Search and archive lead, with a featured trail story giving the page a human point of entry.</p><a class="open" href="urban-life-comp-c.html">Open full composition ↗</a></div>
+        <div class="preview"><iframe title="Seam Index full-page composition" src="urban-life-comp-c.html" loading="eager"></iframe></div>
+      </article>
+    </main>
+    <section class="admin">
+      <h2>Same world. A clearer operating picture.</h2>
+      <p>The Super Admin view keeps the textile palette and gold seam, while prioritizing existing CMS tasks, recent events and new enquiries. Values are intentionally omitted from this concept preview.</p>
+      <div class="workspace">
+        <aside class="side">
+          <div class="side-brand">URBAN LIFE · CMS</div>
+          <p class="side-label">SUPER ADMIN</p>
+          <nav aria-label="CMS navigation"><span class="active">Overview</span><span>Events</span><span>Experiences</span><span>Journal</span><span>Announcements</span><span>Messages</span><span>Media</span><span>Site content</span></nav>
+        </aside>
+        <div class="admin-main">
+          <div class="admin-head">
+            <div><h3>The operating picture.</h3><p>A clear view of content, community enquiries and what needs attention next.</p></div>
+            <div class="admin-actions"><span>Create event +</span><span>Write a story ↗</span></div>
+          </div>
+          <div class="admin-lists">
+            <section class="admin-panel"><h4>EVENT ARCHIVE</h4><h5>Recent events</h5><div class="event-row"><div><strong>Urban Hikers — Reactivation Hike</strong><small>22 Aug 2026 · Coal Camp, Enugu</small></div><em>COMPLETED</em></div><div class="event-row"><div><strong>Urban Hangout</strong><small>16 Aug 2026 · Villa Toscana, Enugu</small></div><em>COMPLETED</em></div><div class="event-row"><div><strong>Urban Hikers × Eastern United</strong><small>12 Sep 2026 · Ngwo Park</small></div><em>COMPLETED</em></div></section>
+            <section class="admin-panel"><h4>COMMUNITY</h4><h5>New enquiries</h5><div class="admin-empty"><strong>You’re all caught up.</strong>New enquiries will appear here.<br /><a>Open inbox ↗</a></div></section>
+          </div>
+        </div>
+      </div>
+    </section>
+    <footer>Previews use the current event state honestly: no upcoming events are shown; the archive points to existing past experiences. These are visual comps, not live page functionality.</footer>
+  </body>
+</html>

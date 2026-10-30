@@ -1,0 +1,70 @@
+{
+  "source": "User-supplied Urban Hikers photographs and event artwork",
+  "assets": [
+    {
+      "file": "urban-hikers-ije-ugwu-hike.jpg",
+      "sourcePath": "ed191ace-0c71-4db4-827d-f15063387122/IMG-20261019-WA0012.jpg",
+      "type": "poster"
+    },
+    {
+      "file": "urban-hikers-ball-and-banter-poster.jpg",
+      "sourcePath": "99456f20-a459-4a7b-bf79-22bb0b70c933/IMG-20261014-WA0023.jpg",
+      "type": "poster"
+    },
+    {
+      "file": "urban-hikers-hangout-poster.jpg",
+      "sourcePath": "44744666-986c-460d-8af2-fa0431181023/IMG-20261025-WA0018.jpg",
+      "type": "poster"
+    },
+    {
+      "file": "urban-fitness-walk-poster.jpg",
+      "sourcePath": "7aaa225b-35fd-4d86-b056-b57ef8e2477b/IMG-20261027-WA0055.jpg",
+      "type": "poster"
+    },
+    {
+      "file": "urban-hikers-story.jpg",
+      "sourcePath": "0da92df6-f599-4c25-b3df-9bcdd5c55092/Screenshot_20261004-150320.jpg",
+      "type": "poster"
+    },
+    {
+      "file": "urban-hikers-trail-walk.jpg",
+      "sourcePath": "a377f3d1-1708-4e26-b576-1e28de74c693/IMG-20261003-WA0040.jpg",
+      "type": "photo"
+    },
+    {
+      "file": "urban-hikers-trail-rest.jpg",
+      "sourcePath": "f2510c20-56cf-4bb1-913d-f6480ad32ca3/IMG-20261003-WA0117.jpg",
+      "type": "photo"
+    },
+    {
+      "file": "urban-hikers-enugu-view.jpg",
+      "sourcePath": "45eb3482-d9c1-4520-bbca-3c1e77e2baa3/IMG-20261003-WA0056.jpg",
+      "type": "photo"
+    },
+    {
+      "file": "urban-hikers-summit-group.jpg",
+      "sourcePath": "b659d9b0-bc3e-4fc9-a5e6-61f415d2f693/IMG-20261003-WA0055.jpg",
+      "type": "photo"
+    },
+    {
+      "file": "urban-hikers-trail-pair.jpg",
+      "sourcePath": "10b7d424-fd10-45bb-a17f-9677b68fb06d/IMG_20261003_104500.jpg",
+      "type": "photo"
+    },
+    {
+      "file": "urban-hikers-hillside-group.jpg",
+      "sourcePath": "32ce5178-889a-4555-ad6e-2a7ef39f074d/IMG-20261003-WA0059.jpg",
+      "type": "photo"
+    },
+    {
+      "file": "urban-hikers-city-walk.jpg",
+      "sourcePath": "4878d845-b09d-44f4-a715-ae0abccff77b/IMG_20261003_095810.jpg",
+      "type": "photo"
+    },
+    {
+      "file": "urban-hikers-city-walk-2.jpg",
+      "sourcePath": "d9fd661a-2d01-456f-a9c2-a61bccb1fad7/IMG_20261003_095815.jpg",
+      "type": "photo"
+    }
+  ]
+}

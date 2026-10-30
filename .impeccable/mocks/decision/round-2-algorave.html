@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Algorave Floor</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 32px 7vw; background: #080d12; color: #f0f3f1; font-family: "Courier New", monospace; }
+      nav { display: flex; justify-content: space-between; padding: 16px; background: #55ff75; color: #080d12; font-size: 13px; font-weight: 900; }
+      .hero { display: grid; grid-template-columns: 1fr .85fr; align-items: center; gap: 5vw; min-height: 700px; }
+      small { color: #ffbf35; letter-spacing: .16em; }
+      h1 { color: #ff3eae; font-size: clamp(67px, 8vw, 115px); line-height: .82; letter-spacing: -.09em; }
+      p { max-width: 490px; font-size: 18px; line-height: 1.55; }
+      .grid { border: 1px solid #55ff75; padding: 22px; background: repeating-linear-gradient(0deg, transparent 0 44px, #1d2831 45px), repeating-linear-gradient(90deg, transparent 0 44px, #1d2831 45px); }
+      .row { display: flex; justify-content: space-between; padding: 17px; border-bottom: 1px solid #55ff75; }
+      .row:nth-child(2) { color: #ffbf35; background: #151d25; }
+      .row:last-child { border-bottom: 0; }
+      .action { margin-top: 26px; padding: 16px; background: #ffbf35; color: #080d12; font-weight: 900; }
+      @media (max-width: 760px) { body { padding: 22px; } .hero { grid-template-columns: 1fr; } h1 { font-size: 72px; } }
+    </style>
+  </head>
+  <body>
+    <nav><span>URBAN LIFE CO.</span><span>NOW / NEXT / COMMUNITY</span></nav>
+    <section class="hero"><div><small>LIVE EVENT STREAM / ENUGU</small><h1>Move to what’s next.</h1><p>A live-coded event index pulses with the people, places, and moments gathering now.</p><div class="action">OPEN EVENT INDEX ↗</div></div><div class="grid"><div class="row"><span>00 / LIVE</span><span>●</span></div><div class="row"><span>01 / NEXT UP</span><span>02:14</span></div><div class="row"><span>02 / EXPERIENCES</span><span>04</span></div><div class="row"><span>03 / JOURNAL</span><span>06</span></div></div></section>
+  </body>
+</html>
