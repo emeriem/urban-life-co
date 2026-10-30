@@ -17,6 +17,7 @@ import {
   ImagePlus,
   ShieldCheck,
   Link2,
+  Mail,
   RefreshCw,
 } from 'lucide-react';
 import { api, auth } from '@appdeploy/client';
@@ -469,7 +470,7 @@ function App() {
   return (
     <div className="site-shell">
       <PWAControls />
-      {announcement && (
+      {announcement && page !== 'admin' && (
         <div className="announcement">
           <Megaphone size={15} />
           <span>{announcement.title}</span>
@@ -481,48 +482,50 @@ function App() {
           </button>
         </div>
       )}
-      <header className="nav-wrap modern-nav-wrap">
-        <button
-          className="brand"
-          onClick={() => nav('home')}
-          aria-label="Urban Life Co. home"
-        >
-          <img
-            className="brand-mark"
-            src="/brand/urban-life-ul-mark.png"
-            alt="Urban Life Co."
-          />
-        </button>
-        <nav className={menu ? 'nav modern-nav open' : 'nav modern-nav'}>
-          {[
-            'home',
-            'about',
-            'experiences',
-            'events',
-            'journal',
-            'community',
-            'contact',
-          ].map(item => (
-            <button
-              key={item}
-              className={page === item ? 'active' : ''}
-              onClick={() => nav(item)}
-            >
-              {item}
-            </button>
-          ))}
-          <button className="nav-cta" onClick={() => nav('events')}>
-            Explore events <ChevronRight size={15} />
+      {page !== 'admin' && (
+        <header className="nav-wrap modern-nav-wrap">
+          <button
+            className="brand"
+            onClick={() => nav('home')}
+            aria-label="Urban Life Co. home"
+          >
+            <img
+              className="brand-mark"
+              src="/brand/urban-life-ul-mark.png"
+              alt="Urban Life Co."
+            />
           </button>
-        </nav>
-        <button
-          className="menu-btn"
-          onClick={() => setMenu(!menu)}
-          aria-label="Toggle navigation"
-        >
-          {menu ? <X /> : <Menu />}
-        </button>
-      </header>
+          <nav className={menu ? 'nav modern-nav open' : 'nav modern-nav'}>
+            {[
+              'home',
+              'about',
+              'experiences',
+              'events',
+              'journal',
+              'community',
+              'contact',
+            ].map(item => (
+              <button
+                key={item}
+                className={page === item ? 'active' : ''}
+                onClick={() => nav(item)}
+              >
+                {item}
+              </button>
+            ))}
+            <button className="nav-cta" onClick={() => nav('events')}>
+              Explore events <ChevronRight size={15} />
+            </button>
+          </nav>
+          <button
+            className="menu-btn"
+            onClick={() => setMenu(!menu)}
+            aria-label="Toggle navigation"
+          >
+            {menu ? <X /> : <Menu />}
+          </button>
+        </header>
+      )}
       {page === 'admin' && (
         <AdminPanel
           user={adminUser}
@@ -833,30 +836,32 @@ function App() {
           </section>
         </>
       )}
-      <footer>
-        <div>
-          <span className="footer-wordmark">URBAN LIFE CO.</span>
-          <p>Live. Connect. Explore.</p>
-        </div>
-        <div className="footer-links">
-          <button onClick={() => nav('about')}>About</button>
-          <button onClick={() => nav('events')}>Events</button>
-          <button onClick={() => nav('journal')}>Journal</button>
-          <button onClick={() => nav('community')}>Community</button>
-        </div>
-        <div className="footer-bottom">
-          <span>© 2026 Urban Life Co.</span>
-          <span>Built for people who want more from life.</span>
-          <a
-            href="https://www.instagram.com/urbanhikersng/"
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Instagram"
-          >
-            <Instagram size={17} />
-          </a>
-        </div>
-      </footer>
+      {page !== 'admin' && (
+        <footer>
+          <div>
+            <span className="footer-wordmark">URBAN LIFE CO.</span>
+            <p>Live. Connect. Explore.</p>
+          </div>
+          <div className="footer-links">
+            <button onClick={() => nav('about')}>About</button>
+            <button onClick={() => nav('events')}>Events</button>
+            <button onClick={() => nav('journal')}>Journal</button>
+            <button onClick={() => nav('community')}>Community</button>
+          </div>
+          <div className="footer-bottom">
+            <span>© 2026 Urban Life Co.</span>
+            <span>Built for people who want more from life.</span>
+            <a
+              href="https://www.instagram.com/urbanhikersng/"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Instagram"
+            >
+              <Instagram size={17} />
+            </a>
+          </div>
+        </footer>
+      )}
     </div>
   );
 }
@@ -1416,7 +1421,24 @@ function AdminPanel({
   }, [authorised]);
   if (!user || !authorised)
     return (
-      <section className="admin-shell">
+      <section className="admin-shell admin-auth">
+        <div className="cms-topbar">
+          <a
+            className="cms-brand"
+            href={`${window.location.pathname}${window.location.search}`}
+          >
+            <img src="/brand/urban-life-ul-mark.png" alt="" />
+            <span>
+              Urban Life Co.<small>Content studio</small>
+            </span>
+          </a>
+          <a
+            className="cms-site-link"
+            href={`${window.location.pathname}${window.location.search}`}
+          >
+            View website <ArrowRight size={15} />
+          </a>
+        </div>
         <div className="admin-access-note">Private CMS</div>
         <div className="admin-top">
           <div>
@@ -1430,11 +1452,7 @@ function AdminPanel({
             <button className="button ghost" onClick={onSignOut}>
               Sign out
             </button>
-          ) : (
-            <button className="button dark" onClick={onSignIn}>
-              Sign in to admin
-            </button>
-          )}
+          ) : null}
         </div>
         <div className="admin-notice">
           <ShieldCheck size={30} />
@@ -1458,18 +1476,37 @@ function AdminPanel({
       </section>
     );
   const tabs = [
-    ['dashboard', 'Overview'],
-    ['events', 'Events'],
-    ['experiences', 'Experiences'],
-    ['stories', 'Journal'],
-    ['announcements', 'Announcements'],
-    ['messages', 'Messages'],
-    ['media', 'Media'],
-    ['pages', 'Site content'],
-  ];
+    ['dashboard', 'Overview', Compass],
+    ['events', 'Events', CalendarDays],
+    ['experiences', 'Experiences', Mountain],
+    ['stories', 'Journal', Sparkles],
+    ['announcements', 'Announcements', Megaphone],
+    ['messages', 'Messages', Mail],
+    ['media', 'Media', ImagePlus],
+    ['pages', 'Site content', Menu],
+  ] as const;
   return (
     <section className="admin-shell">
-      <div className="admin-access-note">Private CMS · Super Admin</div>
+      <div className="cms-topbar">
+        <a
+          className="cms-brand"
+          href={`${window.location.pathname}${window.location.search}`}
+        >
+          <img src="/brand/urban-life-ul-mark.png" alt="" />
+          <span>
+            Urban Life Co.<small>Content studio</small>
+          </span>
+        </a>
+        <a
+          className="cms-site-link"
+          href={`${window.location.pathname}${window.location.search}`}
+        >
+          View website <ArrowRight size={15} />
+        </a>
+      </div>
+      <div className="admin-access-note">
+        <ShieldCheck size={14} /> Private CMS · Super Admin
+      </div>
       <div className="admin-top">
         <div>
           <p className="eyebrow">CONTROL CENTRE</p>
@@ -1486,21 +1523,22 @@ function AdminPanel({
         </div>
       </div>
       <div className="cms-layout">
-        <aside className="cms-nav">
-          {tabs.map(([key, label]) => (
+        <nav className="cms-nav" aria-label="CMS sections">
+          {tabs.map(([key, label, Icon]) => (
             <button
               key={key}
               className={tab === key ? 'active' : ''}
               aria-current={tab === key ? 'page' : undefined}
               onClick={() => setTab(key)}
             >
-              {label}
+              <Icon size={16} aria-hidden="true" />
+              <span>{label}</span>
             </button>
           ))}
           <button onClick={() => load()}>
-            <RefreshCw size={15} /> Refresh
+            <RefreshCw size={15} aria-hidden="true" /> <span>Refresh data</span>
           </button>
-        </aside>
+        </nav>
         <main className="cms-main">
           {loading && <div className="cms-loading">Updating…</div>}
           {tab === 'dashboard' && (
