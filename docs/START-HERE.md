@@ -12,7 +12,7 @@ The current application is the starting product, not a disposable prototype. The
 
 1. [Repository README](../README.md) — overview, links, local commands, blockers.
 2. [Current state](platform/current-state.md) — what is known, unknown, blocked, and next.
-3. [Source reconciliation log](platform/source-reconciliation.md) — why the current branch exists and what was copied or intentionally preserved.
+3. [Source reconciliation log](platform/source-reconciliation.md) — the history of the completed source alignment and what was intentionally preserved.
 4. [Architecture and gap audit](platform/architecture-gap-audit.md) — risks and technical priorities.
 5. [Backend route and data inventory](platform/backend-route-data-inventory.md) — endpoints, access model, collections, and source-level follow-ups.
 6. [Vision and roadmap](platform/vision-and-roadmap.md) — product direction and phased plan.
@@ -50,24 +50,23 @@ The current admin allowlist is also not a complete role system for platform owne
 ## 6. Source and release rules
 
 - Repository: https://github.com/emeriem/urban-life-co
-- Current reconciliation branch: `reconcile/appdeploy-source-2026-10-26`
-- Draft reconciliation PR: https://github.com/emeriem/urban-life-co/pull/12
+- Source reconciliation: [PR #12](https://github.com/emeriem/urban-life-co/pull/12), merged into `main`
 - Canonical AppDeploy app ID: `urban-life-co-zk9nyq`
 - Live app: https://urban-life-co-zk9nyq.v2.appdeploy.ai/
 
-AppDeploy is the official deployment/release record; GitHub is source control and documentation. A merge does not deploy the app. Never deploy from the reconciliation branch until the exact logo resource, reproducible build, auth, runtime flows, environment assumptions, and rollback are checked. Do not create a replacement app or alternate production host.
+`main` is the reviewed GitHub source baseline. AppDeploy is the official deployment/release record; GitHub is source control and documentation. A merge does not deploy the app. Before any release, verify required resources, build, auth, runtime flows, environment assumptions, and rollback. Do not create a replacement app or alternate production host.
 
 ## 7. Immediate continuation plan
 
-Execute in this order; do not skip ahead to feature work:
+Use the current repository state and open PRs rather than the historical reconciliation branch:
 
-1. **Recover the approved logo asset** at `public/resources/urban-life-logo.png` or formally confirm the correct asset/path with the owner.
-2. **Review the complete PR diff** and confirm every copied AppDeploy file is intended; retain package tooling and the wider QA scenario suite unless a deliberate, documented change is approved.
-3. **Run checks** on the branch: `npm ci` (if a lockfile exists and is appropriate), `npm run check:types`, and `npm run build`. Record Node/npm versions and outcomes. Do not claim success until logs prove it.
+1. **Check the current state and CI** for the exact branch/commit under review. The type/build workflow uses a disposable shim for the AppDeploy runtime client; do not commit a substitute client.
+2. **Recover the approved logo asset** at `public/resources/urban-life-logo.png` or formally confirm the correct asset/path with the owner before using that path.
+3. **Run the CI checks**: `npm run check:types`, `npm run build`, and `node scripts/verify-contracts.mjs`. CI installs dependencies and creates the required runtime-client shim; use the workflow for reproducible results. Record Node/npm versions and outcomes.
 4. **Smoke-test current behavior** in a browser: public pages, admin sign-in, CMS create/update/delete, media upload, Google Photos picker/import, mobile/PWA install and offline behavior.
 5. **Map backend routes and collections** with auth requirements, read/write behavior, validation, and data ownership. Add a route/data inventory to docs.
 6. **Fix confirmed regressions** with focused changes and regression tests. Re-run checks.
-7. **Review and merge the reconciliation PR** only after blockers are resolved. Keep production unchanged until a controlled release is explicitly approved.
+7. **Review and merge changes** only after their blockers are resolved. Keep production unchanged until a controlled release is explicitly approved.
 8. **Design tenant security before multi-brand UI**: tenant identity, membership, role model, server-side data scoping, media isolation, audit logs, migration/backfill, and cross-tenant negative tests.
 9. **Pilot with Urban Hikers first**, then invite external brands only after isolation and operational readiness are demonstrated.
 

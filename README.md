@@ -10,7 +10,7 @@ Urban Life Co. is the parent lifestyle ecosystem for experiences, communities, p
 
 - **Product today:** an existing React/Vite progressive web app (PWA) with public-facing brand, events, experiences, journal, community, and contact experiences, plus a private Super Admin CMS.
 - **Long-term direction:** evolve the current product into a modular, multi-brand platform for Urban Life Co. and eventually other lifestyle brands and communities.
-- **Current focus:** safely reconcile source code, verify the existing workflows, document the system, then establish secure foundations before implementing multi-brand tenancy.
+- **Current focus:** maintain the reviewed source baseline, verify application workflows, and establish secure foundations before implementing multi-brand tenancy.
 - **Important:** multi-tenant isolation is **not yet established**. Do not onboard external brands or treat this as production-ready SaaS for multiple tenants.
 
 ## Canonical links and systems
@@ -18,7 +18,7 @@ Urban Life Co. is the parent lifestyle ecosystem for experiences, communities, p
 | Purpose | Location |
 |---|---|
 | GitHub repository | https://github.com/emeriem/urban-life-co |
-| Current reconciliation PR | https://github.com/emeriem/urban-life-co/pull/12 |
+| Completed source reconciliation | https://github.com/emeriem/urban-life-co/pull/12 (merged) |
 | Handoff guide | [docs/START-HERE.md](docs/START-HERE.md) |
 | Current status and next actions | [docs/platform/current-state.md](docs/platform/current-state.md) |
 | Platform vision and roadmap | [docs/platform/vision-and-roadmap.md](docs/platform/vision-and-roadmap.md) |
@@ -35,12 +35,12 @@ Urban Life Co. is the parent lifestyle ecosystem for experiences, communities, p
 - **AppDeploy is the production deployment/release record.** GitHub is the version-controlled source and documentation home.
 - A GitHub commit, PR merge, or successful CI check does **not** mean the live app has been deployed.
 - Do not create a second AppDeploy app or publish to another host for routine work.
-- Do not deploy from the reconciliation branch until the outstanding asset, build, runtime, security, and review checks are resolved.
+- Do not treat a GitHub branch or successful CI run as a production release; follow the AppDeploy release checks and obtain owner approval.
 - Keep secrets, access tokens, OAuth credentials, customer data, and production exports out of Git.
 
-## Current working branch
+## Source baseline
 
-The source-reconciliation work is on `reconcile/appdeploy-source-2026-10-26`, associated with draft [PR #12](https://github.com/emeriem/urban-life-co/pull/12). The branch is a review candidate, not a release candidate. Check the live PR and CI status rather than relying on a number of commits recorded in older notes.
+The source-reconciliation work was completed in [PR #12](https://github.com/emeriem/urban-life-co/pull/12) and merged into `main`. Its reconciliation branch is historical; use the current `main` branch and active pull requests as the source-control baseline.
 
 ## Local development
 
@@ -59,7 +59,7 @@ npm run build
 npm run preview
 ```
 
-The commands are documented from `package.json`; **they have not yet been certified as passing for the reconciled branch**. The repository's package configuration retains the AppDeploy client and local type-check tooling intentionally. If install/build fails, record the exact command, runtime versions, and full error before changing dependencies.
+`@appdeploy/client` is provided by the AppDeploy runtime rather than the public npm registry. The GitHub Actions workflow creates a disposable CI-only shim for type and build checks; the shim is not a working AppDeploy client and must not be committed. Running the app outside AppDeploy requires a supported runtime client. Check CI for the exact commit before relying on its results.
 
 ## Repository map
 
@@ -73,12 +73,11 @@ The commands are documented from `package.json`; **they have not yet been certif
 
 ## Current known blockers
 
-1. The AppDeploy snapshot references `public/resources/urban-life-logo.png`, but that exact file was not found in the GitHub reconciliation branch. Recover the approved original; do not fabricate a replacement.
-2. Build and TypeScript checks have not been verified as passing for the reconciled branch.
-3. Full source diffs and runtime workflows still need review and smoke testing.
-4. Admin access currently relies on an email allowlist, not a complete multi-role/tenant permission model.
-5. Tenant isolation is not implemented/proven. External brand onboarding is blocked until the architecture, enforcement, and cross-tenant tests exist.
-6. A Google Identity script load warning was observed in AppDeploy logs; verify actual sign-in and Google Photos flows in a real browser before diagnosing it as a confirmed defect.
+1. The AppDeploy snapshot references `public/resources/urban-life-logo.png`, but that exact file was not found in GitHub `main`. Recover the approved original; do not fabricate a replacement.
+2. Passing type, build, and static contract checks do not prove the public and CMS workflows work end-to-end; browser smoke tests remain necessary.
+3. Admin access currently relies on an email allowlist, not a complete multi-role/tenant permission model.
+4. Tenant isolation is not implemented/proven. External brand onboarding is blocked until the architecture, enforcement, and cross-tenant tests exist.
+5. A Google Identity script load warning was observed in AppDeploy logs; verify actual sign-in and Google Photos flows in a real browser before diagnosing it as a confirmed defect.
 
 See [current state](docs/platform/current-state.md) for the sequenced work list and evidence status.
 

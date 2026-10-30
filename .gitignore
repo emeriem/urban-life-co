@@ -5,3 +5,5 @@ dist/
 !.env.example
 .DS_Store
 *.log
+/package.json.backup
+/.impeccable/build/
