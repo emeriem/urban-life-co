@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  ArrowLeft,
+  ArrowRight,
   CalendarDays,
   ChevronRight,
   Compass,
@@ -7,6 +9,8 @@ import {
   Menu,
   Megaphone,
   Mountain,
+  Pause,
+  Play,
   Search,
   Sparkles,
   X,
@@ -55,6 +59,110 @@ type Story = {
   featured?: boolean;
 };
 type Announcement = { id: string; title: string; body: string; date: string };
+const heroMemories = [
+  {
+    image: '/events/optimized/urban-hikers-trail-walk.jpg',
+    alt: 'Urban Hikers walking together along a trail',
+  },
+  {
+    image: '/events/optimized/urban-hikers-summit-group.jpg',
+    alt: 'Urban Hikers celebrating together at the summit',
+  },
+  {
+    image: '/events/optimized/urban-hikers-community.jpg',
+    alt: 'Urban Hikers sharing a moment outdoors',
+  },
+  {
+    image: '/events/optimized/urban-hikers-enugu-view.jpg',
+    alt: 'Urban Hikers looking out over Enugu',
+  },
+];
+const fieldPhotos = [
+  {
+    image: '/events/optimized/urban-hikers-ije-ugwu-hike.jpg',
+    alt: 'Ije Ugwu hike event poster',
+    caption: 'Ije Ugwu hike',
+    type: 'poster',
+  },
+  {
+    image: '/events/optimized/urban-hikers-ball-and-banter-poster.jpg',
+    alt: 'Urban Hikers Ball and Banter event poster',
+    caption: 'Ball and Banter',
+    type: 'poster',
+  },
+  {
+    image: '/events/optimized/urban-hikers-hangout-poster.jpg',
+    alt: 'Urban Hikers community hangout event poster',
+    caption: 'Community hangout',
+    type: 'poster',
+  },
+  {
+    image: '/events/optimized/urban-fitness-walk-poster.jpg',
+    alt: 'Urban Fitness Walk event poster',
+    caption: 'Urban Fitness Walk',
+    type: 'poster',
+  },
+  {
+    image: '/events/optimized/urban-hikers-story.jpg',
+    alt: 'Urban Hikers story artwork',
+    caption: 'Stories from the trail',
+    type: 'poster',
+  },
+  {
+    image: '/events/optimized/urban-hikers-trail-walk.jpg',
+    alt: 'The group setting out together on a trail',
+    caption: 'On the move',
+    type: 'photo',
+  },
+  {
+    image: '/events/optimized/urban-hikers-trail-rest.jpg',
+    alt: 'Hikers taking a break together on the trail',
+    caption: 'A moment to catch our breath',
+    type: 'photo',
+  },
+  {
+    image: '/events/optimized/urban-hikers-enugu-view.jpg',
+    alt: 'The group taking in a view over Enugu',
+    caption: 'Enugu from above',
+    type: 'photo',
+  },
+  {
+    image: '/events/optimized/urban-hikers-summit-group.jpg',
+    alt: 'The Urban Hikers group at the summit',
+    caption: 'Made it together',
+    type: 'photo',
+  },
+  {
+    image: '/events/optimized/urban-hikers-trail-pair.jpg',
+    alt: 'Two hikers walking together outdoors',
+    caption: 'The people make the path',
+    type: 'photo',
+  },
+  {
+    image: '/events/optimized/urban-hikers-hillside-group.jpg',
+    alt: 'Urban Hikers gathered on a hillside',
+    caption: 'A hillside gathering',
+    type: 'photo',
+  },
+  {
+    image: '/events/optimized/urban-hikers-city-walk.jpg',
+    alt: 'The group exploring the city on foot',
+    caption: 'A city walk',
+    type: 'photo',
+  },
+  {
+    image: '/events/optimized/urban-hikers-city-walk-2.jpg',
+    alt: 'Urban Hikers walking through the neighbourhood',
+    caption: 'Finding a new route',
+    type: 'photo',
+  },
+  {
+    image: '/events/optimized/urban-hikers-community.jpg',
+    alt: 'Friends sharing the day outdoors',
+    caption: 'Good company, open air',
+    type: 'photo',
+  },
+];
 
 function PWAControls() {
   const [online, setOnline] = useState(navigator.onLine);
@@ -138,8 +246,7 @@ const fallbackEvents: EventItem[] = [
     status: 'completed',
     price: '₦2,500',
     description: 'A return to the trail: movement, exploration and community.',
-    image:
-      'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=1400&q=80',
+    image: '/events/optimized/urban-hikers-trail-walk.jpg',
   },
   {
     id: 'e2',
@@ -150,8 +257,7 @@ const fallbackEvents: EventItem[] = [
     status: 'completed',
     price: '₦1,000',
     description: 'Games, music, drinks and the people that make the community.',
-    image:
-      'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1400&q=80',
+    image: '/events/optimized/urban-hikers-community.jpg',
   },
   {
     id: 'e3',
@@ -163,8 +269,7 @@ const fallbackEvents: EventItem[] = [
     price: 'Free',
     description:
       'An active afternoon built around touch rugby, movement and connection.',
-    image:
-      'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=1400&q=80',
+    image: '/events/optimized/urban-hikers-summit-group.jpg',
   },
 ];
 const fallbackStories: Story[] = [
@@ -173,6 +278,7 @@ const fallbackStories: Story[] = [
     title: 'More Than a Hike. It’s a Community.',
     category: 'Community',
     date: '2026-08-28',
+    coverImage: '/events/optimized/urban-hikers-trail-pair.jpg',
     excerpt:
       'Why the trail is only the beginning of what Urban Hikers is building.',
   },
@@ -181,6 +287,7 @@ const fallbackStories: Story[] = [
     title: 'Why We Live. Connect. Explore.',
     category: 'Urban Life Co.',
     date: '2026-08-20',
+    coverImage: '/events/optimized/urban-hikers-hillside-group.jpg',
     excerpt: 'The three ideas at the centre of every experience we create.',
   },
   {
@@ -188,6 +295,7 @@ const fallbackStories: Story[] = [
     title: 'The Urban Life Field Notes',
     category: 'Journal',
     date: '2026-08-10',
+    coverImage: '/events/optimized/urban-hikers-story.jpg',
     excerpt: 'A growing archive of places, people and experiences.',
   },
 ];
@@ -216,6 +324,25 @@ function App() {
     useState<ExperienceItem | null>(null);
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [settings, setSettings] = useState<any>({});
+  const [heroSlide, setHeroSlide] = useState(0);
+  const [heroPlaying, setHeroPlaying] = useState(
+    () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+  useEffect(() => {
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updatePlayback = () => setHeroPlaying(!preference.matches);
+    preference.addEventListener('change', updatePlayback);
+    return () => preference.removeEventListener('change', updatePlayback);
+  }, []);
+  useEffect(() => {
+    if (!heroPlaying) return;
+    const timer = window.setInterval(() => {
+      if (!document.hidden) {
+        setHeroSlide(current => (current + 1) % heroMemories.length);
+      }
+    }, 6500);
+    return () => window.clearInterval(timer);
+  }, [heroPlaying]);
   useEffect(() => {
     auth
       .getUser()
@@ -360,7 +487,11 @@ function App() {
           onClick={() => nav('home')}
           aria-label="Urban Life Co. home"
         >
-          <span className="brand">URBAN LIFE CO.</span>
+          <img
+            className="brand-mark"
+            src="/brand/urban-life-ul-mark.png"
+            alt="Urban Life Co."
+          />
         </button>
         <nav className={menu ? 'nav modern-nav open' : 'nav modern-nav'}>
           {[
@@ -404,7 +535,15 @@ function App() {
       {page === 'home' && (
         <>
           <section className="hero modern-hero">
-            <div className="hero-image" />
+            <div
+              key={heroSlide}
+              className="hero-image"
+              role="img"
+              aria-label={heroMemories[heroSlide].alt}
+              style={{
+                backgroundImage: `url("${heroMemories[heroSlide].image}")`,
+              }}
+            />
             <div className="hero-content">
               <p className="eyebrow">
                 {settings.heroEyebrow ?? 'A LIFESTYLE ECOSYSTEM FROM NIGERIA'}
@@ -436,7 +575,61 @@ function App() {
               <div className="hero-meta">
                 <span>ENUGU, NIGERIA</span>
                 <span>BUILT FOR LIFE IN MOTION</span>
-                <span>01 / 04</span>
+                <span aria-live="polite">
+                  {String(heroSlide + 1).padStart(2, '0')} /{' '}
+                  {String(heroMemories.length).padStart(2, '0')}
+                </span>
+                <div className="hero-controls" aria-label="Hero memories">
+                  <button
+                    className="hero-control"
+                    aria-label="Show previous memory"
+                    onClick={() =>
+                      setHeroSlide(
+                        current =>
+                          (current - 1 + heroMemories.length) %
+                          heroMemories.length
+                      )
+                    }
+                  >
+                    <ArrowLeft size={15} />
+                  </button>
+                  {heroMemories.map((memory, index) => (
+                    <button
+                      key={memory.image}
+                      className={
+                        index === heroSlide
+                          ? 'hero-dot is-active'
+                          : 'hero-dot'
+                      }
+                      aria-label={`Show memory ${index + 1}`}
+                      aria-current={index === heroSlide ? 'true' : undefined}
+                      onClick={() => setHeroSlide(index)}
+                    />
+                  ))}
+                  <button
+                    className="hero-control"
+                    aria-label="Show next memory"
+                    onClick={() =>
+                      setHeroSlide(
+                        current => (current + 1) % heroMemories.length
+                      )
+                    }
+                  >
+                    <ArrowRight size={15} />
+                  </button>
+                  <button
+                    className="hero-control"
+                    aria-label={
+                      heroPlaying
+                        ? 'Pause memory slideshow'
+                        : 'Play memory slideshow'
+                    }
+                    aria-pressed={heroPlaying}
+                    onClick={() => setHeroPlaying(playing => !playing)}
+                  >
+                    {heroPlaying ? <Pause size={14} /> : <Play size={14} />}
+                  </button>
+                </div>
               </div>
             </div>
           </section>
@@ -595,25 +788,50 @@ function App() {
       )}
       {page === 'contact' && <ContactPage />}
       {page === 'community' && (
-        <section className="community-page">
-          <div className="community-copy">
-            <p className="eyebrow">COMMUNITY</p>
-            <h1>
-              Come for the experience.
-              <br />
-              <em>Stay for the people.</em>
-            </h1>
-            <p>
-              Urban Life Co. is being built around the belief that life gets
-              better when people have places to meet, move, explore and build
-              something together.
-            </p>
-            <button className="button dark" onClick={() => nav('events')}>
-              Find an experience <ChevronRight size={17} />
-            </button>
-          </div>
-          <div className="community-image" />
-        </section>
+        <>
+          <section className="community-page">
+            <div className="community-copy">
+              <p className="eyebrow">COMMUNITY</p>
+              <h1>
+                Come for the experience.
+                <br />
+                <em>Stay for the people.</em>
+              </h1>
+              <p>
+                Urban Life Co. is being built around the belief that life gets
+                better when people have places to meet, move, explore and build
+                something together.
+              </p>
+              <button className="button dark" onClick={() => nav('events')}>
+                Find an experience <ChevronRight size={17} />
+              </button>
+            </div>
+            <div className="community-image" />
+          </section>
+          <section className="field-gallery section">
+            <div className="field-gallery-heading">
+              <p className="eyebrow">URBAN HIKERS · FIELD NOTES</p>
+              <h2>Moments from the field.</h2>
+              <p>Real people, open trails and the memories made along the way.</p>
+            </div>
+            <div className="field-gallery-grid">
+              {fieldPhotos.map(photo => (
+                <figure
+                  className={`field-photo field-photo-${photo.type}`}
+                  key={photo.image}
+                >
+                  <img
+                    src={photo.image}
+                    alt={photo.alt}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <figcaption>{photo.caption}</figcaption>
+                </figure>
+              ))}
+            </div>
+          </section>
+        </>
       )}
       <footer>
         <div>
@@ -811,6 +1029,9 @@ function StoryDetail({ story, onBack }: { story: Story; onBack: () => void }) {
         <h1>{story.title}</h1>
         <p>{story.excerpt}</p>
       </div>
+      {story.coverImage && (
+        <img className="story-detail-image" src={story.coverImage} alt="" />
+      )}
       <article className="story-detail-copy">
         {(story.content ?? story.excerpt)
           .split('\n')
@@ -945,6 +1166,15 @@ function StoryStrip({
       <div className="story-grid">
         {stories.map((s, i) => (
           <article className={`story story-${i}`} key={s.id}>
+            {s.coverImage && (
+              <img
+                className="story-cover"
+                src={s.coverImage}
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+            )}
             <div className="story-meta">
               {s.category} · {formatDate(s.date)}
             </div>
