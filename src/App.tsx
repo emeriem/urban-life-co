@@ -288,6 +288,7 @@ const fallbackStories: Story[] = [
     coverImage: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-trail-pair.jpg',
     excerpt:
       'Why the trail is only the beginning of what Urban Hikers is building.',
+    featured: true,
   },
   {
     id: 's2',
@@ -643,7 +644,7 @@ function App() {
             />
             <div className="hero-content">
               <p className="eyebrow">
-                {settings.heroEyebrow ?? 'A LIFESTYLE ECOSYSTEM FROM NIGERIA'}
+                {settings.heroEyebrow ?? 'URBAN LIFE CO. · ENUGU · NIGERIA'}
               </p>
               <h1>
                 {(settings.heroTitle ?? 'Live. Connect. Explore.')
@@ -2223,7 +2224,7 @@ function CommunitySubscribersManager({ items, reload, hasMore, loadMore }: { ite
   const downloadCsv = () => {
     const quote = (value: unknown) => {
       const raw = String(value ?? '');
-      const safe = /^[\\s]*[=+\\-@]/.test(raw) ? "'" + raw : raw;
+      const safe = /^[\s]*[=+\-@]/.test(raw) ? "'" + raw : raw;
       return '"' + safe.replace(/"/g, '""') + '"';
     };
     const active = items.filter(item => item.status === 'active');
