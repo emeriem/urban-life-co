@@ -9,17 +9,21 @@
       "experience detail",
       "event detail",
       "journal detail",
-      "past and upcoming events"
+      "past and upcoming events",
+      "shareable detail links",
+      "browser back navigation"
     ],
     "description": "Verifies visitors can move through the main public content system and open real detail experiences.",
     "steps": [
       "Open the public site",
       "Open Experiences and select an experience",
       "Open Events and select a visible event",
+      "Reload the page and confirm the same event detail is still shown",
+      "Press the browser back button and confirm the Events list is shown",
       "Open Journal and select a story",
       "Return to the homepage"
     ],
-    "expected": "Explore, View event, and Read story actions open corresponding content detail without authentication, and the visitor can return to the public site."
+    "expected": "Explore, View event, and Read story actions open corresponding content detail without authentication. Reloading an event detail keeps the visitor on that event, the browser back button returns to the Events list, and the visitor can return to the public site."
   },
   {
     "name": "Super Admin can operate core CMS content",
