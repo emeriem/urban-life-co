@@ -327,15 +327,14 @@ export async function expirePendingRegistrations() {
       throw err;
     }
   }
-  await db.tx.add('registration_expiry_state', [{
-    id: 'cursor',
-    nextToken: page.nextToken ?? null,
-    updatedAt: new Date().toISOString(),
-  }]);
-  if (!page.nextToken) {
+  const nextCursor = page.nextToken ?? null;
+  const cursorRecord = { nextToken: nextCursor, updatedAt: new Date().toISOString() };
+  if (state) {
     await db.tx.update('registration_expiry_state', [{
-      id: 'cursor', record: { nextToken: null, updatedAt: new Date().toISOString() },
+      id: 'cursor', record: cursorRecord,
     }], { patch: true });
+  } else {
+    await db.tx.add('registration_expiry_state', [{ id: 'cursor', ...cursorRecord }]);
   }
   return { statusCode: 200, processed };
 }
