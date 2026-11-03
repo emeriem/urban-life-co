@@ -929,6 +929,7 @@ function App() {
               ))}
             </div>
           </section>
+          <CommunitySignup />
         </>
       )}
       {page !== 'admin' && (
@@ -962,6 +963,61 @@ function App() {
     </div>
   );
 }
+
+function CommunitySignup() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [interests, setInterests] = useState<string[]>([]);
+  const [consent, setConsent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const options = ['Urban Hikers', 'Urban Fitness', 'Urban Connect', 'Travel & Culture'];
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); setBusy(true); setMessage(''); setErrorMessage('');
+    try {
+      await api.post('/api/community-signups', { name, email, phone, interests, consent, website: '' });
+      setMessage('You are on the Urban Life community list. Thank you for joining.');
+      setName(''); setEmail(''); setPhone(''); setInterests([]); setConsent(false);
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.message ?? err?.message ?? 'We could not save your signup. Please try again.');
+    } finally { setBusy(false); }
+  };
+  return (
+    <section className="community-signup section">
+      <div className="field-gallery-heading">
+        <p className="eyebrow">STAY IN THE LOOP</p>
+        <h2>Find your people.</h2>
+        <p>Get occasional updates about upcoming experiences, community activities and new ways to connect.</p>
+      </div>
+      <form className="contact-form" onSubmit={submit}>
+        <label>Name<input required maxLength={120} value={name} onChange={e => setName(e.target.value)} /></label>
+        <label>Email<input required type="email" maxLength={200} value={email} onChange={e => setEmail(e.target.value)} /></label>
+        <label>Phone (optional)<input maxLength={40} value={phone} onChange={e => setPhone(e.target.value)} /></label>
+        <div className="full">
+          <p><strong>What are you interested in?</strong></p>
+          <div className="community-interest-list">
+            {options.map(option => <label key={option}>
+              <input type="checkbox" checked={interests.includes(option)}
+                onChange={e => setInterests(current => e.target.checked ? [...current, option] : current.filter(value => value !== option))} />
+              {option}
+            </label>)}
+          </div>
+        </div>
+        <label className="full community-consent">
+          <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} required />
+          I agree to receive community updates and invitations from Urban Life Co. I can withdraw my consent by contacting the team.
+        </label>
+        <p className="full consent-note">We use these details only to manage your community signup and send the updates you opted into. Read our Privacy Policy for more information.</p>
+        {message && <p className="full admin-notice" role="status">{message}</p>}
+        {errorMessage && <p className="full photos-error" role="alert">{errorMessage}</p>}
+        <button className="button dark" type="submit" disabled={busy || !consent}>{busy ? 'Joining…' : 'Join the community'} <ChevronRight size={16} /></button>
+      </form>
+    </section>
+  );
+}
+
 function Pillars() {
   return (
     <section className="pillars">
