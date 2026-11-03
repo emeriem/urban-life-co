@@ -1117,6 +1117,7 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     const popup = window.open('', '_blank');
     if (!popup) { setErrorMessage('Allow pop-ups to print or save this ticket as a PDF.'); return; }
     popup.opener = null;
+    popup.onload = () => popup.print();
     const html = '<!doctype html><html><head><meta charset="utf-8"><title>Urban Life Co. ticket</title><style>' +
       '@page{size:A5;margin:12mm}body{font-family:Arial,sans-serif;color:#171717;margin:0}main{border:1px solid #ddd;border-radius:16px;padding:24px}h1{font-size:24px;margin:8px 0}p{line-height:1.5}.brand{letter-spacing:.16em;font-size:11px;font-weight:bold}.qr{width:180px;height:180px;image-rendering:pixelated}.code{font-family:monospace;word-break:break-all;border-top:1px solid #ddd;padding-top:12px}</style></head><body><main>' +
       '<div class="brand">URBAN LIFE CO. · LIVE. CONNECT. EXPLORE.</div>' +
@@ -1129,7 +1130,6 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
       '<p>Present this ticket at check-in. Each ticket is valid for one attendee and can be checked in once.</p>' +
       '</main></body></html>';
     popup.document.open(); popup.document.write(html); popup.document.close();
-    popup.onload = () => popup.print();
   };
   const showTicketQr = (ticketId: string) => {
     setQrTicketId(ticketId);
