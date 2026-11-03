@@ -21,6 +21,8 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { api, auth } from '@appdeploy/client';
+import { applyPageMeta } from './seo';
+import { findByRef, itemRef, parseLocation, routeToHash, type StaticPage } from './routing';
 
 type EventItem = {
   id: string;
@@ -62,103 +64,103 @@ type Story = {
 type Announcement = { id: string; title: string; body: string; date: string };
 const heroMemories = [
   {
-    image: '/events/optimized/urban-hikers-trail-walk.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-trail-walk.jpg',
     alt: 'Urban Hikers walking together along a trail',
   },
   {
-    image: '/events/optimized/urban-hikers-summit-group.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-summit-group.jpg',
     alt: 'Urban Hikers celebrating together at the summit',
   },
   {
-    image: '/events/optimized/urban-hikers-community.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-community.jpg',
     alt: 'Urban Hikers sharing a moment outdoors',
   },
   {
-    image: '/events/optimized/urban-hikers-enugu-view.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-enugu-view.jpg',
     alt: 'Urban Hikers looking out over Enugu',
   },
 ];
 const fieldPhotos = [
   {
-    image: '/events/optimized/urban-hikers-ije-ugwu-hike.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-ije-ugwu-hike.jpg',
     alt: 'Ije Ugwu hike event poster',
     caption: 'Ije Ugwu hike',
     type: 'poster',
   },
   {
-    image: '/events/optimized/urban-hikers-ball-and-banter-poster.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-ball-and-banter-poster.jpg',
     alt: 'Urban Hikers Ball and Banter event poster',
     caption: 'Ball and Banter',
     type: 'poster',
   },
   {
-    image: '/events/optimized/urban-hikers-hangout-poster.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-hangout-poster.jpg',
     alt: 'Urban Hikers community hangout event poster',
     caption: 'Community hangout',
     type: 'poster',
   },
   {
-    image: '/events/optimized/urban-fitness-walk-poster.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-fitness-walk-poster.jpg',
     alt: 'Urban Fitness Walk event poster',
     caption: 'Urban Fitness Walk',
     type: 'poster',
   },
   {
-    image: '/events/optimized/urban-hikers-story.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-story.jpg',
     alt: 'Urban Hikers story artwork',
     caption: 'Stories from the trail',
     type: 'poster',
   },
   {
-    image: '/events/optimized/urban-hikers-trail-walk.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-trail-walk.jpg',
     alt: 'The group setting out together on a trail',
     caption: 'On the move',
     type: 'photo',
   },
   {
-    image: '/events/optimized/urban-hikers-trail-rest.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-trail-rest.jpg',
     alt: 'Hikers taking a break together on the trail',
     caption: 'A moment to catch our breath',
     type: 'photo',
   },
   {
-    image: '/events/optimized/urban-hikers-enugu-view.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-enugu-view.jpg',
     alt: 'The group taking in a view over Enugu',
     caption: 'Enugu from above',
     type: 'photo',
   },
   {
-    image: '/events/optimized/urban-hikers-summit-group.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-summit-group.jpg',
     alt: 'The Urban Hikers group at the summit',
     caption: 'Made it together',
     type: 'photo',
   },
   {
-    image: '/events/optimized/urban-hikers-trail-pair.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-trail-pair.jpg',
     alt: 'Two hikers walking together outdoors',
     caption: 'The people make the path',
     type: 'photo',
   },
   {
-    image: '/events/optimized/urban-hikers-hillside-group.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-hillside-group.jpg',
     alt: 'Urban Hikers gathered on a hillside',
     caption: 'A hillside gathering',
     type: 'photo',
   },
   {
-    image: '/events/optimized/urban-hikers-city-walk.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-city-walk.jpg',
     alt: 'The group exploring the city on foot',
     caption: 'A city walk',
     type: 'photo',
   },
   {
-    image: '/events/optimized/urban-hikers-city-walk-2.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-city-walk-2.jpg',
     alt: 'Urban Hikers walking through the neighbourhood',
     caption: 'Finding a new route',
     type: 'photo',
   },
   {
-    image: '/events/optimized/urban-hikers-community.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-community.jpg',
     alt: 'Friends sharing the day outdoors',
     caption: 'Good company, open air',
     type: 'photo',
@@ -247,7 +249,7 @@ const fallbackEvents: EventItem[] = [
     status: 'completed',
     price: '₦2,500',
     description: 'A return to the trail: movement, exploration and community.',
-    image: '/events/optimized/urban-hikers-trail-walk.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-trail-walk.jpg',
   },
   {
     id: 'e2',
@@ -258,7 +260,7 @@ const fallbackEvents: EventItem[] = [
     status: 'completed',
     price: '₦1,000',
     description: 'Games, music, drinks and the people that make the community.',
-    image: '/events/optimized/urban-hikers-community.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-community.jpg',
   },
   {
     id: 'e3',
@@ -270,7 +272,7 @@ const fallbackEvents: EventItem[] = [
     price: 'Free',
     description:
       'An active afternoon built around touch rugby, movement and connection.',
-    image: '/events/optimized/urban-hikers-summit-group.jpg',
+    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-summit-group.jpg',
   },
 ];
 const fallbackStories: Story[] = [
@@ -279,7 +281,7 @@ const fallbackStories: Story[] = [
     title: 'More Than a Hike. It’s a Community.',
     category: 'Community',
     date: '2026-08-28',
-    coverImage: '/events/optimized/urban-hikers-trail-pair.jpg',
+    coverImage: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-trail-pair.jpg',
     excerpt:
       'Why the trail is only the beginning of what Urban Hikers is building.',
   },
@@ -288,7 +290,7 @@ const fallbackStories: Story[] = [
     title: 'Why We Live. Connect. Explore.',
     category: 'Urban Life Co.',
     date: '2026-08-20',
-    coverImage: '/events/optimized/urban-hikers-hillside-group.jpg',
+    coverImage: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-hillside-group.jpg',
     excerpt: 'The three ideas at the centre of every experience we create.',
   },
   {
@@ -296,7 +298,7 @@ const fallbackStories: Story[] = [
     title: 'The Urban Life Field Notes',
     category: 'Journal',
     date: '2026-08-10',
-    coverImage: '/events/optimized/urban-hikers-story.jpg',
+    coverImage: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-story.jpg',
     excerpt: 'A growing archive of places, people and experiences.',
   },
 ];
@@ -312,9 +314,7 @@ function App() {
   const [stories, setStories] = useState<Story[]>(fallbackStories);
   const [experiences, setExperiences] = useState<ExperienceItem[]>([]);
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
-  const [page, setPage] = useState(() =>
-    window.location.hash.startsWith('#admin') ? 'admin' : 'home'
-  );
+  const [page, setPage] = useState(() => parseLocation(window.location.hash).page);
   const [menu, setMenu] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
   const [adminAuthorised, setAdminAuthorised] = useState(false);
@@ -373,11 +373,100 @@ function App() {
         if (data?.stories?.length) setStories(data.stories);
         if (data?.experiences?.length) setExperiences(data.experiences);
         if (data?.settings) setSettings(data.settings);
-        if (data?.settings?.heroTitle)
-          document.title = `${data.settings.heroTitle} — Urban Life Co.`;
       })
       .catch(() => undefined);
   }, []);
+  useEffect(() => {
+    const syncRoute = () => {
+      const route = parseLocation(window.location.hash);
+      if ('ref' in route) {
+        if (route.page === 'event') {
+          const item = findByRef(events, route.ref);
+          if (item) {
+            setSelectedEvent(item);
+            setSelectedExperience(null);
+            setSelectedStory(null);
+            setPage('event');
+            return;
+          }
+        }
+        if (route.page === 'experience') {
+          const item = findByRef(experiences, route.ref);
+          if (item) {
+            setSelectedExperience(item);
+            setSelectedEvent(null);
+            setSelectedStory(null);
+            setPage('experience');
+            return;
+          }
+        }
+        if (route.page === 'story') {
+          const item = findByRef(stories, route.ref);
+          if (item) {
+            setSelectedStory(item);
+            setSelectedEvent(null);
+            setSelectedExperience(null);
+            setPage('story');
+            return;
+          }
+        }
+        setSelectedEvent(null);
+        setSelectedExperience(null);
+        setSelectedStory(null);
+        setPage('home');
+        return;
+      }
+      setSelectedEvent(null);
+      setSelectedExperience(null);
+      setSelectedStory(null);
+      setPage(route.page === 'notfound' ? 'home' : route.page);
+    };
+    syncRoute();
+    window.addEventListener('hashchange', syncRoute);
+    return () => window.removeEventListener('hashchange', syncRoute);
+  }, [events, experiences, stories]);
+  useEffect(() => {
+    const titles: Record<string, string> = {
+      home: settings.heroTitle || 'Live. Connect. Explore.',
+      about: 'Our Story',
+      experiences: 'Experiences',
+      events: 'Events',
+      journal: 'Journal',
+      community: 'Community',
+      contact: 'Contact',
+      admin: 'Admin workspace',
+    };
+    const title = selectedEvent
+      ? `${selectedEvent.title} — Urban Life Co.`
+      : selectedExperience
+        ? `${selectedExperience.name} — Urban Life Co.`
+        : selectedStory
+          ? `${selectedStory.title} — Urban Life Co.`
+          : `${titles[page] ?? 'Urban Life Co.'} — Urban Life Co.`;
+    const description = selectedEvent?.description || selectedExperience?.description || selectedStory?.excerpt || settings.heroCopy || 'Experiences that bring people together. Home of Urban Hikers, Urban Fitness and Urban Connect — Enugu, Nigeria.';
+    const jsonLd = selectedEvent
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'Event',
+          name: selectedEvent.title,
+          description: selectedEvent.description,
+          startDate: selectedEvent.date,
+          location: { '@type': 'Place', name: selectedEvent.location },
+          image: selectedEvent.image,
+          offers: selectedEvent.registrationLink ? { '@type': 'Offer', url: selectedEvent.registrationLink, price: selectedEvent.price } : undefined,
+        }
+      : selectedStory
+        ? { '@context': 'https://schema.org', '@type': 'Article', headline: selectedStory.title, description: selectedStory.excerpt, datePublished: selectedStory.date, image: selectedStory.coverImage }
+        : null;
+    applyPageMeta({
+      title,
+      description,
+      path: `${window.location.pathname}${window.location.search}${window.location.hash}`,
+      image: selectedEvent?.image || selectedExperience?.coverImage || selectedStory?.coverImage || '/resources/urban-life-logo.png',
+      noindex: page === 'admin',
+      jsonLd,
+    });
+  }, [page, selectedEvent, selectedExperience, selectedStory, settings]);
   const filteredEvents = useMemo(
     () =>
       events.filter(e =>
@@ -396,6 +485,7 @@ function App() {
     .filter(e => new Date(e.date) < startOfToday)
     .sort((a, b) => +new Date(b.date) - +new Date(a.date));
   const openEvent = (event: EventItem) => {
+    window.location.hash = routeToHash({ page: 'event', ref: itemRef(event.title, event.id) });
     setSelectedEvent(event);
     setSelectedExperience(null);
     setSelectedStory(null);
@@ -404,6 +494,7 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const openExperience = (experience: ExperienceItem) => {
+    window.location.hash = routeToHash({ page: 'experience', ref: itemRef(experience.name, experience.id) });
     setSelectedExperience(experience);
     setSelectedEvent(null);
     setSelectedStory(null);
@@ -412,6 +503,7 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const openStory = (story: Story) => {
+    window.location.hash = routeToHash({ page: 'story', ref: itemRef(story.title, story.id) });
     setSelectedStory(story);
     setSelectedEvent(null);
     setSelectedExperience(null);
@@ -420,13 +512,9 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const nav = (target: string) => {
-    if (target === 'admin') window.location.hash = 'admin';
-    else if (window.location.hash)
-      window.history.replaceState(
-        null,
-        '',
-        window.location.pathname + window.location.search
-      );
+    window.location.hash = target === 'admin'
+      ? 'admin'
+      : routeToHash({ page: target as StaticPage });
     setPage(target);
     setMenu(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -491,7 +579,7 @@ function App() {
           >
             <img
               className="brand-mark"
-              src="/brand/urban-life-ul-mark.png"
+              src="https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/brand/urban-life-ul-mark.png"
               alt="Urban Life Co."
             />
           </button>
@@ -1436,7 +1524,7 @@ function AdminPanel({
             className="cms-brand"
             href={`${window.location.pathname}${window.location.search}`}
           >
-            <img src="/brand/urban-life-ul-mark.png" alt="" />
+            <img src="https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/brand/urban-life-ul-mark.png" alt="" />
             <span>
               Urban Life Co.<small>Content studio</small>
             </span>
@@ -1501,7 +1589,7 @@ function AdminPanel({
           className="cms-brand"
           href={`${window.location.pathname}${window.location.search}`}
         >
-          <img src="/brand/urban-life-ul-mark.png" alt="" />
+          <img src="https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/brand/urban-life-ul-mark.png" alt="" />
           <span>
             Urban Life Co.<small>Content studio</small>
           </span>
@@ -1909,8 +1997,7 @@ function ExperiencesManager({
             Cancel
           </button>
         )}
-      </div>
-      <ListTable
+      </div>      <ListTable
         items={items}
         columns={['name', 'category', 'status']}
         onEdit={x => {
