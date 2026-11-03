@@ -1034,7 +1034,7 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
   const [purchaserName, setPurchaserName] = useState('');
   const [purchaserEmail, setPurchaserEmail] = useState('');
   const [purchaserPhone, setPurchaserPhone] = useState('');
-  const [attendees, setAttendees] = useState<string[]>(['']);
+  const [attendeeNamesText, setAttendeeNamesText] = useState('');
   const [busy, setBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [booking, setBooking] = useState<any>(null);
@@ -1077,9 +1077,8 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     }
   };
   const changeQuantity = (next: number) => {
-    const safe = Number.isFinite(next) ? Math.max(1, Math.min(50000, Math.floor(next))) : 1;
+    const safe = Number.isFinite(next) ? Math.max(1, Math.floor(next)) : 1;
     setQuantity(safe);
-    setAttendees(current => Array.from({ length: safe }, (_, i) => current[i] ?? ''));
   };
   const loadTicketBatch = async (registrationId: string, batchIndex: number, append = false) => {
     const { data } = await api.post(`/api/registrations/${registrationId}/tickets`, { accessToken, batchIndex });
@@ -1100,11 +1099,17 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     } finally { setBusy(false); }
   };
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); setBusy(true); setErrorMessage('');
+    e.preventDefault(); setErrorMessage('');
+    const attendeeNames = attendeeNamesText.split(/\r?\n/).map(name => name.trim());
+    if (attendeeNames.length !== quantity || attendeeNames.some(name => !name)) {
+      setErrorMessage('Enter exactly one attendee name per ticket, with one name on each line.');
+      return;
+    }
+    setBusy(true);
     try {
       const { data } = await api.post('/api/registrations', {
         eventId: event.id, idempotencyKey, accessToken, purchaserName, purchaserEmail, purchaserPhone,
-        paymentMethod: isFree ? 'free' : 'manual_transfer', attendees: attendees.map(name => ({ name })),
+        paymentMethod: isFree ? 'free' : 'manual_transfer', attendees: attendeeNames.map(name => ({ name })),
       });
       setBooking(data);
       if (data.status === 'confirmed') await loadTicketBatch(data.registrationId, 0);
@@ -1178,8 +1183,8 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
             <label>Email address<input required type="email" maxLength={200} value={purchaserEmail} onChange={e => setPurchaserEmail(e.target.value)} /></label>
             <label>Phone number<input value={purchaserPhone} maxLength={40} onChange={e => setPurchaserPhone(e.target.value)} /></label>
             <div className="full"><h3>Attendee details</h3><p>Enter the name of each person who will use a ticket.</p></div>
-            {attendees.map((name, index) => <label key={index}>Ticket {index + 1} — attendee name<input required maxLength={120} value={name} onChange={e => setAttendees(current => current.map((v, i) => i === index ? e.target.value : v))} /></label>)}
-            <p className="full consent-note">{isFree ? 'Free registration. Tickets are issued once the booking is accepted.' : 'Manual bank transfer is available only where approved bank details have been configured. Automated bank transfer and USSD will appear after provider sandbox verification.'}</p>
+            <label className="full">Attendee names — one per line<textarea required rows={6} value={attendeeNamesText} onChange={e => setAttendeeNamesText(e.target.value)} placeholder={'One attendee name per line'} /></label>
+            <p className="full consent-note">{isFree ? 'Free registration. Tickets are issued once the booking is accepted.' : 'Manual bank transfer is available only where approved bank details have been configured. Automated bank transfer and USSD will appear after provider sandbox verification. Large bookings may need to be split to fit safe atomic database transaction limits.'}</p>
             {errorMessage && <div className="photos-error full" role="alert">{errorMessage}</div>}
             <button className="button dark" type="submit" disabled={busy}>{busy ? 'Creating booking…' : 'Continue · ' + quantity + ' ticket' + (quantity === 1 ? '' : 's')} <ChevronRight size={16} /></button>
           </form>
