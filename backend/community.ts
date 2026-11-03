@@ -1,4 +1,4 @@
-import { db, error, json } from '@appdeploy/sdk';
+import { db, error, isAppDatabaseError, json } from '@appdeploy/sdk';
 import type { RouterContext } from '@appdeploy/sdk';
 
 const clean = (value: unknown, max: number) => String(value ?? '').trim().slice(0, max);
@@ -65,4 +65,31 @@ export async function adminListCommunitySubscribers(ctx: RouterContext) {
     })),
     nextToken: page.nextToken ?? null,
   });
+}
+
+
+export async function adminUnsubscribeCommunitySubscriber(ctx: RouterContext) {
+  const id = clean(ctx.params.id, 80);
+  const [subscriber] = await db.get<any>('community_subscribers', [id], { consistent: true });
+  if (!subscriber) return error('Community subscriber not found.', 404);
+  if (subscriber.status === 'unsubscribed') return json({ ok: true, status: 'unsubscribed' });
+  const now = new Date().toISOString();
+  const actor = ctx.user?.email ?? ctx.user?.userId ?? 'administrator';
+  try {
+    await db.transact([
+      db.tx.update('community_subscribers', [{
+        id, record: { status: 'unsubscribed', consent: false, unsubscribedAt: now, updatedAt: now },
+        if: { email: subscriber.email, status: subscriber.status },
+      }], { patch: true }),
+      db.tx.add('community_subscription_audit', [{
+        id: crypto.randomUUID(), subscriberId: id, action: 'unsubscribed',
+        actor, createdAt: now,
+      }]),
+    ]);
+  } catch (err) {
+    if (isAppDatabaseError(err) && (err.code === 'AppDatabaseConditionFailed' || err.code === 'AppDatabaseConflict'))
+      return error('Subscriber status changed. Refresh the list before retrying.', 409);
+    throw err;
+  }
+  return json({ ok: true, status: 'unsubscribed' });
 }
