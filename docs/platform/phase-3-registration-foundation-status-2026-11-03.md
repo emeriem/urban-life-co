@@ -38,6 +38,8 @@
 ### Admin UI
 - Added a Bookings & tickets CMS tab.
 - Administrators can inspect booking/payment references, verify actual transfer credit, reject transfer references, and enter a ticket ID for check-in.
+- The admin dashboard includes confirmed tickets sold, active ticket holds, and checked-in attendance counters.
+- Event detail pages provide calendar-file export, native share/copy-link behavior, and a map-search link.
 
 ## AppDeploy secrets required for manual transfer
 
@@ -60,7 +62,7 @@ These values have deliberately not been invented or configured. Until all three 
 4. **Manual-transfer secrets:** real bank details are not in source and have not been supplied/configured.
 5. **Operational policies:** refund/cancellation, late payment, transfer mismatch/overpayment, evidence retention and customer confirmation channels still require owner approval.
 6. **Membership and CRM:** paid memberships/subscriptions are not implemented. The roadmap says these follow validation of requirements, providers, fees and local operating constraints.
-7. **Community capture and analytics:** a mailing-list consent flow, communications/segmentation, and business analytics dashboards are not implemented in this registration branch.
+7. **Community capture and broader analytics:** a mailing-list consent flow, communications/segmentation, conversion/retention analytics and exports are not implemented. The current branch adds only ticket sales/reservation/attendance counters.
 8. **Legal/privacy review:** registration and payment data handling, retention and Nigerian privacy/legal language require review before launch.
 9. **Runtime QA:** the repository CI checks frontend type/build and static API contracts; it does not execute AppDeploy database transactions or a browser end-to-end payment flow. Sandbox/concurrency tests remain mandatory.
 
