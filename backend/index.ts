@@ -641,6 +641,13 @@ export const handler = router({
       const clean = pick(ctx.body, EVENT_FIELDS);
       if (!validStatus(clean, EVENT_STATUSES))
         return error('Invalid status.', 400);
+      if (typeof clean.capacity === 'number') {
+        const held = Number(existing.heldCount ?? 0);
+        const confirmed = Number(existing.confirmedCount ?? 0);
+        if (!Number.isSafeInteger(held) || !Number.isSafeInteger(confirmed) ||
+            held < 0 || confirmed < 0 || clean.capacity < held + confirmed)
+          return error('Capacity cannot be lower than tickets already reserved or sold.', 409);
+      }
       // Patch only CMS-owned fields. A full-record replacement based on a stale
       // read could overwrite concurrent held/confirmed/check-in counters.
       const [ok] = await db.tx.update('events', [{
