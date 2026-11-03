@@ -247,6 +247,233 @@ export async function registrationStatus(ctx: RouterContext) {
     paymentMethod: r.paymentMethod, paymentCreationStatus: r.paymentCreationStatus ?? null });
 }
 
+async function retryProviderInstruction(r: Registration, bankCode = '') {
+  const input = {
+    merchantReference: r.paymentReference,
+    amountMinor: r.amountMinor,
+    currency: r.currency,
+    customerEmail: r.purchaserEmail,
+    customerName: r.purchaserName,
+    customerPhone: r.purchaserPhone,
+  };
+  const instruction = r.paymentMethod === 'bank_transfer'
+    ? await flutterwaveSandboxProvider.createBankTransfer(input)
+    : await flutterwaveSandboxProvider.initiateUssd({ ...input, bankCode });
+  const now = new Date().toISOString();
+  await db.transact([
+    db.tx.update('registrations', [{
+      id: r.id, record: {
+        paymentStatus: 'awaiting_provider', providerReference: instruction.providerReference,
+        providerInstruction: instruction.instructions, providerInstructionExpiresAt: instruction.expiresAt ?? null,
+        paymentCreationStatus: 'created', paymentCreationError: null,
+      }, if: { status: 'pending_payment', paymentStatus: r.paymentStatus },
+    }], { patch: true }),
+    db.tx.update('payment_attempts', [{
+      id: r.paymentId, record: {
+        status: 'awaiting_provider', providerReference: instruction.providerReference,
+        providerInstruction: instruction.instructions, updatedAt: now,
+      }, if: { status: r.paymentStatus },
+    }], { patch: true }),
+    db.tx.update('provider_payment_refs', [{
+      id: r.paymentReference, record: {
+        status: 'awaiting_provider', providerReference: instruction.providerReference, updatedAt: now,
+      }, if: { status: 'provider_creation_failed' },
+    }], { patch: true }),
+  ]);
+  return instruction;
+}
+
+export async function retryProviderPayment(ctx: RouterContext) {
+  const r = await getBooking(ctx.params.id);
+  if (!r) return error('Booking not found.', 404);
+  if (!await hasAccess(ctx, r)) return error('Booking access denied.', 403);
+  if (r.status !== 'pending_payment' || !['bank_transfer', 'ussd'].includes(r.paymentMethod) ||
+      r.paymentStatus !== 'provider_creation_failed')
+    return error('This booking is not eligible for payment-instruction retry.', 409);
+  if (r.expiresAt && Date.parse(r.expiresAt) <= Date.now())
+    return error('The payment hold has expired. Contact the event team before making a payment.', 409);
+  try {
+    const instruction = await retryProviderInstruction(r, clean((ctx.body as Record<string, unknown> | undefined)?.bankCode, 20));
+    return json({ ok: true, paymentStatus: 'awaiting_provider', providerInstruction: instruction.instructions,
+      providerInstructionExpiresAt: instruction.expiresAt ?? null });
+  } catch {
+    return error('The payment provider could not create instructions. Your ticket hold remains reserved; retry using the same booking.', 503);
+  }
+}
+
+async function reconcileProviderPayment(payment: {
+  providerReference: string; merchantReference: string; amountMinor: number; currency: string;
+  status: string; paidAt?: string;
+}, webhookId: string) {
+  const [mapping] = await db.get<any>('provider_payment_refs', [payment.merchantReference], { consistent: true });
+  if (!mapping?.registrationId) return false;
+  const r = await getBooking(mapping.registrationId);
+  if (!r) return false;
+  if (r.status === 'confirmed' && r.paymentStatus === 'provider_confirmed') return true;
+
+  const now = new Date().toISOString();
+  if (payment.status !== 'succeeded') {
+    if (['failed', 'expired', 'cancelled'].includes(payment.status)) {
+      await db.transact([
+        db.tx.update('registrations', [{
+          id: r.id, record: { paymentStatus: 'provider_' + payment.status, providerStatusUpdatedAt: now },
+          if: { status: 'pending_payment', paymentStatus: 'awaiting_provider' },
+        }], { patch: true }),
+        db.tx.update('payment_attempts', [{
+          id: r.paymentId, record: { status: 'provider_' + payment.status, providerStatusUpdatedAt: now },
+          if: { status: 'awaiting_provider' },
+        }], { patch: true }),
+        db.tx.update('provider_payment_refs', [{
+          id: payment.merchantReference, record: { status: payment.status, lastWebhookId: webhookId, updatedAt: now },
+          if: { status: 'awaiting_provider' },
+        }], { patch: true }),
+      ]);
+    }
+    return true;
+  }
+
+  if (payment.currency !== 'NGN' || payment.amountMinor !== r.amountMinor ||
+      payment.merchantReference !== r.paymentReference) {
+    await db.transact([
+      db.tx.update('registrations', [{
+        id: r.id, record: { paymentStatus: 'reconciliation_required', providerReference: payment.providerReference,
+          providerMismatchAt: now },
+        if: { status: 'pending_payment', paymentStatus: 'awaiting_provider' },
+      }], { patch: true }),
+      db.tx.update('payment_attempts', [{
+        id: r.paymentId, record: { status: 'reconciliation_required', providerReference: payment.providerReference, updatedAt: now },
+        if: { status: 'awaiting_provider' },
+      }], { patch: true }),
+      db.tx.update('provider_payment_refs', [{
+        id: payment.merchantReference, record: { status: 'reconciliation_required', lastWebhookId: webhookId, updatedAt: now },
+        if: { status: 'awaiting_provider' },
+      }], { patch: true }),
+      db.tx.add('payment_audit', [{
+        id: 'provider-mismatch-' + webhookId, registrationId: r.id, action: 'provider_payment_mismatch',
+        providerReference: payment.providerReference, receivedAmountMinor: payment.amountMinor,
+        receivedCurrency: payment.currency, actor: 'flutterwave-webhook', createdAt: now,
+      }]),
+    ]);
+    return true;
+  }
+
+  if (r.status !== 'pending_payment' || !r.expiresAt || Date.parse(r.expiresAt) <= Date.now()) {
+    if (r.status === 'pending_payment') {
+      const [event] = await db.get<EventRecord>('events', [r.eventId], { consistent: true });
+      if (!event) return false;
+      const held = count(event.heldCount);
+      if (held === null || held < r.attendeeCount) return false;
+      await db.transact([
+        db.tx.update('events', [{
+          id: r.eventId, record: { heldCount: increment(-r.attendeeCount) },
+          if: { heldCount: event.heldCount, confirmedCount: event.confirmedCount },
+        }], { patch: true }),
+        db.tx.update('registrations', [{
+          id: r.id, record: { status: 'expired', paymentStatus: 'late_payment_review', latePaymentAt: now,
+            providerReference: payment.providerReference },
+          if: { status: 'pending_payment', paymentStatus: 'awaiting_provider' },
+        }], { patch: true }),
+        db.tx.update('payment_attempts', [{
+          id: r.paymentId, record: { status: 'late_payment_review', providerReference: payment.providerReference, updatedAt: now },
+          if: { status: 'awaiting_provider' },
+        }], { patch: true }),
+        db.tx.update('provider_payment_refs', [{
+          id: payment.merchantReference, record: { status: 'late_payment_review', lastWebhookId: webhookId, updatedAt: now },
+          if: { status: 'awaiting_provider' },
+        }], { patch: true }),
+        db.tx.add('payment_audit', [{
+          id: 'late-provider-payment-' + webhookId, registrationId: r.id, action: 'late_provider_payment',
+          providerReference: payment.providerReference, actor: 'flutterwave-webhook', createdAt: now,
+        }]),
+      ]);
+      return true;
+    }
+    await db.tx.update('provider_payment_refs', [{
+      id: payment.merchantReference, record: { status: 'late_payment_review', lastWebhookId: webhookId, updatedAt: now },
+    }], { patch: true });
+    return true;
+  }
+
+  const [event] = await db.get<EventRecord>('events', [r.eventId], { consistent: true });
+  if (!event) return false;
+  const held = count(event.heldCount);
+  if (held === null || held < r.attendeeCount) return false;
+  const batches = r.ticketBatchIds.length
+    ? await db.get<any>('registration_ticket_batches', r.ticketBatchIds, { consistent: true }) : [];
+  const ticketIds = batches.flatMap(batch => batch?.ticketIds ?? []);
+  if (ticketIds.length !== r.attendeeCount) return false;
+  const actor = 'flutterwave-webhook';
+  const ops: any[] = [
+    db.tx.update('events', [{
+      id: r.eventId, record: { heldCount: increment(-r.attendeeCount), confirmedCount: increment(r.attendeeCount) },
+      if: { heldCount: event.heldCount, confirmedCount: event.confirmedCount },
+    }], { patch: true }),
+    db.tx.update('registrations', [{
+      id: r.id, record: { status: 'confirmed', paymentStatus: 'provider_confirmed',
+        providerReference: payment.providerReference, verifiedAt: payment.paidAt ?? now, verifiedBy: actor },
+      if: { status: 'pending_payment', paymentStatus: 'awaiting_provider' },
+    }], { patch: true }),
+    db.tx.update('payment_attempts', [{
+      id: r.paymentId, record: { status: 'provider_confirmed', providerReference: payment.providerReference,
+        verifiedAt: payment.paidAt ?? now, updatedAt: now },
+      if: { status: 'awaiting_provider' },
+    }], { patch: true }),
+    db.tx.update('provider_payment_refs', [{
+      id: payment.merchantReference, record: { status: 'processed', providerReference: payment.providerReference,
+        lastWebhookId: webhookId, processedAt: now },
+      if: { status: 'awaiting_provider' },
+    }], { patch: true }),
+    db.tx.add('payment_audit', [{
+      id: 'provider-payment-confirmed-' + webhookId, registrationId: r.id,
+      action: 'provider_payment_confirmed', providerReference: payment.providerReference,
+      actor, verifiedAmountMinor: payment.amountMinor, createdAt: now,
+    }]),
+  ];
+  for (let i = 0; i < ticketIds.length; i += BATCH) {
+    const ids = ticketIds.slice(i, i + BATCH);
+    ops.push(db.tx.update('tickets', ids.map(id => ({
+      id, record: { status: 'issued', issuedAt: now }, if: { status: 'pending_payment' },
+    })), { patch: true }));
+  }
+  try {
+    await db.transact(ops);
+    return true;
+  } catch (err) {
+    if (isDbError(err, ['AppDatabaseConditionFailed', 'AppDatabaseConflict', 'AppDatabaseDuplicateId', 'AppDatabaseUnknownOutcome'])) {
+      const latest = await getBooking(r.id);
+      return latest?.status === 'confirmed' && latest.paymentStatus === 'provider_confirmed';
+    }
+    throw err;
+  }
+}
+
+export async function flutterwaveWebhook(ctx: RouterContext) {
+  const event = asWebhookEvent(ctx.event);
+  const headers = event.headers ?? {};
+  const signatureEntry = Object.entries(headers).find(([key]) => key.toLowerCase() === 'flutterwave-signature');
+  const signature = String(signatureEntry?.[1] ?? '');
+  let rawBody = typeof event.body === 'string' ? event.body : '';
+  if (event.isBase64Encoded && rawBody) {
+    const binary = atob(rawBody);
+    rawBody = new TextDecoder().decode(Uint8Array.from(binary, char => char.charCodeAt(0)));
+  }
+  if (!rawBody || !signature) return error('Missing webhook body or signature.', 400);
+  try {
+    const payment = await flutterwaveSandboxProvider.verifyWebhook(rawBody, signature);
+    const parsed = JSON.parse(rawBody);
+    const webhookId = clean(parsed?.webhook_id ?? parsed?.id ?? payment.providerReference, 120);
+    const reconciled = await reconcileProviderPayment(payment, webhookId);
+    if (!reconciled) return error('Payment reference is not yet reconciled to a booking.', 503);
+    return json({ ok: true });
+  } catch {
+    return error('Webhook verification failed.', 401);
+  }
+}
+
+function asWebhookEvent(event: unknown): Record<string, any> {
+  return event && typeof event === 'object' ? event as Record<string, any> : {};
+}
+
 export async function submitManualTransfer(ctx: RouterContext) {
   const r = await getBooking(ctx.params.id);
   if (!r) return error('Booking not found.', 404);
