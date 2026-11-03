@@ -33,7 +33,7 @@ export async function communitySignup(ctx: RouterContext) {
       id,
       record: {
         name, email, phone, interests, consent: true, consentVersion: '2026-11-03',
-        consentAt: now, status: 'active', unsubscribedAt: undefined, updatedAt: now,
+        consentAt: now, status: 'active', unsubscribedAt: null, updatedAt: now,
       },
       if: { email },
     }], { patch: true });
