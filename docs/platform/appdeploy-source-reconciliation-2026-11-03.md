@@ -41,7 +41,7 @@ The following tracked text files were identical at comparison time:
 - `tsconfig.json`
 - `vite.config.ts`
 
-The AppDeploy resource inventory separately lists `public/resources/urban-life-logo.png`. Resource assets are managed separately from the text-source snapshot and were not rewritten by this reconciliation. Confirm the asset's repository tracking and integrity during the PR review.
+The AppDeploy resource inventory separately lists `public/resources/urban-life-logo.png`. A GitHub contents lookup for `public/resources/` on this branch returned 404, so this binary asset is not present in the repository tree. Resource assets are managed separately from the text-source snapshot and were not rewritten by this reconciliation. The live AppDeploy resource slot remains present; however, a GitHub-only restore would not be self-contained until the original binary is recovered and added to version control or a documented asset backup.
 
 ## Phase 3 baseline confirmed in deployed source
 
