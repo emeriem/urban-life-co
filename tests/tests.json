@@ -251,5 +251,38 @@
       "Open the Privacy Policy and confirm event purchaser, attendee, payment-reference and check-in data are disclosed."
     ],
     "expected": "Booking details are disclosed only to the token holder; amount mismatches and late transfers never issue tickets automatically; community consent and opt-out rules are enforced and event data processing is disclosed."
+  },
+  {
+    "name": "Flutterwave sandbox bank transfer and USSD checkout",
+    "viewport": "desktop",
+    "covers": [
+      "Flutterwave sandbox credentials",
+      "NGN dynamic virtual account",
+      "USSD bank directory",
+      "USSD charge instructions",
+      "signed payment webhook",
+      "server-side charge verification",
+      "provider idempotency",
+      "automatic ticket issuance"
+    ],
+    "description": "Verifies the sandbox payment adapter creates NGN bank-transfer and USSD instructions and issues tickets only after a valid signed and server-verified payment.",
+    "setup": [
+      "Configure only Flutterwave sandbox credentials and webhook secret in the isolated staging app.",
+      "Create a published test event priced at NGN 1000 with capacity 10."
+    ],
+    "steps": [
+      "Open the test event and choose Bank transfer (virtual account).",
+      "Submit a one-attendee booking and confirm a unique NGN dynamic virtual account and exact amount are displayed.",
+      "Complete the provider's sandbox transfer scenario and wait for the signed webhook.",
+      "Confirm the server fetches the charge and issues exactly one ticket only when reference, amount, currency and status match.",
+      "Repeat the same webhook delivery and confirm no duplicate ticket or inventory movement occurs.",
+      "Create another test booking and choose USSD.",
+      "Select a bank from the live Nigeria bank directory and submit the booking.",
+      "Confirm the returned USSD dial instruction is displayed with the correct NGN amount.",
+      "Complete the provider's sandbox USSD scenario and confirm server-side verification issues exactly one ticket.",
+      "Send an invalid webhook signature and confirm no booking or ticket state changes.",
+      "Simulate a successful charge with a mismatched amount or currency and confirm it is held for reconciliation without ticket issuance."
+    ],
+    "expected": "Bank transfer and USSD instructions are created using sandbox-only credentials. Valid signed webhook events are reconciled against the fetched charge, booking reference, NGN currency and exact amount. Duplicate events are idempotent; invalid signatures and mismatches never issue tickets."
   }
 ]
