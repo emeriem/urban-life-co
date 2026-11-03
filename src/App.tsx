@@ -1948,8 +1948,11 @@ function RegistrationsManager({ items, reload }: { items: any[]; reload: () => P
     }
     setBusyId(item.id); setMessage('');
     try {
-      await api.post(`/api/admin/registrations/${item.id}${action === 'confirm' ? '/confirm-transfer' : '/reject-transfer'}`,
-        action === 'confirm' ? { bankCreditVerified: true, verifiedAmountMinor, reason } : { reason });
+      if (action === 'confirm') {
+        await api.post(`/api/admin/registrations/${item.id}/confirm-transfer`, { bankCreditVerified: true, verifiedAmountMinor, reason });
+      } else {
+        await api.post(`/api/admin/registrations/${item.id}/reject-transfer`, { reason });
+      }
       setMessage(action === 'confirm' ? 'Transfer verified and tickets issued.' : 'Transfer reference rejected.');
       await reload();
     } catch (err: any) {
