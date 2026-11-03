@@ -1136,10 +1136,8 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     }).catch(() => setPaymentCapabilities({ enabled: false, manualTransfer: false, supportedBanks: [] }));
   }, []);
   const availablePaymentMethods = [
-    ...(paymentCapabilities?.enabled ? [
-      { value: 'bank_transfer', label: 'Bank transfer (virtual account)' },
-      { value: 'ussd', label: 'USSD' },
-    ] : []),
+    ...(paymentCapabilities?.bankTransfer ? [{ value: 'bank_transfer', label: 'Bank transfer (virtual account)' }] : []),
+    ...(paymentCapabilities?.ussd ? [{ value: 'ussd', label: 'USSD' }] : []),
     ...(paymentCapabilities?.manualTransfer ? [{ value: 'manual_transfer', label: 'Manual bank transfer' }] : []),
   ];
   const escapeIcs = (value: string) => value.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
