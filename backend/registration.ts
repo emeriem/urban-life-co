@@ -9,7 +9,7 @@ type Registration = {
   currency: 'NGN'; status: string; paymentStatus: string; paymentMethod: string; paymentId: string;
   paymentReference: string; ticketBatchIds: string[]; accessTokenHash: string; createdAt: string; expiresAt: string | null;
   providerReference?: string; providerInstruction?: Record<string, string>; providerInstructionExpiresAt?: string;
-  paymentCreationStatus?: string;
+  paymentCreationStatus?: string; providerBankCode?: string;
 };
 const BATCH = 500;
 const MAX_TX_BYTES = 3_500_000;
@@ -58,6 +58,12 @@ async function hasAccess(ctx: RouterContext, r: Registration) {
 }
 function isDbError(err: unknown, codes: string[]) {
   return isAppDatabaseError(err) && codes.includes(err.code);
+}
+
+export async function getPaymentCapabilities() {
+  const provider = await flutterwaveSandboxProvider.getCapabilities();
+  const manual = await bankDetails();
+  return json({ ...provider, manualTransfer: Boolean(manual) });
 }
 
 export async function createRegistration(ctx: RouterContext) {
@@ -131,6 +137,7 @@ export async function createRegistration(ctx: RouterContext) {
     amountMinor: totalMinor, currency: 'NGN', status: free ? 'confirmed' : 'pending_payment',
     paymentStatus: free ? 'not_required' : method === 'manual_transfer' ? 'awaiting_transfer' : 'provider_creating', paymentMethod: free ? 'free' : method,
     paymentId, paymentReference: reference, ticketBatchIds: batchIds, accessTokenHash: await hash(token),
+    ...(method === 'ussd' ? { providerBankCode: bankCode } : {}),
     createdAt, expiresAt,
   };
   const ops: any[] = [
@@ -256,9 +263,10 @@ async function retryProviderInstruction(r: Registration, bankCode = '') {
     customerName: r.purchaserName,
     customerPhone: r.purchaserPhone,
   };
+  const selectedBankCode = bankCode || r.providerBankCode || '';
   const instruction = r.paymentMethod === 'bank_transfer'
     ? await flutterwaveSandboxProvider.createBankTransfer(input)
-    : await flutterwaveSandboxProvider.initiateUssd({ ...input, bankCode });
+    : await flutterwaveSandboxProvider.initiateUssd({ ...input, bankCode: selectedBankCode });
   const now = new Date().toISOString();
   await db.transact([
     db.tx.update('registrations', [{
