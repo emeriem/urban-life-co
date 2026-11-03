@@ -1,5 +1,6 @@
 import { db, error, increment, isAppDatabaseError, json, secrets } from '@appdeploy/sdk';
 import type { RouterContext } from '@appdeploy/sdk';
+import { flutterwaveSandboxProvider } from './payment-provider';
 
 type EventRecord = { id?: string; title?: string; date?: string; status?: string; price?: string | number; capacity?: number; heldCount?: number; confirmedCount?: number };
 type Registration = {
@@ -7,6 +8,8 @@ type Registration = {
   purchaserPhone: string; attendeeCount: number; amountMinor: number;
   currency: 'NGN'; status: string; paymentStatus: string; paymentMethod: string; paymentId: string;
   paymentReference: string; ticketBatchIds: string[]; accessTokenHash: string; createdAt: string; expiresAt: string | null;
+  providerReference?: string; providerInstruction?: Record<string, string>; providerInstructionExpiresAt?: string;
+  paymentCreationStatus?: string;
 };
 const BATCH = 500;
 const MAX_TX_BYTES = 3_500_000;
@@ -66,6 +69,7 @@ export async function createRegistration(ctx: RouterContext) {
   const email = clean(b.purchaserEmail, 200).toLowerCase();
   const phone = clean(b.purchaserPhone, 40);
   const method = clean(b.paymentMethod, 40);
+  const bankCode = clean(b.bankCode, 20);
   const attendees = (Array.isArray(b.attendees) ? b.attendees : []).map(x =>
     clean(typeof x === 'string' ? x : (x as Record<string, unknown>)?.name, 120)
   );
@@ -90,9 +94,12 @@ export async function createRegistration(ctx: RouterContext) {
   }
   const unit = priceMinor(event.price);
   if (unit === null) return error('The event ticket price is not configured correctly.', 409);
-  if (unit > 0 && method !== 'manual_transfer') return error('Automated bank transfer and USSD remain disabled pending provider sandbox validation. Select manual bank transfer.', 409);
-  const details = unit > 0 ? await bankDetails() : null;
-  if (unit > 0 && !details) return error('Paid checkout is not enabled yet. Approved bank details or a sandbox-verified payment provider must be configured first.', 503);
+  if (unit > 0 && !['manual_transfer', 'bank_transfer', 'ussd'].includes(method)) return error('Select an available payment method.', 400);
+  const capabilities = unit > 0 && method !== 'manual_transfer' ? await flutterwaveSandboxProvider.getCapabilities() : null;
+  if (unit > 0 && method !== 'manual_transfer' && !capabilities?.enabled) return error('Automated payment methods are not enabled in this environment.', 503);
+  if (unit > 0 && method === 'ussd' && !capabilities?.supportedBanks.some(bank => bank.code === bankCode)) return error('Select a supported bank for USSD payment.', 400);
+  const details = unit > 0 && method === 'manual_transfer' ? await bankDetails() : null;
+  if (unit > 0 && method === 'manual_transfer' && !details) return error('Manual transfer is not configured. Contact the event team before making a payment.', 503);
   const totalMinor = unit * attendees.length;
   if (!Number.isSafeInteger(totalMinor)) return error('The booking total is too large to process safely.', 400);
   const held = count(event.heldCount); const confirmed = count(event.confirmedCount);
@@ -120,7 +127,7 @@ export async function createRegistration(ctx: RouterContext) {
     id, eventId, eventTitle: clean(event.title, 200), purchaserName: name, purchaserEmail: email,
     purchaserPhone: phone, attendeeCount: attendees.length,
     amountMinor: totalMinor, currency: 'NGN', status: free ? 'confirmed' : 'pending_payment',
-    paymentStatus: free ? 'not_required' : 'awaiting_transfer', paymentMethod: free ? 'free' : 'manual_transfer',
+    paymentStatus: free ? 'not_required' : method === 'manual_transfer' ? 'awaiting_transfer' : 'provider_creating', paymentMethod: free ? 'free' : method,
     paymentId, paymentReference: reference, ticketBatchIds: batchIds, accessTokenHash: await hash(token),
     createdAt, expiresAt,
   };
@@ -131,9 +138,12 @@ export async function createRegistration(ctx: RouterContext) {
       if: { heldCount: event.heldCount, confirmedCount: event.confirmedCount } }], { patch: true }),
     db.tx.add('registrations', [booking]),
     db.tx.add('registration_requests', [{ id: key, owner: email, payloadHash, registrationId: id, createdAt }]),
-    db.tx.add('payment_attempts', [{ id: paymentId, registrationId: id, method: free ? 'free' : 'manual_transfer',
-      status: free ? 'not_required' : 'awaiting_transfer', amountMinor: totalMinor,
+    db.tx.add('payment_attempts', [{ id: paymentId, registrationId: id, method: free ? 'free' : method,
+      status: free ? 'not_required' : method === 'manual_transfer' ? 'awaiting_transfer' : 'provider_creating', amountMinor: totalMinor,
       currency: 'NGN', reference, createdAt }]),
+    ...(free || method === 'manual_transfer' ? [] : [db.tx.add('provider_payment_refs', [{
+      id: reference, registrationId: id, paymentId, method, status: 'provider_creating', createdAt,
+    }])]),
   ];
   for (const chunk of ticketChunks) {
     ops.push(db.tx.add('tickets', chunk.rows));
@@ -162,9 +172,63 @@ export async function createRegistration(ctx: RouterContext) {
       return error('Availability changed during checkout. Refresh and retry with the same booking key.', 409);
     throw err;
   }
-  return json({ registrationId: id, status: booking.status, paymentReference: reference,
+  let providerInstruction: Record<string, string> | null = null;
+  if (!free && method !== 'manual_transfer') {
+    try {
+      const input = {
+        merchantReference: reference, amountMinor: totalMinor, currency: 'NGN',
+        customerEmail: email, customerName: name, customerPhone: phone,
+      };
+      const instruction = method === 'bank_transfer'
+        ? await flutterwaveSandboxProvider.createBankTransfer(input)
+        : await flutterwaveSandboxProvider.initiateUssd({ ...input, bankCode });
+      providerInstruction = instruction.instructions;
+      const now = new Date().toISOString();
+      await db.transact([
+        db.tx.update('registrations', [{
+          id, record: {
+            paymentStatus: 'awaiting_provider', providerReference: instruction.providerReference,
+            providerInstruction: instruction.instructions, providerInstructionExpiresAt: instruction.expiresAt ?? null,
+            paymentCreationStatus: 'created',
+          }, if: { status: 'pending_payment', paymentStatus: 'provider_creating' },
+        }], { patch: true }),
+        db.tx.update('payment_attempts', [{
+          id: paymentId, record: {
+            status: 'awaiting_provider', providerReference: instruction.providerReference,
+            providerInstruction: instruction.instructions, updatedAt: now,
+          }, if: { status: 'provider_creating' },
+        }], { patch: true }),
+        db.tx.update('provider_payment_refs', [{
+          id: reference, record: { status: 'awaiting_provider', providerReference: instruction.providerReference, updatedAt: now },
+          if: { status: 'provider_creating' },
+        }], { patch: true }),
+      ]);
+    } catch (providerError) {
+      const message = providerError instanceof Error ? providerError.message.slice(0, 240) : 'Provider charge could not be created.';
+      const now = new Date().toISOString();
+      await db.transact([
+        db.tx.update('registrations', [{
+          id, record: { paymentStatus: 'provider_creation_failed', paymentCreationStatus: 'failed', paymentCreationError: message },
+          if: { status: 'pending_payment', paymentStatus: 'provider_creating' },
+        }], { patch: true }),
+        db.tx.update('payment_attempts', [{
+          id: paymentId, record: { status: 'provider_creation_failed', error: message, updatedAt: now },
+          if: { status: 'provider_creating' },
+        }], { patch: true }),
+        db.tx.update('provider_payment_refs', [{
+          id: reference, record: { status: 'provider_creation_failed', error: message, updatedAt: now },
+          if: { status: 'provider_creating' },
+        }], { patch: true }),
+      ]);
+    }
+  }
+  const [latest] = await db.get<Registration>('registrations', [id], { consistent: true });
+  return json({ registrationId: id, status: latest?.status ?? booking.status,
+    paymentStatus: latest?.paymentStatus ?? booking.paymentStatus, paymentReference: reference,
     amountMinor: booking.amountMinor, currency: 'NGN', ticketCount: attendees.length,
-    transferDetails: details, ticketIds: free ? ticketRows.map(x => x.id) : [], expiresAt }, 201);
+    transferDetails: details, providerInstruction: latest?.providerInstruction ?? providerInstruction,
+    providerInstructionExpiresAt: latest?.providerInstructionExpiresAt ?? null,
+    paymentMethod: booking.paymentMethod, ticketIds: free ? ticketRows.map(x => x.id) : [], expiresAt }, 201);
 }
 
 export async function registrationStatus(ctx: RouterContext) {
@@ -174,7 +238,9 @@ export async function registrationStatus(ctx: RouterContext) {
   return json({ registrationId: r.id, eventTitle: r.eventTitle, status: r.status, paymentStatus: r.paymentStatus,
     paymentReference: r.paymentReference, amountMinor: r.amountMinor, currency: r.currency,
     attendeeCount: r.attendeeCount, expiresAt: r.expiresAt, ticketBatchCount: r.ticketBatchIds.length,
-    transferDetails: r.amountMinor > 0 ? await bankDetails() : null });
+    transferDetails: r.amountMinor > 0 && r.paymentMethod === 'manual_transfer' ? await bankDetails() : null,
+    providerInstruction: r.providerInstruction ?? null, providerInstructionExpiresAt: r.providerInstructionExpiresAt ?? null,
+    paymentMethod: r.paymentMethod, paymentCreationStatus: r.paymentCreationStatus ?? null });
 }
 
 export async function submitManualTransfer(ctx: RouterContext) {
