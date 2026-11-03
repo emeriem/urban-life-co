@@ -1100,11 +1100,19 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     const safe = Number.isFinite(next) ? Math.max(1, Math.floor(next)) : 1;
     setQuantity(safe);
   };
-  const printTicket = (ticket: any) => {
-    const qr = qrcode(0, 'M');
-    qr.addData('ULC-TICKET:' + ticket.id);
+  const createTicketQr = (ticketId: string) => {
+    const factory = qrcode as unknown as (typeNumber: number, level: 'L' | 'M' | 'Q' | 'H') => {
+      addData: (data: string) => void;
+      make: () => void;
+      createDataURL: (cellSize?: number, margin?: number) => string;
+    };
+    const qr = factory(0, 'M');
+    qr.addData('ULC-TICKET:' + ticketId);
     qr.make();
-    const qrData = qr.createDataURL(4, 8);
+    return qr.createDataURL(4, 8);
+  };
+  const printTicket = (ticket: any) => {
+    const qrData = createTicketQr(ticket.id);
     const escapeHtml = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const popup = window.open('', '_blank');
     if (!popup) { setErrorMessage('Allow pop-ups to print or save this ticket as a PDF.'); return; }
@@ -1124,11 +1132,8 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     popup.onload = () => popup.print();
   };
   const showTicketQr = (ticketId: string) => {
-    const qr = qrcode(0, 'M');
-    qr.addData('ULC-TICKET:' + ticketId);
-    qr.make();
     setQrTicketId(ticketId);
-    setQrDataUrl(qr.createDataURL(4, 8));
+    setQrDataUrl(createTicketQr(ticketId));
   };
   const loadTicketBatch = async (registrationId: string, batchIndex: number, append = false) => {
     const { data } = await api.post(`/api/registrations/${registrationId}/tickets`, { accessToken, batchIndex });
