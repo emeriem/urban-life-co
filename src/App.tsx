@@ -1122,9 +1122,26 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
   const [ticketBatchCount, setTicketBatchCount] = useState(0);
   const [qrTicketId, setQrTicketId] = useState('');
   const [qrDataUrl, setQrDataUrl] = useState('');
+  const [paymentCapabilities, setPaymentCapabilities] = useState<any>(null);
+  const [paymentMethod, setPaymentMethod] = useState('bank_transfer');
+  const [ussdBankCode, setUssdBankCode] = useState('');
   const rawPrice = String(event.price ?? '').trim();
   const normalizedPrice = rawPrice.replace(/₦|NGN|,/gi, '').trim();
   const isFree = /^free$/i.test(rawPrice) || (rawPrice !== '' && Number(normalizedPrice) === 0);
+  useEffect(() => {
+    api.get('/api/payments/capabilities').then(({ data }) => {
+      setPaymentCapabilities(data);
+      if (data.enabled) setPaymentMethod('bank_transfer');
+      else if (data.manualTransfer) setPaymentMethod('manual_transfer');
+    }).catch(() => setPaymentCapabilities({ enabled: false, manualTransfer: false, supportedBanks: [] }));
+  }, []);
+  const availablePaymentMethods = [
+    ...(paymentCapabilities?.enabled ? [
+      { value: 'bank_transfer', label: 'Bank transfer (virtual account)' },
+      { value: 'ussd', label: 'USSD' },
+    ] : []),
+    ...(paymentCapabilities?.manualTransfer ? [{ value: 'manual_transfer', label: 'Manual bank transfer' }] : []),
+  ];
   const escapeIcs = (value: string) => value.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
   const calendarDate = (date: Date) => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
   const downloadCalendar = () => {
@@ -1225,7 +1242,7 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     try {
       const { data } = await api.post('/api/registrations', {
         eventId: event.id, idempotencyKey, accessToken, purchaserName, purchaserEmail, purchaserPhone,
-        paymentMethod: isFree ? 'free' : 'manual_transfer', attendees: attendeeNames.map(name => ({ name })),
+        paymentMethod: isFree ? 'free' : paymentMethod, bankCode: paymentMethod === 'ussd' ? ussdBankCode : '', attendees: attendeeNames.map(name => ({ name })),
       });
       setBooking(data);
       localStorage.setItem('ulc:booking-id:' + event.id, data.registrationId);
@@ -1288,8 +1305,8 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
               {ticketBatchIndex + 1 < ticketBatchCount && <button className="button ghost" onClick={() => loadTicketBatch(booking.registrationId, ticketBatchIndex + 1, true)}>Load next tickets</button>}
             </>}
             {booking.status === 'pending_payment' && booking.paymentStatus === 'manual_rejected' && <p>The submitted transfer reference was not accepted. Check with the event team before submitting a corrected reference.</p>}
-            {booking.status === 'pending_payment' && booking.transferDetails && <>
-              <p>Transfer to the approved account below. Tickets are issued only after an administrator verifies the actual bank credit.</p>
+            {booking.status === 'pending_payment' && booking.paymentMethod === 'manual_transfer' && booking.transferDetails && <>
+              <p>Transfer to the approved business account below. Tickets are issued only after an administrator verifies the actual bank credit.</p>
               <p><strong>{booking.transferDetails.bankName}</strong><br />{booking.transferDetails.accountName}<br /><strong>{booking.transferDetails.accountNumber}</strong></p>
               {booking.transferDetails.instructions && <p>{booking.transferDetails.instructions}</p>}
               <p>Use this payment reference in your transfer narration: <strong>{booking.paymentReference}</strong></p>
@@ -1300,9 +1317,35 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
                 </form>
               )}
             </>}
-            {booking.status === 'pending_payment' && <button className="button ghost" disabled={busy} onClick={refreshStatus}>{busy ? 'Checking…' : 'Refresh payment status'}</button>}
+            {booking.status === 'pending_payment' && booking.paymentMethod === 'bank_transfer' && booking.providerInstruction && <>
+              <p>Transfer the exact amount to this unique virtual account. Your tickets will be issued after Flutterwave verifies the payment.</p>
+              <p><strong>{booking.providerInstruction.bankName}</strong><br />Account number: <strong>{booking.providerInstruction.accountNumber}</strong></p>
+              <p>{booking.providerInstruction.note}</p>
+              <p>Amount: <strong>₦{(booking.amountMinor / 100).toLocaleString('en-NG')}</strong></p>
+              {booking.providerInstructionExpiresAt && <p>Account expires: {new Date(booking.providerInstructionExpiresAt).toLocaleString('en-NG')}</p>}
+            </>}
+            {booking.status === 'pending_payment' && booking.paymentMethod === 'ussd' && booking.providerInstruction && <>
+              <p>Use the bank's USSD instructions below to authorize this payment. Tickets are issued only after Flutterwave confirms payment.</p>
+              <p><strong>{booking.providerInstruction.bankName}</strong></p>
+              <p>{booking.providerInstruction.note}</p>
+              <p>Amount: <strong>₦{(booking.amountMinor / 100).toLocaleString('en-NG')}</strong></p>
+            </>}
+            {booking.status === 'pending_payment' && booking.paymentStatus === 'provider_creation_failed' && <>
+              <p>Payment instructions could not be generated. Your ticket hold is still reserved until its expiry.</p>
+              <button className="button dark" disabled={busy} onClick={async () => {
+                setBusy(true); setErrorMessage('');
+                try {
+                  const { data } = await api.post('/api/registrations/' + booking.registrationId + '/retry-payment', { accessToken });
+                  setBooking((current: any) => ({ ...current, ...data, paymentStatus: data.paymentStatus }));
+                } catch (err: any) {
+                  setErrorMessage(err?.response?.data?.message ?? err?.message ?? 'Could not retry payment setup.');
+                } finally { setBusy(false); }
+              }}>{busy ? 'Retrying…' : 'Retry payment setup'}</button>
+            </>}
+            {booking.status === 'pending_payment' && booking.paymentStatus === 'reconciliation_required' && <p>Your payment is being reconciled by the event team. Tickets have not been issued yet.</p>}
             {booking.status === 'expired' && <p>The payment window has ended and the reserved tickets have been released. Contact the event team if you already transferred funds.</p>}
-            {!isFree && !booking.transferDetails && <p>Payment instructions are not configured yet. Please contact the event team before making a transfer.</p>}
+            {booking.status === 'pending_payment' && <button className="button ghost" disabled={busy} onClick={refreshStatus}>{busy ? 'Checking…' : 'Refresh payment status'}</button>}
+            {!isFree && booking.paymentMethod === 'manual_transfer' && !booking.transferDetails && <p>Manual transfer instructions are not configured. Please contact the event team before making a transfer.</p>}
             <button className="button ghost" onClick={resetBooking}>Make another booking</button>
           </div>
         ) : (
@@ -1314,9 +1357,21 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
             <label>Phone number<input value={purchaserPhone} maxLength={40} onChange={e => setPurchaserPhone(e.target.value)} /></label>
             <div className="full"><h3>Attendee details</h3><p>Enter the name of each person who will use a ticket.</p></div>
             <label className="full">Attendee names — one per line<textarea required rows={6} value={attendeeNamesText} onChange={e => setAttendeeNamesText(e.target.value)} placeholder={'One attendee name per line'} /></label>
-            <p className="full consent-note">{isFree ? 'Free registration. Tickets are issued once the booking is accepted.' : 'Manual bank transfer is available only where approved bank details have been configured. Automated bank transfer and USSD will appear after provider sandbox verification. Large bookings may need to be split to fit safe atomic database transaction limits.'}</p>
+            {!isFree && <label className="full">Payment method
+              <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}>
+                {availablePaymentMethods.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+            </label>}
+            {!isFree && paymentMethod === 'ussd' && <label className="full">Bank for USSD
+              <select required value={ussdBankCode} onChange={e => setUssdBankCode(e.target.value)}>
+                <option value="">Select your bank</option>
+                {(paymentCapabilities?.supportedBanks ?? []).map((bank: any) => <option key={bank.code} value={bank.code}>{bank.name}</option>)}
+              </select>
+            </label>}
+            {!isFree && paymentCapabilities && availablePaymentMethods.length === 0 && <p className="full consent-note">Online payment is not configured in this environment yet. Please contact the event team before making a payment.</p>}
+            <p className="full consent-note">{isFree ? 'Free registration. Tickets are issued once the booking is accepted.' : paymentMethod === 'manual_transfer' ? 'Manual transfers are verified by an administrator against actual bank credit. A receipt screenshot alone does not confirm payment.' : 'Automated payment uses Flutterwave sandbox while this environment is being tested. Your tickets are issued only after server-side payment verification. Large bookings may need to be split to fit safe atomic database transaction limits.'}</p>
             {errorMessage && <div className="photos-error full" role="alert">{errorMessage}</div>}
-            <button className="button dark" type="submit" disabled={busy}>{busy ? 'Creating booking…' : 'Continue · ' + quantity + ' ticket' + (quantity === 1 ? '' : 's')} <ChevronRight size={16} /></button>
+            <button className="button dark" type="submit" disabled={busy || (!isFree && availablePaymentMethods.length === 0) || (paymentMethod === 'ussd' && !ussdBankCode)}>{busy ? 'Creating booking…' : 'Continue · ' + quantity + ' ticket' + (quantity === 1 ? '' : 's')} <ChevronRight size={16} /></button>
           </form>
         )}
         {errorMessage && booking && <div className="photos-error" role="alert">{errorMessage}</div>}
