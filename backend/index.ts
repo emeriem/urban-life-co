@@ -641,16 +641,13 @@ export const handler = router({
       const clean = pick(ctx.body, EVENT_FIELDS);
       if (!validStatus(clean, EVENT_STATUSES))
         return error('Invalid status.', 400);
-      const [ok] = await db.update('events', [
-        {
-          id: ctx.params.id,
-          record: {
-            ...existing,
-            ...clean,
-            updatedAt: new Date().toISOString(),
-          },
-        },
-      ]);
+      // Patch only CMS-owned fields. A full-record replacement based on a stale
+      // read could overwrite concurrent held/confirmed/check-in counters.
+      const [ok] = await db.tx.update('events', [{
+        id: ctx.params.id,
+        record: { ...clean, updatedAt: new Date().toISOString() },
+      }], { patch: true });
+      if (!ok) return error('Event changed or was removed. Refresh and try again.', 409);
       return json({ ok });
     },
   ],
@@ -659,16 +656,11 @@ export const handler = router({
     async ctx => {
       const [existing] = await db.get('events', [ctx.params.id]);
       if (!existing) return error('Event not found.', 404);
-      const [ok] = await db.update('events', [
-        {
-          id: ctx.params.id,
-          record: {
-            ...existing,
-            status: 'archived',
-            updatedAt: new Date().toISOString(),
-          },
-        },
-      ]);
+      const [ok] = await db.tx.update('events', [{
+        id: ctx.params.id,
+        record: { status: 'archived', updatedAt: new Date().toISOString() },
+      }], { patch: true });
+      if (!ok) return error('Event changed or was removed. Refresh and try again.', 409);
       return json({ ok });
     },
   ],
