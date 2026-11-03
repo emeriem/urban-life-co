@@ -2221,7 +2221,11 @@ function AdminPanel({
 
 function CommunitySubscribersManager({ items, reload, hasMore, loadMore }: { items: any[]; reload: () => Promise<void>; hasMore: boolean; loadMore: () => Promise<void> }) {
   const downloadCsv = () => {
-    const quote = (value: unknown) => '"' + String(value ?? '').replace(/"/g, '""') + '"';
+    const quote = (value: unknown) => {
+      const raw = String(value ?? '');
+      const safe = /^[\\s]*[=+\\-@]/.test(raw) ? "'" + raw : raw;
+      return '"' + safe.replace(/"/g, '""') + '"';
+    };
     const active = items.filter(item => item.status === 'active');
     const rows = [
       ['Name', 'Email', 'Phone', 'Interests', 'Consent date', 'Status'],
@@ -2236,7 +2240,8 @@ function CommunitySubscribersManager({ items, reload, hasMore, loadMore }: { ite
     <ManagerLayout title="Community list" description="People who explicitly opted in to receive Urban Life Co. community updates.">
       <div className="cms-actions">
         <span>{items.length} subscriber(s) loaded</span>
-        <button className="button dark" onClick={downloadCsv} disabled={!items.length}>Download CSV</button>
+        {hasMore && <p className="consent-note">Load all subscriber pages before downloading the complete CSV.</p>}
+        <button className="button dark" onClick={downloadCsv} disabled={!items.length || hasMore}>Download full CSV</button>
         <button className="button ghost" onClick={reload}>Refresh list</button>
       </div>
       {items.length ? items.map(item => (
