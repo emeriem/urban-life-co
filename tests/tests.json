@@ -173,5 +173,30 @@
       "Create another unpaid test booking and confirm its hold is released after expiry."
     ],
     "expected": "A single booking contains three attendee tickets, consumes three capacity units atomically, and cannot be duplicated by retries. Manual-transfer submissions do not issue tickets. Administrator confirmation after independent bank-credit verification issues one unique ticket per attendee, check-in is one-time, and expired unpaid holds release their reserved capacity. These are manual QA steps and require a sandbox/test environment; they are not represented as already executed. Each attendee can generate and download a local QR code; an administrator can paste the scanned ticket payload into check-in. Tickets can also be printed or saved as PDF from the browser print dialog."
+  },
+  {
+    "name": "Consent-based community signup and admin list",
+    "viewport": "desktop",
+    "covers": [
+      "community signup",
+      "marketing consent",
+      "interest preferences",
+      "email uniqueness",
+      "admin community list",
+      "CSV export",
+      "privacy disclosure"
+    ],
+    "steps": [
+      "Open the Community page and locate the community signup form.",
+      "Submit without checking the consent box and confirm the form is rejected.",
+      "Enter a name, valid email, optional phone and select one or more interests.",
+      "Check the consent box and submit the signup.",
+      "Confirm a success message is displayed and the signup is stored once.",
+      "Submit again with the same email and confirm the existing subscriber record is updated rather than duplicated.",
+      "Open the CMS Community list tab and confirm the consented subscriber and preferences are visible.",
+      "Download the CSV and verify it contains only the current page's consented subscriber fields.",
+      "Open the Privacy Policy and confirm the community signup data use and withdrawal contact are disclosed."
+    ],
+    "expected": "Community details are stored only after explicit consent, repeat signups do not create duplicate email records, and administrators can review and export the opted-in list. This captures contacts only; no broadcast email is sent by this implementation."
   }
 ]
