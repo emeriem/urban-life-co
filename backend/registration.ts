@@ -209,11 +209,13 @@ export async function adminListRegistrations(ctx: RouterContext) {
 export async function adminConfirmManualTransfer(ctx: RouterContext) {
   const b = (ctx.body ?? {}) as Record<string, unknown>;
   if (b.bankCreditVerified !== true) return error('Confirm actual credit in the business bank account before proceeding.', 400);
+  if (typeof b.verifiedAmountMinor !== 'number' || !Number.isSafeInteger(b.verifiedAmountMinor)) return error('Enter the verified bank credit amount in kobo.', 400);
   const reason = clean(b.reason, 500);
   if (!reason) return error('Enter an audit note for this verification.', 400);
   const r = await getBooking(ctx.params.id);
   if (!r) return error('Booking not found.', 404);
   if (r.status !== 'pending_payment' || r.paymentStatus !== 'manual_review') return error('This booking is not awaiting verification.', 409);
+  if (b.verifiedAmountMinor !== r.amountMinor) return error('The verified bank credit amount does not match the booking total. Do not issue tickets; escalate the discrepancy.', 409);
   if (r.expiresAt && Date.parse(r.expiresAt) < Date.now()) return error('The payment hold has expired. Reconcile this late payment separately.', 409);
   const [event] = await db.get<EventRecord>('events', [r.eventId], { consistent: true });
   if (!event) return error('Event record is missing. Reconcile manually.', 409);
@@ -230,7 +232,7 @@ export async function adminConfirmManualTransfer(ctx: RouterContext) {
       verifiedAt: now, verifiedBy: actor, verificationNote: reason }, if: { status: 'pending_payment', paymentStatus: 'manual_review' } }], { patch: true }),
     db.tx.update('payment_attempts', [{ id: r.paymentId, record: { status: 'manually_confirmed', verifiedAt: now, verifiedBy: actor },
       if: { status: 'manual_review' } }], { patch: true }),
-    db.tx.add('payment_audit', [{ id: crypto.randomUUID(), registrationId: r.id, action: 'manual_transfer_confirmed', actor, reason, createdAt: now }]),
+    db.tx.add('payment_audit', [{ id: crypto.randomUUID(), registrationId: r.id, action: 'manual_transfer_confirmed', actor, reason, verifiedAmountMinor: b.verifiedAmountMinor, createdAt: now }]),
   ];
   for (let i = 0; i < ticketIds.length; i += BATCH) {
     const ids = ticketIds.slice(i, i + BATCH);
