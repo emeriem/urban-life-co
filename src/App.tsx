@@ -1064,7 +1064,7 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     e.preventDefault(); if (!booking?.registrationId) return;
     setBusy(true); setErrorMessage('');
     try {
-      await api.post('/api/registrations/' + booking.registrationId + '/manual-transfer', { accessToken, transferReference });
+      await api.post(`/api/registrations/${booking.registrationId}/manual-transfer`, { accessToken, transferReference });
       setTransferSubmitted(true);
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message ?? err?.message ?? 'We could not submit the transfer reference. Please try again.');
@@ -1927,7 +1927,7 @@ function RegistrationsManager({ items, reload }: { items: any[]; reload: () => P
     if (action === 'confirm' && !window.confirm('Have you verified the actual credit in the business bank account? A receipt screenshot alone is not sufficient.')) return;
     setBusyId(item.id); setMessage('');
     try {
-      await api.post('/api/admin/registrations/' + item.id + (action === 'confirm' ? '/confirm-transfer' : '/reject-transfer'),
+      await api.post(`/api/admin/registrations/${item.id}${action === 'confirm' ? '/confirm-transfer' : '/reject-transfer'}`,
         action === 'confirm' ? { bankCreditVerified: true, reason } : { reason });
       setMessage(action === 'confirm' ? 'Transfer verified and tickets issued.' : 'Transfer reference rejected.');
       await reload();
