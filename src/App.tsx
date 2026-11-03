@@ -1096,23 +1096,23 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
   const [busy, setBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [booking, setBooking] = useState<any>(() => {
-    const savedId = sessionStorage.getItem('ulc:booking-id:' + event.id);
+    const savedId = localStorage.getItem('ulc:booking-id:' + event.id);
     return savedId ? { registrationId: savedId } : null;
   });
   const [accessToken] = useState(() => {
     const storageKey = 'ulc:booking-access:' + event.id;
-    const saved = sessionStorage.getItem(storageKey);
+    const saved = localStorage.getItem(storageKey);
     if (saved) return saved;
     const token = crypto.randomUUID() + crypto.randomUUID();
-    sessionStorage.setItem(storageKey, token);
+    localStorage.setItem(storageKey, token);
     return token;
   });
   const [idempotencyKey, setIdempotencyKey] = useState(() => {
     const storageKey = 'ulc:booking-request:' + event.id;
-    const saved = sessionStorage.getItem(storageKey);
+    const saved = localStorage.getItem(storageKey);
     if (saved) return saved;
     const key = crypto.randomUUID();
-    sessionStorage.setItem(storageKey, key);
+    localStorage.setItem(storageKey, key);
     return key;
   });
   const [transferReference, setTransferReference] = useState('');
@@ -1228,7 +1228,7 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
         paymentMethod: isFree ? 'free' : 'manual_transfer', attendees: attendeeNames.map(name => ({ name })),
       });
       setBooking(data);
-      sessionStorage.setItem('ulc:booking-id:' + event.id, data.registrationId);
+      localStorage.setItem('ulc:booking-id:' + event.id, data.registrationId);
       if (data.status === 'confirmed') await loadTicketBatch(data.registrationId, 0);
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message ?? err?.message ?? 'We could not create your booking. Please try again.');
@@ -1245,11 +1245,11 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     } finally { setBusy(false); }
   };
   const resetBooking = () => {
-    setBooking(null); sessionStorage.removeItem('ulc:booking-id:' + event.id);
+    setBooking(null); localStorage.removeItem('ulc:booking-id:' + event.id);
     setTransferSubmitted(false); setTransferReference(''); setTickets([]);
     setTicketBatchIndex(0); setTicketBatchCount(0); setQrTicketId(''); setQrDataUrl('');
     const nextKey = crypto.randomUUID();
-    sessionStorage.setItem('ulc:booking-request:' + event.id, nextKey);
+    localStorage.setItem('ulc:booking-request:' + event.id, nextKey);
     setIdempotencyKey(nextKey);
   };
   return (
