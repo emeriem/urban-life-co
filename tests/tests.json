@@ -150,7 +150,8 @@
       "unpaid hold expiry",
       "per-attendee QR generation",
       "ticket QR download",
-      "manual QR payload check-in"
+      "manual QR payload check-in",
+      "print ticket to PDF"
     ],
     "description": "Verifies one purchaser can book multiple attendee tickets in one checkout, capacity is reserved for the complete quantity, and paid tickets remain inactive until an administrator verifies actual bank credit.",
     "steps": [
@@ -165,11 +166,12 @@
       "In the test environment, verify the transfer and confirm all three tickets are issued exactly once.",
       "Open the confirmed booking and generate the QR code for each attendee ticket",
       "Download a ticket QR image and scan it with a phone camera to confirm it contains the ULC-TICKET credential",
+      "Open Print / Save PDF for an attendee ticket and confirm the printable ticket includes the QR, attendee, event date and venue",
       "Paste the scanned ULC-TICKET payload into the admin check-in field and confirm the ticket is accepted",
       "Attempt to check in the same ticket twice and confirm the second attempt is rejected.",
       "Retry the original booking request with the same idempotency key and confirm no second booking is created.",
       "Create another unpaid test booking and confirm its hold is released after expiry."
     ],
-    "expected": "A single booking contains three attendee tickets, consumes three capacity units atomically, and cannot be duplicated by retries. Manual-transfer submissions do not issue tickets. Administrator confirmation after independent bank-credit verification issues one unique ticket per attendee, check-in is one-time, and expired unpaid holds release their reserved capacity. These are manual QA steps and require a sandbox/test environment; they are not represented as already executed. Each attendee can generate and download a local QR code; an administrator can paste the scanned ticket payload into check-in."
+    "expected": "A single booking contains three attendee tickets, consumes three capacity units atomically, and cannot be duplicated by retries. Manual-transfer submissions do not issue tickets. Administrator confirmation after independent bank-credit verification issues one unique ticket per attendee, check-in is one-time, and expired unpaid holds release their reserved capacity. These are manual QA steps and require a sandbox/test environment; they are not represented as already executed. Each attendee can generate and download a local QR code; an administrator can paste the scanned ticket payload into check-in. Tickets can also be printed or saved as PDF from the browser print dialog."
   }
 ]
