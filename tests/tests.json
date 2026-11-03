@@ -15,7 +15,7 @@
       "privacy policy page",
       "terms of use page"
     ],
-    "description": "Verifies visitors can move through the main public content system and open real detail experiences.",
+    "description": "Verifies visitors can discover public content, open detail routes and reach the site's legal information.",
     "steps": [
       "Open the public site",
       "Open Experiences and select an experience",
@@ -26,7 +26,7 @@
       "Use the footer to open Privacy Policy, then Terms of Use",
       "Return to the homepage"
     ],
-    "expected": "Explore, View event, and Read story actions open corresponding content detail without authentication. Reloading an event detail keeps the visitor on that event, the browser back button returns to the Events list, and the visitor can return to the public site. Both legal pages open from the footer without authentication."
+    "expected": "Public content details remain navigable and reloadable, browser back returns to the previous list, and both legal pages open from the footer without authentication."
   },
   {
     "name": "Super Admin can operate core CMS content",
@@ -66,17 +66,18 @@
     "covers": [
       "contact form",
       "message persistence",
-      "direct image upload",
-      "media listing",
-      "media deletion",
       "WhatsApp click-to-chat",
       "direct email contact",
-      "direct phone contact"
+      "direct phone contact",
+      "direct image upload",
+      "media listing",
+      "media deletion"
     ],
-    "description": "Verifies visitors can submit a contact enquiry and the administrator can maintain uploaded media.",
+    "description": "Verifies visitors can submit an enquiry, reach the team directly and the administrator can maintain uploaded media.",
     "steps": [
       "Open Contact",
-      "Confirm WhatsApp, email and phone contact links are visible and target the official contact details",
+      "Confirm WhatsApp, email and phone contact links are visible",
+      "Open the WhatsApp link and confirm it targets the official business number",
       "Submit a valid enquiry",
       "Open the private admin CMS",
       "Open Messages and find the new enquiry",
@@ -84,7 +85,7 @@
       "Confirm the image appears",
       "Remove the uploaded image"
     ],
-    "expected": "The enquiry is saved and visible to the administrator, uploaded media appears in the archive, and the administrator can remove it. The WhatsApp shortcut targets +2348140098691, and direct email and phone links use the official contact details."
+    "expected": "The WhatsApp shortcut targets +2348140098691, direct email and phone links use the official contact details, the enquiry is saved and visible to the administrator, and uploaded media can be maintained."
   },
   {
     "name": "Google Photos is protected and retryable",
