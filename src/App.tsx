@@ -1528,8 +1528,10 @@ function PrivacyPage() {
         <p>
           When you use the contact form, we collect your name, email address,
           optional phone number, enquiry type, message and the date and time the
-          enquiry is received. We also process information needed to protect the
-          form from spam and abuse.
+          enquiry is received. If you use the separate community signup, we also
+          collect your name, email address, optional phone number, selected
+          interests, consent choice and consent timestamp. We also process
+          information needed to protect forms from spam and abuse.
         </p>
         <p>
           If you are an authorised site administrator, account information is
@@ -1542,8 +1544,9 @@ function PrivacyPage() {
           We use enquiry information to read, respond to and manage requests,
           coordinate relevant partnerships or event conversations, maintain
           business records, and protect the website against spam or misuse.
-          Contact details are not used to add you to a marketing mailing list
-          through this form.
+          Community signup details are used only to manage the opt-in community
+          list and send the updates and invitations described on that form. The
+          contact form does not subscribe you to community communications.
         </p>
         <h2>4. Service providers and sharing</h2>
         <p>
@@ -1560,15 +1563,19 @@ function PrivacyPage() {
           Enquiries are stored in the website's administrative inbox and are
           retained for as long as reasonably necessary to respond, manage
           business records, protect the service and meet applicable legal
-          obligations. We use access controls and service-provider security
-          measures, but no internet transmission or storage system can be
-          guaranteed to be completely secure.
+          obligations. Community signup details are retained while the
+          subscription remains active and for a reasonable period after an
+          opt-out where needed to maintain suppression and compliance records.
+          We use access controls and service-provider security measures, but no
+          internet transmission or storage system can be guaranteed to be
+          completely secure.
         </p>
         <h2>6. Your choices and requests</h2>
         <p>
           You may contact us to request access to, correction of or deletion of
-          personal information you submitted, or to raise a privacy concern.
-          We will assess and respond to requests in accordance with applicable
+          personal information you submitted, withdraw your community signup
+          consent, or raise a privacy concern. Contact us at the email above to
+          request removal from the community list. We will assess and respond to requests in accordance with applicable
           data-protection law and any record-retention obligations.
         </p>
         <h2>7. Cookies and essential technologies</h2>
