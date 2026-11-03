@@ -1042,7 +1042,9 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
   const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
   const [transferReference, setTransferReference] = useState('');
   const [transferSubmitted, setTransferSubmitted] = useState(false);
-  const isFree = /^free$/i.test(String(event.price ?? '').trim()) || Number(event.price) === 0;
+  const rawPrice = String(event.price ?? '').trim();
+  const normalizedPrice = rawPrice.replace(/₦|NGN|,/gi, '').trim();
+  const isFree = /^free$/i.test(rawPrice) || (rawPrice !== '' && Number(normalizedPrice) === 0);
   const changeQuantity = (next: number) => {
     const safe = Number.isFinite(next) ? Math.max(1, Math.min(50000, Math.floor(next))) : 1;
     setQuantity(safe);
