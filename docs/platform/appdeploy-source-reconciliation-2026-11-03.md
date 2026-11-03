@@ -77,5 +77,5 @@ The first GitHub Actions run identified two TypeScript errors in the reconciled 
 - `src/App.tsx`: the navigation helper accepted `string`, but the page-state setter requires a `StaticPage | DetailPage` value. The helper parameter is now typed as `StaticPage`.
 - `src/routing.ts`: duplicate `contact` entries existed in the static-page union and route map. The duplicate declarations were removed.
 
-The build and backend/API contract steps were skipped because type-checking failed first. The fixes were committed after that run. A new CI run for the latest head commit has not yet been observed, so the corrected branch is **not yet CI-verified**. Do not infer that the build or contract tests pass.
+The build and backend/API contract steps were skipped because type-checking failed first. The fixes were committed after that run. After correcting the navigation menu item array and the two component callback signatures to use `StaticPage`, GitHub Actions run [41599668158](https://github.com/emeriem/urban-life-co/actions/runs/41599668158) completed successfully for commit `ea3225f9b999ab53f76c328e386d21b4cf80ff1f`. The frontend type-check, production frontend build, and backend/API contract checks all passed on that commit. The report-only update that records this result does not change application source; its own CI run is tracked separately.
 
