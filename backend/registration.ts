@@ -164,11 +164,9 @@ export async function registrationStatus(ctx: RouterContext) {
   const r = await getBooking(ctx.params.id);
   if (!r) return error('Booking not found.', 404);
   if (!await hasAccess(ctx, r)) return error('Booking access denied.', 403);
-  const batches = r.ticketBatchIds.length ? await db.get<any>('registration_ticket_batches', r.ticketBatchIds, { consistent: true }) : [];
-  const ids = batches.flatMap(x => x?.ticketIds ?? []);
   return json({ registrationId: r.id, eventTitle: r.eventTitle, status: r.status, paymentStatus: r.paymentStatus,
     paymentReference: r.paymentReference, amountMinor: r.amountMinor, currency: r.currency,
-    attendeeCount: r.attendeeCount, expiresAt: r.expiresAt, ticketIds: r.status === 'confirmed' ? ids : [] });
+    attendeeCount: r.attendeeCount, expiresAt: r.expiresAt, ticketBatchCount: r.ticketBatchIds.length });
 }
 
 export async function submitManualTransfer(ctx: RouterContext) {
