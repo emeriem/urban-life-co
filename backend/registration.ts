@@ -315,6 +315,8 @@ async function reconcileProviderPayment(payment: {
 }, webhookId: string) {
   const [mapping] = await db.get<any>('provider_payment_refs', [payment.merchantReference], { consistent: true });
   if (!mapping?.registrationId) return false;
+  if (['processed', 'late_payment_review', 'reconciliation_required', 'failed', 'expired', 'cancelled'].includes(String(mapping.status))) return true;
+  if (mapping.status !== 'awaiting_provider') return false;
   const r = await getBooking(mapping.registrationId);
   if (!r) return false;
   if (r.status === 'confirmed' && r.paymentStatus === 'provider_confirmed') return true;
@@ -473,8 +475,11 @@ export async function flutterwaveWebhook(ctx: RouterContext) {
     const reconciled = await reconcileProviderPayment(payment, webhookId);
     if (!reconciled) return error('Payment reference is not yet reconciled to a booking.', 503);
     return json({ ok: true });
-  } catch {
-    return error('Webhook verification failed.', 401);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : '';
+    if (/signature|missing webhook|invalid webhook/i.test(message))
+      return error('Webhook signature verification failed.', 401);
+    return error('Payment provider verification is temporarily unavailable. Retry webhook delivery.', 503);
   }
 }
 
