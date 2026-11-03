@@ -1100,6 +1100,29 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     const safe = Number.isFinite(next) ? Math.max(1, Math.floor(next)) : 1;
     setQuantity(safe);
   };
+  const printTicket = (ticket: any) => {
+    const qr = qrcode(0, 'M');
+    qr.addData('ULC-TICKET:' + ticket.id);
+    qr.make();
+    const qrData = qr.createDataURL(4, 8);
+    const escapeHtml = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const popup = window.open('', '_blank');
+    if (!popup) { setErrorMessage('Allow pop-ups to print or save this ticket as a PDF.'); return; }
+    popup.opener = null;
+    const html = '<!doctype html><html><head><meta charset="utf-8"><title>Urban Life Co. ticket</title><style>' +
+      '@page{size:A5;margin:12mm}body{font-family:Arial,sans-serif;color:#171717;margin:0}main{border:1px solid #ddd;border-radius:16px;padding:24px}h1{font-size:24px;margin:8px 0}p{line-height:1.5}.brand{letter-spacing:.16em;font-size:11px;font-weight:bold}.qr{width:180px;height:180px;image-rendering:pixelated}.code{font-family:monospace;word-break:break-all;border-top:1px solid #ddd;padding-top:12px}</style></head><body><main>' +
+      '<div class="brand">URBAN LIFE CO. · LIVE. CONNECT. EXPLORE.</div>' +
+      '<h1>' + escapeHtml(event.title) + '</h1>' +
+      '<p><strong>Attendee:</strong> ' + escapeHtml(ticket.attendeeName || '') + '</p>' +
+      '<p><strong>Date:</strong> ' + escapeHtml(formatDate(event.date)) + (event.time ? ' · ' + escapeHtml(event.time) : '') + '</p>' +
+      '<p><strong>Location:</strong> ' + escapeHtml(event.location) + '</p>' +
+      '<img class="qr" src="' + qrData + '" alt="Ticket QR code">' +
+      '<p class="code">Ticket ID: ' + escapeHtml(ticket.id) + '</p>' +
+      '<p>Present this ticket at check-in. Each ticket is valid for one attendee and can be checked in once.</p>' +
+      '</main></body></html>';
+    popup.document.open(); popup.document.write(html); popup.document.close();
+    popup.onload = () => popup.print();
+  };
   const showTicketQr = (ticketId: string) => {
     const qr = qrcode(0, 'M');
     qr.addData('ULC-TICKET:' + ticketId);
@@ -1193,7 +1216,7 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
               {tickets.map((ticket, i) => (
                 <div className="cms-panel" key={ticket.id}>
                   <p>Ticket {i + 1 + ticketBatchIndex * 500}: <strong>{ticket.attendeeName}</strong> · <code>{ticket.id}</code> · {ticket.status}</p>
-                  <button className="button ghost" type="button" onClick={() => showTicketQr(ticket.id)}>Show ticket QR</button>
+                  <button className="button ghost" type="button" onClick={() => showTicketQr(ticket.id)}>Show ticket QR</button> <button className="button ghost" type="button" onClick={() => printTicket(ticket)}>Print / Save PDF</button>
                   {qrTicketId === ticket.id && qrDataUrl && <div className="ticket-qr">
                     <img src={qrDataUrl} alt={'Ticket QR code for ' + ticket.attendeeName} width="192" height="192" />
                     <a href={qrDataUrl} download={'urban-life-ticket-' + ticket.id + '.gif'}>Download QR code</a>
