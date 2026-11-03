@@ -1,7 +1,6 @@
 import { router, json, error, requireAuth } from '@appdeploy/sdk';
 import { db, secrets, storage } from '@appdeploy/sdk';
 import type { RouterMiddleware } from '@appdeploy/sdk';
-import { flutterwaveSandboxProvider } from './payment-provider';
 import { communitySignup, adminListCommunitySubscribers, adminUnsubscribeCommunitySubscriber } from './community';
 import { createRegistration, registrationStatus, registrationTickets, submitManualTransfer, adminListRegistrations, adminConfirmManualTransfer, adminRejectManualTransfer, adminCheckInTicket, expirePendingRegistrations, retryProviderPayment, flutterwaveWebhook, getPaymentCapabilities } from './registration';
 
