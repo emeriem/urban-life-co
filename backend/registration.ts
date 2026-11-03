@@ -141,9 +141,13 @@ export async function createRegistration(ctx: RouterContext) {
   } catch (err) {
     if (isDbError(err, ['AppDatabaseDuplicateId', 'AppDatabaseUnknownOutcome'])) {
       const [receipt] = await db.get<any>('registration_requests', [key], { consistent: true });
-      if (receipt?.registrationId === id) return json({ registrationId: id, status: booking.status,
-        paymentReference: reference, amountMinor: booking.amountMinor, currency: 'NGN',
-        ticketCount: attendees.length, transferDetails: details, replayed: true });
+      if (receipt?.owner === email && receipt?.payloadHash === payloadHash && receipt?.registrationId) {
+        const saved = await getBooking(receipt.registrationId);
+        if (saved) return json({ registrationId: saved.id, status: saved.status,
+          paymentReference: saved.paymentReference, amountMinor: saved.amountMinor, currency: 'NGN',
+          ticketCount: saved.attendeeCount, transferDetails: saved.amountMinor ? await bankDetails() : null, replayed: true });
+        return error('The booking is still being reconciled. Retry with the same booking key.', 503);
+      }
       if (receipt) return error('This booking key belongs to another booking.', 409);
       return error('The booking result is being reconciled. Retry with the same booking key.', 503);
     }
