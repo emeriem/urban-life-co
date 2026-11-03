@@ -1048,6 +1048,34 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
   const rawPrice = String(event.price ?? '').trim();
   const normalizedPrice = rawPrice.replace(/₦|NGN|,/gi, '').trim();
   const isFree = /^free$/i.test(rawPrice) || (rawPrice !== '' && Number(normalizedPrice) === 0);
+  const escapeIcs = (value: string) => value.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+  const calendarDate = (date: Date) => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const downloadCalendar = () => {
+    const start = new Date(event.date + (event.time ? ' ' + event.time : 'T09:00:00'));
+    if (!Number.isFinite(start.getTime())) { setErrorMessage('The event date is not valid for a calendar entry.'); return; }
+    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+    const now = calendarDate(new Date());
+    const ics = [
+      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Urban Life Co//Events//EN',
+      'CALSCALE:GREGORIAN', 'BEGIN:VEVENT', 'UID:' + escapeIcs(event.id) + '@urban-life-co',
+      'DTSTAMP:' + now, 'DTSTART:' + calendarDate(start), 'DTEND:' + calendarDate(end),
+      'SUMMARY:' + escapeIcs(event.title), 'LOCATION:' + escapeIcs(event.location),
+      'DESCRIPTION:' + escapeIcs(event.description), 'END:VEVENT', 'END:VCALENDAR',
+    ].join('\r\n');
+    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+    const link = document.createElement('a'); link.href = url; link.download = 'urban-life-event.ics';
+    document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+  };
+  const shareEvent = async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.share) await navigator.share({ title: event.title, text: event.description, url });
+      else if (navigator.clipboard) { await navigator.clipboard.writeText(url); setErrorMessage('Event link copied.'); }
+      else setErrorMessage('Copy this event URL from your browser address bar to share it.');
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') setErrorMessage('Could not share this event from this browser.');
+    }
+  };
   const changeQuantity = (next: number) => {
     const safe = Number.isFinite(next) ? Math.max(1, Math.min(50000, Math.floor(next))) : 1;
     setQuantity(safe);
@@ -1107,7 +1135,12 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
         <h1>{event.title}</h1>
         <p className="event-detail-meta">{formatDate(event.date)}{event.time ? ' · ' + event.time : ''} · {event.location}</p>
         <p>{event.description}</p>
-        <div className="event-detail-actions"><span>{event.price}</span></div>
+        <div className="event-detail-actions">
+          <span>{event.price}</span>
+          <button className="link-button" type="button" onClick={downloadCalendar}>Add to calendar</button>
+          <button className="link-button" type="button" onClick={shareEvent}>Share event</button>
+          {event.location && <a className="link-button" href={'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(event.location)} target="_blank" rel="noreferrer">View map</a>}
+        </div>
         {booking ? (
           <div className="admin-notice" role="status">
             <ShieldCheck size={28} />
