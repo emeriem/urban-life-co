@@ -588,7 +588,7 @@ function App() {
             />
           </button>
           <nav className={menu ? 'nav modern-nav open' : 'nav modern-nav'}>
-            {[
+            {([
               'home',
               'about',
               'experiences',
@@ -596,7 +596,7 @@ function App() {
               'journal',
               'community',
               'contact',
-            ].map(item => (
+            ] as StaticPage[]).map(item => (
               <button
                 key={item}
                 className={page === item ? 'active' : ''}
@@ -1515,7 +1515,7 @@ function Experience({
 function ExperienceShowcase({
   onNavigate,
 }: {
-  onNavigate: (target: string) => void;
+  onNavigate: (target: StaticPage) => void;
 }) {
   return (
     <section className="ecosystem-section modern-experiences">
@@ -1546,7 +1546,7 @@ function ExperienceShowcase({
 function BrandFeature({
   onNavigate,
 }: {
-  onNavigate: (target: string) => void;
+  onNavigate: (target: StaticPage) => void;
 }) {
   return (
     <section className="brand-feature">
