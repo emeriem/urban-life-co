@@ -40,7 +40,8 @@
 ### Community capture and CRM foundation
 - Added an explicit opt-in community signup form for name, email, optional phone and interest preferences.
 - Email addresses are keyed by a SHA-256 digest to prevent duplicate subscriber records; consent timestamp/version are retained.
-- Added a protected CMS Community list with CSV export of the current page.
+- Added a protected CMS Community list with CSV export of the current page's active subscribers.
+- Added an audited administrator action to process opt-out requests and exclude unsubscribed contacts from active exports.
 - Updated the Privacy Policy to disclose community signup data use and how to withdraw consent.
 - This captures an opted-in list only; no broadcast email is sent or mailing provider connected.
 
