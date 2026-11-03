@@ -515,7 +515,7 @@ function App() {
     setMenu(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  const nav = (target: string) => {
+  const nav = (target: StaticPage) => {
     window.location.hash = target === 'admin'
       ? 'admin'
       : routeToHash({ page: target as StaticPage });
