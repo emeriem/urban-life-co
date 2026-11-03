@@ -2132,9 +2132,10 @@ function AdminPanel({
 function CommunitySubscribersManager({ items, reload }: { items: any[]; reload: () => Promise<void> }) {
   const downloadCsv = () => {
     const quote = (value: unknown) => '"' + String(value ?? '').replace(/"/g, '""') + '"';
+    const active = items.filter(item => item.status === 'active');
     const rows = [
       ['Name', 'Email', 'Phone', 'Interests', 'Consent date', 'Status'],
-      ...items.map(item => [item.name, item.email, item.phone, (item.interests ?? []).join('; '), item.consentAt, item.status]),
+      ...active.map(item => [item.name, item.email, item.phone, (item.interests ?? []).join('; '), item.consentAt, item.status]),
     ];
     const csv = rows.map(row => row.map(quote).join(',')).join('\r\n');
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
@@ -2154,6 +2155,15 @@ function CommunitySubscribersManager({ items, reload }: { items: any[]; reload: 
           <p>{item.email}{item.phone ? ' · ' + item.phone : ''}</p>
           <p>Interests: {(item.interests ?? []).join(', ') || 'Not specified'}</p>
           <p>Consent recorded: {new Date(item.consentAt).toLocaleString('en-NG')} · {item.status}</p>
+          {item.status === 'active' && <button className="button ghost" onClick={async () => {
+            if (!window.confirm('Mark this person as unsubscribed? They will be excluded from the active CSV export.')) return;
+            try {
+              await api.post(`/api/admin/community-subscribers/${item.id}/unsubscribe`);
+              await reload();
+            } catch (err: any) {
+              window.alert(err?.response?.data?.message ?? err?.message ?? 'Could not update subscriber status.');
+            }
+          }}>Mark unsubscribed</button>}
         </article>
       )) : <Empty text="No community signups have been received yet." />}
     </ManagerLayout>
