@@ -33,8 +33,11 @@
 - Unpaid holds have a scheduled expiry handler that releases held inventory and marks the booking/payment attempt expired.
 
 ### Provider-neutral checkout
-- Added a provider-neutral interface for bank transfer, USSD, transaction verification and webhook verification.
-- The shipped default adapter is intentionally disabled. Automated transfer and USSD must not be advertised as active until a provider passes sandbox testing and is configured.
+- Added a Flutterwave v4 sandbox adapter for NGN dynamic virtual-account bank transfer and bank-selected USSD initiation.
+- The adapter uses sandbox-only credentials and endpoints; it never targets the production API.
+- Payment success is determined by validating the webhook HMAC signature and fetching the charge server-side, then matching merchant reference, exact NGN amount and currency before issuing tickets.
+- Provider creation failures can be retried using the same merchant reference; duplicate webhook delivery is guarded by conditional state transitions and audit receipts.
+- Mismatches and late payments enter reconciliation and do not issue tickets automatically.
 - Card data is not collected.
 
 ### Community capture and CRM foundation
@@ -66,7 +69,7 @@ These values have deliberately not been invented or configured. Until all three 
 
 ## Current limitations and release blockers
 
-1. **Provider sandbox:** no automated bank-transfer or USSD adapter is active. Provider selection and sandbox evidence remain outstanding.
+1. **Provider sandbox:** Flutterwave v4 sandbox adapter is implemented on the staging branch, but test credentials, webhook configuration and sandbox acceptance evidence are still outstanding. The adapter remains unavailable until the staging secrets are configured.
 2. **Ticket QR operations:** customer-facing QR images, downloads and browser print/Save-as-PDF are implemented. An in-app camera scanner is still outstanding; administrators can paste the ticket ID or QR payload into the check-in field.
 3. **Expiry execution:** the cron definition is committed, but it will not run until a separately approved AppDeploy deployment. No deployment has been made.
 4. **Manual-transfer secrets:** real bank details are not in source and have not been supplied/configured.
@@ -74,7 +77,7 @@ These values have deliberately not been invented or configured. Until all three 
 6. **Membership and CRM:** paid memberships/subscriptions are not implemented. The roadmap says these follow validation of requirements, providers, fees and local operating constraints.
 7. **Membership and communications:** paid membership tiers, member account lifecycle, subscription billing, automated broadcast delivery, segmentation, unsubscribe automation and conversion/retention analytics are not implemented. The current branch adds opt-in contact capture, CSV export and ticket sales/reservation/attendance counters.
 8. **Legal/privacy review:** registration and payment data handling, retention and Nigerian privacy/legal language require review before launch.
-9. **Runtime QA:** the repository CI checks frontend type/build and static API contracts; it does not execute AppDeploy database transactions or a browser end-to-end payment flow. Sandbox/concurrency tests remain mandatory.
+9. **Runtime QA:** repository CI checks frontend type/build and static API contracts; it does not execute AppDeploy database transactions or browser end-to-end payment flows. Staging concurrency, webhook and payment tests remain mandatory.
 
 ## Required verification before production
 
