@@ -25,6 +25,7 @@ import {
 import { api, auth } from '@appdeploy/client';
 import { applyPageMeta } from './seo';
 import { findByRef, itemRef, parseLocation, routeToHash, type StaticPage } from './routing';
+import qrcode from './vendor/qrcode-generator';
 
 type EventItem = {
   id: string;
@@ -1062,6 +1063,8 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
   const [tickets, setTickets] = useState<any[]>([]);
   const [ticketBatchIndex, setTicketBatchIndex] = useState(0);
   const [ticketBatchCount, setTicketBatchCount] = useState(0);
+  const [qrTicketId, setQrTicketId] = useState('');
+  const [qrDataUrl, setQrDataUrl] = useState('');
   const rawPrice = String(event.price ?? '').trim();
   const normalizedPrice = rawPrice.replace(/₦|NGN|,/gi, '').trim();
   const isFree = /^free$/i.test(rawPrice) || (rawPrice !== '' && Number(normalizedPrice) === 0);
@@ -1096,6 +1099,13 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
   const changeQuantity = (next: number) => {
     const safe = Number.isFinite(next) ? Math.max(1, Math.floor(next)) : 1;
     setQuantity(safe);
+  };
+  const showTicketQr = (ticketId: string) => {
+    const qr = qrcode(0, 'M');
+    qr.addData('ULC-TICKET:' + ticketId);
+    qr.make();
+    setQrTicketId(ticketId);
+    setQrDataUrl(qr.createDataURL(4, 8));
   };
   const loadTicketBatch = async (registrationId: string, batchIndex: number, append = false) => {
     const { data } = await api.post(`/api/registrations/${registrationId}/tickets`, { accessToken, batchIndex });
@@ -1152,7 +1162,7 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
   const resetBooking = () => {
     setBooking(null); sessionStorage.removeItem('ulc:booking-id:' + event.id);
     setTransferSubmitted(false); setTransferReference(''); setTickets([]);
-    setTicketBatchIndex(0); setTicketBatchCount(0);
+    setTicketBatchIndex(0); setTicketBatchCount(0); setQrTicketId(''); setQrDataUrl('');
     const nextKey = crypto.randomUUID();
     sessionStorage.setItem('ulc:booking-request:' + event.id, nextKey);
     setIdempotencyKey(nextKey);
@@ -1180,7 +1190,16 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
             <p>{booking.ticketCount} ticket(s) · ₦{(booking.amountMinor / 100).toLocaleString('en-NG')}</p>
             {booking.status === 'confirmed' && <>
               <p>Your tickets have been issued. Present each ticket code at event check-in.</p>
-              {tickets.map((ticket, i) => <p key={ticket.id}>Ticket {i + 1 + ticketBatchIndex * 500}: <strong>{ticket.attendeeName}</strong> · <code>{ticket.id}</code> · {ticket.status}</p>)}
+              {tickets.map((ticket, i) => (
+                <div className="cms-panel" key={ticket.id}>
+                  <p>Ticket {i + 1 + ticketBatchIndex * 500}: <strong>{ticket.attendeeName}</strong> · <code>{ticket.id}</code> · {ticket.status}</p>
+                  <button className="button ghost" type="button" onClick={() => showTicketQr(ticket.id)}>Show ticket QR</button>
+                  {qrTicketId === ticket.id && qrDataUrl && <div className="ticket-qr">
+                    <img src={qrDataUrl} alt={'Ticket QR code for ' + ticket.attendeeName} width="192" height="192" />
+                    <a href={qrDataUrl} download={'urban-life-ticket-' + ticket.id + '.gif'}>Download QR code</a>
+                  </div>}
+                </div>
+              ))}
               {ticketBatchIndex + 1 < ticketBatchCount && <button className="button ghost" onClick={() => loadTicketBatch(booking.registrationId, ticketBatchIndex + 1, true)}>Load next tickets</button>}
             </>}
             {booking.status === 'pending_payment' && booking.paymentStatus === 'manual_rejected' && <p>The submitted transfer reference was not accepted. Check with the event team before submitting a corrected reference.</p>}
