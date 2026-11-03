@@ -1531,8 +1531,13 @@ function PrivacyPage() {
           optional phone number, enquiry type, message and the date and time the
           enquiry is received. If you use the separate community signup, we also
           collect your name, email address, optional phone number, selected
-          interests, consent choice and consent timestamp. We also process
-          information needed to protect forms from spam and abuse.
+          interests, consent choice and consent timestamp. If you book an event,
+          we also collect purchaser contact details, attendee names, booking and
+          payment references, ticket identifiers, and check-in status. For manual
+          bank transfers, an administrator records the transfer reference and
+          verification decision; Urban Life Co. does not ask you to submit card
+          details through this checkout. We also process information needed to
+          protect forms from spam and abuse.
         </p>
         <p>
           If you are an authorised site administrator, account information is
@@ -1548,6 +1553,9 @@ function PrivacyPage() {
           Community signup details are used only to manage the opt-in community
           list and send the updates and invitations described on that form. The
           contact form does not subscribe you to community communications.
+          Event-registration information is used to administer bookings, allocate
+          event capacity, verify payments, issue and validate tickets, operate
+          event check-in, and respond to booking support requests.
         </p>
         <h2>4. Service providers and sharing</h2>
         <p>
@@ -1567,7 +1575,12 @@ function PrivacyPage() {
           obligations. Community signup details are retained while the
           subscription remains active and for a reasonable period after an
           opt-out where needed to maintain suppression and compliance records.
-          We use access controls and service-provider security measures, but no
+          Event booking, payment-reference and attendance records are retained
+          for as long as reasonably necessary to operate the event, resolve
+          payment disputes, maintain business records and meet legal obligations.
+          Specific retention periods will be set in the operational retention
+          schedule before production launch. We use access controls and
+          service-provider security measures, but no
           internet transmission or storage system can be guaranteed to be
           completely secure.
         </p>
