@@ -110,7 +110,7 @@ export async function createRegistration(ctx: RouterContext) {
   });
   const booking: Registration = {
     id, eventId, eventTitle: clean(event.title, 200), purchaserName: name, purchaserEmail: email,
-    purchaserPhone: phone, attendeeCount: attendees.length, attendeeNames: attendees,
+    purchaserPhone: phone, attendeeCount: attendees.length,
     amountMinor: unit * attendees.length, currency: 'NGN', status: free ? 'confirmed' : 'pending_payment',
     paymentStatus: free ? 'not_required' : 'awaiting_transfer', paymentMethod: free ? 'free' : 'manual_transfer',
     paymentId, paymentReference: reference, ticketBatchIds: batchIds, accessTokenHash: await hash(token),
