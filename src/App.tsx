@@ -1939,11 +1939,17 @@ function RegistrationsManager({ items, reload }: { items: any[]; reload: () => P
       ? 'Confirm actual bank credit has been independently verified. Enter the audit note:'
       : 'Enter the reason for rejecting this transfer reference:');
     if (!reason?.trim()) return;
-    if (action === 'confirm' && !window.confirm('Have you verified the actual credit in the business bank account? A receipt screenshot alone is not sufficient.')) return;
+    let verifiedAmountMinor: number | undefined;
+    if (action === 'confirm') {
+      if (!window.confirm('Have you verified the actual credit in the business bank account? A receipt screenshot alone is not sufficient.')) return;
+      const amount = window.prompt('Enter the exact amount credited to the business bank account in Naira (e.g. 7500.00):');
+      if (amount === null || !/^\\d+(?:\\.\\d{1,2})?$/.test(amount.replace(/,/g, '').trim())) return;
+      verifiedAmountMinor = Math.round(Number(amount.replace(/,/g, '').trim()) * 100);
+    }
     setBusyId(item.id); setMessage('');
     try {
       await api.post(`/api/admin/registrations/${item.id}${action === 'confirm' ? '/confirm-transfer' : '/reject-transfer'}`,
-        action === 'confirm' ? { bankCreditVerified: true, reason } : { reason });
+        action === 'confirm' ? { bankCreditVerified: true, verifiedAmountMinor, reason } : { reason });
       setMessage(action === 'confirm' ? 'Transfer verified and tickets issued.' : 'Transfer reference rejected.');
       await reload();
     } catch (err: any) {
