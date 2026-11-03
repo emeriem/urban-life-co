@@ -1037,7 +1037,10 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
   const [attendeeNamesText, setAttendeeNamesText] = useState('');
   const [busy, setBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [booking, setBooking] = useState<any>(null);
+  const [booking, setBooking] = useState<any>(() => {
+    const savedId = sessionStorage.getItem('ulc:booking-id:' + event.id);
+    return savedId ? { registrationId: savedId } : null;
+  });
   const [accessToken] = useState(() => {
     const storageKey = 'ulc:booking-access:' + event.id;
     const saved = sessionStorage.getItem(storageKey);
@@ -1106,12 +1109,16 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     try {
       const { data } = await api.post(`/api/registrations/${booking.registrationId}/status`, { accessToken });
       setBooking((current: any) => ({ ...current, ...data, ticketCount: data.attendeeCount ?? current.ticketCount }));
+      setTransferSubmitted(data.paymentStatus === 'manual_review');
       if (data.paymentStatus === 'manual_rejected') setTransferSubmitted(false);
       if (data.status === 'confirmed') await loadTicketBatch(booking.registrationId, 0);
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message ?? err?.message ?? 'Could not refresh booking status.');
     } finally { setBusy(false); }
   };
+  useEffect(() => {
+    if (booking?.registrationId && !booking.paymentReference) void refreshStatus();
+  }, [booking?.registrationId]);
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); setErrorMessage('');
     const attendeeNames = attendeeNamesText.split(/\r?\n/).map(name => name.trim());
@@ -1126,6 +1133,7 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
         paymentMethod: isFree ? 'free' : 'manual_transfer', attendees: attendeeNames.map(name => ({ name })),
       });
       setBooking(data);
+      sessionStorage.setItem('ulc:booking-id:' + event.id, data.registrationId);
       if (data.status === 'confirmed') await loadTicketBatch(data.registrationId, 0);
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message ?? err?.message ?? 'We could not create your booking. Please try again.');
@@ -1142,7 +1150,8 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     } finally { setBusy(false); }
   };
   const resetBooking = () => {
-    setBooking(null); setTransferSubmitted(false); setTransferReference(''); setTickets([]);
+    setBooking(null); sessionStorage.removeItem('ulc:booking-id:' + event.id);
+    setTransferSubmitted(false); setTransferReference(''); setTickets([]);
     setTicketBatchIndex(0); setTicketBatchCount(0);
     const nextKey = crypto.randomUUID();
     sessionStorage.setItem('ulc:booking-request:' + event.id, nextKey);
