@@ -344,3 +344,29 @@ export async function expirePendingRegistrations() {
   }
   return { statusCode: 200, processed };
 }
+
+
+export async function registrationTickets(ctx: RouterContext) {
+  const r = await getBooking(ctx.params.id);
+  if (!r) return error('Booking not found.', 404);
+  if (!await hasAccess(ctx, r)) return error('Booking access denied.', 403);
+  if (r.status !== 'confirmed') return error('Tickets are available only after the booking is confirmed.', 409);
+  const rawIndex = (ctx.body as Record<string, unknown> | undefined)?.batchIndex;
+  const batchIndex = rawIndex === undefined ? 0 : Number(rawIndex);
+  if (!Number.isInteger(batchIndex) || batchIndex < 0 || batchIndex >= r.ticketBatchIds.length)
+    return error('Ticket page not found.', 404);
+  const [batch] = await db.get<any>('registration_ticket_batches', [r.ticketBatchIds[batchIndex]], { consistent: true });
+  if (!batch || !Array.isArray(batch.ticketIds)) return error('Ticket records are being reconciled.', 503);
+  const tickets = await db.get<any>('tickets', batch.ticketIds, { consistent: true });
+  return json({
+    registrationId: r.id,
+    batchIndex,
+    batchCount: r.ticketBatchIds.length,
+    tickets: tickets.filter(Boolean).map(ticket => ({
+      id: ticket.id,
+      attendeeName: ticket.attendeeName,
+      status: ticket.status,
+      checkedInAt: ticket.checkedInAt ?? null,
+    })),
+  });
+}
