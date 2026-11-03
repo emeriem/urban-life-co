@@ -173,7 +173,8 @@ export async function registrationStatus(ctx: RouterContext) {
   if (!await hasAccess(ctx, r)) return error('Booking access denied.', 403);
   return json({ registrationId: r.id, eventTitle: r.eventTitle, status: r.status, paymentStatus: r.paymentStatus,
     paymentReference: r.paymentReference, amountMinor: r.amountMinor, currency: r.currency,
-    attendeeCount: r.attendeeCount, expiresAt: r.expiresAt, ticketBatchCount: r.ticketBatchIds.length });
+    attendeeCount: r.attendeeCount, expiresAt: r.expiresAt, ticketBatchCount: r.ticketBatchIds.length,
+    transferDetails: r.amountMinor > 0 ? await bankDetails() : null });
 }
 
 export async function submitManualTransfer(ctx: RouterContext) {
