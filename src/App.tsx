@@ -2049,6 +2049,9 @@ function DashboardView({
         {[
           ['Events', m.events, 'events'],
           ['Published', m.publishedEvents, 'events'],
+          ['Tickets sold', m.ticketsSold, 'registrations'],
+          ['Tickets reserved', m.ticketsReserved, 'registrations'],
+          ['Checked in', m.ticketsCheckedIn, 'registrations'],
           ['Journal', m.stories, 'stories'],
           ['Drafts', m.drafts, 'stories'],
           ['Media', m.media, 'media'],
