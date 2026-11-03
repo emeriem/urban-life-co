@@ -42,18 +42,18 @@
 | PAY-09 | Overpayment, underpayment, duplicate credit or wrong narration | No automatic confirmation; reconciliation case required |
 | PAY-10 | Retry after uncertain confirmation response | Read booking status before any further action; no duplicate tickets or counter movement |
 
-## 4. Provider sandbox acceptance matrix (Flutterwave candidate)
-Do not enable the provider until the current Flutterwave test account and current API documentation confirm the required Nigeria channels.
+## 4. Provider sandbox acceptance matrix (Flutterwave v4 candidate)
+Current documentation supports NGN bank transfer through dynamic virtual accounts and USSD through a bank-specific payment method. The v4 flow uses OAuth 2.0 client credentials, creates a customer/payment method/charge server-side, then verifies the charge. Treat this as the implementation target for staging; do not enable the provider until test credentials are supplied and all sandbox checks pass.
 
 | ID | Scenario | Expected result |
 |---|---|---|
-| FW-01 | Create test NGN bank-transfer instruction | Provider reference and expiry are stored; booking remains pending |
-| FW-02 | Complete test transfer using provider sandbox instructions | Valid signed event or server-side verification moves payment to success exactly once |
-| FW-03 | Invalid webhook signature | HTTP 401/403; no state change |
+| FW-01 | Create test NGN dynamic virtual account | Provider returns account number, bank name, reference and expiry; booking remains pending |
+| FW-02 | Complete test transfer using provider sandbox scenario | Signed webhook is received, charge is fetched server-side, and only matching successful NGN amount/reference moves payment to success exactly once |
+| FW-03 | Invalid Flutterwave signature (`flutterwave-signature`) | HTTP 401/403; no state change |
 | FW-04 | Replay same valid webhook | Idempotent acknowledgement; no duplicate issuance |
 | FW-05 | Valid webhook with wrong amount/currency/reference | Quarantined for reconciliation; no tickets |
 | FW-06 | Query provider transaction after browser closes | Server-side verification recovers state; browser redirect is not trusted |
-| FW-07 | USSD initiation for each bank in the approved test-bank matrix | Correct bank selection and USSD instructions; only verified payment issues tickets |
+| FW-07 | Create USSD payment method and charge for each bank in the approved test-bank matrix | Correct bank code and USSD dial instructions; only verified payment issues tickets |
 | FW-08 | Cancel, fail or expire provider transaction | Booking remains unpaid and releases capacity once at expiry |
 | FW-09 | Provider API timeout / unknown outcome | Reconcile by merchant reference before retrying create-charge |
 | FW-10 | Provider test webhook sent more than once/out of order | Monotonic, idempotent state transitions; no downgrade from succeeded |
