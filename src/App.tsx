@@ -1042,6 +1042,9 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
   const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
   const [transferReference, setTransferReference] = useState('');
   const [transferSubmitted, setTransferSubmitted] = useState(false);
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [ticketBatchIndex, setTicketBatchIndex] = useState(0);
+  const [ticketBatchCount, setTicketBatchCount] = useState(0);
   const rawPrice = String(event.price ?? '').trim();
   const normalizedPrice = rawPrice.replace(/₦|NGN|,/gi, '').trim();
   const isFree = /^free$/i.test(rawPrice) || (rawPrice !== '' && Number(normalizedPrice) === 0);
@@ -1049,6 +1052,23 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     const safe = Number.isFinite(next) ? Math.max(1, Math.min(50000, Math.floor(next))) : 1;
     setQuantity(safe);
     setAttendees(current => Array.from({ length: safe }, (_, i) => current[i] ?? ''));
+  };
+  const loadTicketBatch = async (registrationId: string, batchIndex: number, append = false) => {
+    const { data } = await api.post('/api/registrations/' + registrationId + '/tickets', { accessToken, batchIndex });
+    setTickets(current => append ? [...current, ...(data.tickets ?? [])] : (data.tickets ?? []));
+    setTicketBatchIndex(data.batchIndex);
+    setTicketBatchCount(data.batchCount);
+  };
+  const refreshStatus = async () => {
+    if (!booking?.registrationId) return;
+    setBusy(true); setErrorMessage('');
+    try {
+      const { data } = await api.post('/api/registrations/' + booking.registrationId + '/status', { accessToken });
+      setBooking((current: any) => ({ ...current, ...data, ticketCount: data.attendeeCount ?? current.ticketCount }));
+      if (data.status === 'confirmed') await loadTicketBatch(booking.registrationId, 0);
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.message ?? err?.message ?? 'Could not refresh booking status.');
+    } finally { setBusy(false); }
   };
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); setBusy(true); setErrorMessage('');
@@ -1058,6 +1078,7 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
         paymentMethod: isFree ? 'free' : 'manual_transfer', attendees: attendees.map(name => ({ name })),
       });
       setBooking(data);
+      if (data.status === 'confirmed') await loadTicketBatch(data.registrationId, 0);
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message ?? err?.message ?? 'We could not create your booking. Please try again.');
     } finally { setBusy(false); }
@@ -1066,14 +1087,15 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     e.preventDefault(); if (!booking?.registrationId) return;
     setBusy(true); setErrorMessage('');
     try {
-      await api.post(`/api/registrations/${booking.registrationId}/manual-transfer`, { accessToken, transferReference });
+      await api.post('/api/registrations/' + booking.registrationId + '/manual-transfer', { accessToken, transferReference });
       setTransferSubmitted(true);
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message ?? err?.message ?? 'We could not submit the transfer reference. Please try again.');
     } finally { setBusy(false); }
   };
   const resetBooking = () => {
-    setBooking(null); setTransferSubmitted(false); setTransferReference(''); setIdempotencyKey(crypto.randomUUID());
+    setBooking(null); setTransferSubmitted(false); setTransferReference(''); setTickets([]);
+    setTicketBatchIndex(0); setTicketBatchCount(0); setIdempotencyKey(crypto.randomUUID());
   };
   return (
     <section className="event-detail">
@@ -1092,8 +1114,9 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
             <p>Booking reference: <strong>{booking.paymentReference}</strong></p>
             <p>{booking.ticketCount} ticket(s) · ₦{(booking.amountMinor / 100).toLocaleString('en-NG')}</p>
             {booking.status === 'confirmed' && <>
-              <p>Your tickets have been issued. Keep this booking reference for event check-in.</p>
-              {Array.isArray(booking.ticketIds) && booking.ticketIds.map((id: string, i: number) => <p key={id}>Ticket {i + 1}: <code>{id}</code></p>)}
+              <p>Your tickets have been issued. Present each ticket code at event check-in.</p>
+              {tickets.map((ticket, i) => <p key={ticket.id}>Ticket {i + 1 + ticketBatchIndex * 500}: <strong>{ticket.attendeeName}</strong> · <code>{ticket.id}</code> · {ticket.status}</p>)}
+              {ticketBatchIndex + 1 < ticketBatchCount && <button className="button ghost" onClick={() => loadTicketBatch(booking.registrationId, ticketBatchIndex + 1, true)}>Load next tickets</button>}
             </>}
             {booking.status === 'pending_payment' && booking.transferDetails && <>
               <p>Transfer to the approved account below. Tickets are issued only after an administrator verifies the actual bank credit.</p>
@@ -1107,6 +1130,7 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
                 </form>
               )}
             </>}
+            {booking.status === 'pending_payment' && <button className="button ghost" disabled={busy} onClick={refreshStatus}>{busy ? 'Checking…' : 'Refresh payment status'}</button>}
             {!isFree && !booking.transferDetails && <p>Payment instructions are not configured yet. Please contact the event team before making a transfer.</p>}
             <button className="button ghost" onClick={resetBooking}>Make another booking</button>
           </div>
