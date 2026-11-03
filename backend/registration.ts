@@ -104,12 +104,18 @@ export async function createRegistration(ctx: RouterContext) {
   const reference = 'ULC-' + crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase();
   const createdAt = new Date().toISOString(); const free = unit === 0;
   const expiresAt = free ? null : new Date(Date.now() + 30 * 60_000).toISOString();
-  const ticketRows: Array<Record<string, unknown>> = [];
-  const batchIds: string[] = [];
-  for (const attendeeName of attendees) ticketRows.push({
+  const ticketRows: Array<Record<string, unknown>> = attendees.map(attendeeName => ({
     id: crypto.randomUUID(), registrationId: id, eventId, attendeeName,
     status: free ? 'issued' : 'pending_payment', createdAt,
-  });
+  }));
+  const batchIds: string[] = [];
+  const ticketChunks: Array<{ batchId: string; rows: Array<Record<string, unknown>>; ticketIds: string[] }> = [];
+  for (let i = 0; i < ticketRows.length; i += BATCH) {
+    const rows = ticketRows.slice(i, i + BATCH);
+    const batchId = crypto.randomUUID();
+    batchIds.push(batchId);
+    ticketChunks.push({ batchId, rows, ticketIds: rows.map(row => String(row.id)) });
+  }
   const booking: Registration = {
     id, eventId, eventTitle: clean(event.title, 200), purchaserName: name, purchaserEmail: email,
     purchaserPhone: phone, attendeeCount: attendees.length,
@@ -129,13 +135,12 @@ export async function createRegistration(ctx: RouterContext) {
       status: free ? 'not_required' : 'awaiting_transfer', amountMinor: totalMinor,
       currency: 'NGN', reference, createdAt }]),
   ];
-  for (let i = 0; i < ticketRows.length; i += BATCH) {
-    const chunk = ticketRows.slice(i, i + BATCH);
-    const batchId = crypto.randomUUID(); batchIds.push(batchId);
-    ops.push(db.tx.add('tickets', chunk));
-    ops.push(db.tx.add('registration_ticket_batches', [{ id: batchId, registrationId: id, ticketIds: chunk.map(x => x.id) }]));
+  for (const chunk of ticketChunks) {
+    ops.push(db.tx.add('tickets', chunk.rows));
+    ops.push(db.tx.add('registration_ticket_batches', [{
+      id: chunk.batchId, registrationId: id, ticketIds: chunk.ticketIds,
+    }]));
   }
-  booking.ticketBatchIds = batchIds;
   const size = new TextEncoder().encode(JSON.stringify({ booking, ticketRows, ops: ops.length })).byteLength;
   if (ops.length > 100 || size > MAX_TX_BYTES) return error('This booking exceeds the safe atomic transaction size. Reduce the quantity or split the booking.', 413);
   try {
