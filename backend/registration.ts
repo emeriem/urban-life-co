@@ -4,7 +4,7 @@ import type { RouterContext } from '@appdeploy/sdk';
 type EventRecord = { id: string; title?: string; date?: string; status?: string; price?: string | number; capacity?: number; heldCount?: number; confirmedCount?: number };
 type Registration = {
   id: string; eventId: string; eventTitle: string; purchaserName: string; purchaserEmail: string;
-  purchaserPhone: string; attendeeCount: number; attendeeNames: string[]; amountMinor: number;
+  purchaserPhone: string; attendeeCount: number; amountMinor: number;
   currency: 'NGN'; status: string; paymentStatus: string; paymentMethod: string; paymentId: string;
   paymentReference: string; ticketBatchIds: string[]; accessTokenHash: string; createdAt: string; expiresAt: string | null;
 };
