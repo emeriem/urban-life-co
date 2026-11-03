@@ -1922,6 +1922,7 @@ function AdminPanel({
     announcements: [],
     messages: [],
     registrations: [],
+    subscribers: [],
   });
   const load = async () => {
     if (!authorised) return;
@@ -1936,6 +1937,7 @@ function AdminPanel({
         messages,
         settings,
         registrations,
+        subscribers,
       ] = await Promise.all([
         api.get('/api/admin/dashboard'),
         api.get('/api/admin/events'),
@@ -1945,6 +1947,7 @@ function AdminPanel({
         api.get('/api/admin/messages'),
         api.get('/api/admin/settings'),
         api.get('/api/admin/registrations'),
+        api.get('/api/admin/community-subscribers'),
       ]);
       setData({
         ...dash.data,
@@ -1955,6 +1958,7 @@ function AdminPanel({
         messages: messages.data,
         settings: settings.data,
         registrations: registrations.data?.registrations ?? [],
+        subscribers: subscribers.data?.subscribers ?? [],
       });
     } finally {
       setLoading(false);
@@ -2023,6 +2027,7 @@ function AdminPanel({
     ['dashboard', 'Overview', Compass],
     ['events', 'Events', CalendarDays],
     ['registrations', 'Bookings & tickets', ShieldCheck],
+    ['community', 'Community list', Users],
     ['experiences', 'Experiences', Mountain],
     ['stories', 'Journal', Sparkles],
     ['announcements', 'Announcements', Megaphone],
@@ -2095,6 +2100,9 @@ function AdminPanel({
           {tab === 'registrations' && (
             <RegistrationsManager items={data.registrations} reload={load} />
           )}{' '}
+          {tab === 'community' && (
+            <CommunitySubscribersManager items={data.subscribers} reload={load} />
+          )}{' '}
           {tab === 'experiences' && (
             <ExperiencesManager items={data.experiences} reload={load} />
           )}{' '}
@@ -2116,6 +2124,38 @@ function AdminPanel({
         </main>
       </div>
     </section>
+  );
+}
+
+
+function CommunitySubscribersManager({ items, reload }: { items: any[]; reload: () => Promise<void> }) {
+  const downloadCsv = () => {
+    const quote = (value: unknown) => '"' + String(value ?? '').replace(/"/g, '""') + '"';
+    const rows = [
+      ['Name', 'Email', 'Phone', 'Interests', 'Consent date', 'Status'],
+      ...items.map(item => [item.name, item.email, item.phone, (item.interests ?? []).join('; '), item.consentAt, item.status]),
+    ];
+    const csv = rows.map(row => row.map(quote).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a'); link.href = url; link.download = 'urban-life-community-list.csv';
+    document.body.appendChild(link); link.click(); link.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+  return (
+    <ManagerLayout title="Community list" description="People who explicitly opted in to receive Urban Life Co. community updates.">
+      <div className="cms-actions">
+        <span>{items.length} subscriber(s) in this page</span>
+        <button className="button dark" onClick={downloadCsv} disabled={!items.length}>Download CSV</button>
+        <button className="button ghost" onClick={reload}>Refresh list</button>
+      </div>
+      {items.length ? items.map(item => (
+        <article className="cms-panel" key={item.id}>
+          <h3>{item.name}</h3>
+          <p>{item.email}{item.phone ? ' · ' + item.phone : ''}</p>
+          <p>Interests: {(item.interests ?? []).join(', ') || 'Not specified'}</p>
+          <p>Consent recorded: {new Date(item.consentAt).toLocaleString('en-NG')} · {item.status}</p>
+        </article>
+      )) : <Empty text="No community signups have been received yet." />}
+    </ManagerLayout>
   );
 }
 
