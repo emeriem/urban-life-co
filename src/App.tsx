@@ -2040,7 +2040,7 @@ function AdminPanel({
   const loadMoreSubscribers = async () => {
     const token = data.subscribersNextToken;
     if (!token) return;
-    const { data: page } = await api.get('/api/admin/community-subscribers?nextToken=' + encodeURIComponent(token));
+    const { data: page } = await api.get('/api/admin/community-subscribers', { nextToken: token });
     setData((current: any) => ({
       ...current,
       subscribers: [...current.subscribers, ...(page.subscribers ?? [])],
@@ -2050,7 +2050,7 @@ function AdminPanel({
   const loadMoreRegistrations = async () => {
     const token = data.registrationsNextToken;
     if (!token) return;
-    const { data: page } = await api.get('/api/admin/registrations?nextToken=' + encodeURIComponent(token));
+    const { data: page } = await api.get('/api/admin/registrations', { nextToken: token });
     setData((current: any) => ({
       ...current,
       registrations: [...current.registrations, ...(page.registrations ?? [])],
