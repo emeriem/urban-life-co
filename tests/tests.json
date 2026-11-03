@@ -119,6 +119,6 @@
       "Restore the connection",
       "Navigate between public pages using keyboard or touch"
     ],
-    "expected": "The site remains navigable using cached app-shell content where available, connection state is communicated, and the layout remains usable on mobile."
+    "expected": "The app shell remains available from cache where possible, a branded offline fallback is shown when the shell is unavailable, connection state is communicated, and the layout remains usable on mobile."
   }
 ]

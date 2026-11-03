@@ -1,5 +1,5 @@
 const CACHE = 'urban-life-shell-v5';
-const APP_SHELL = ['/', '/manifest.webmanifest', '/icon.svg'];
+const APP_SHELL = ['/', '/manifest.webmanifest', '/icon.svg', '/offline.html'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -47,9 +47,17 @@ self.addEventListener('fetch', event => {
         return response;
       })
       .catch(async () => {
-        return (await caches.match(request)) ||
-          (request.mode === 'navigate' ? await caches.match('/') : undefined) ||
-          Response.error();
+        const cached = await caches.match(request);
+        if (cached) return cached;
+        if (request.mode === 'navigate') {
+          return (await caches.match('/')) ||
+            (await caches.match('/offline.html')) ||
+            new Response('You are offline. Please reconnect and try again.', {
+              status: 503,
+              headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+            });
+        }
+        return Response.error();
       })
   );
 });

@@ -21,6 +21,8 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { api, auth } from '@appdeploy/client';
+import { applyPageMeta } from './seo';
+import { findByRef, itemRef, parseLocation, routeToHash, type StaticPage } from './routing';
 
 type EventItem = {
   id: string;
@@ -312,9 +314,7 @@ function App() {
   const [stories, setStories] = useState<Story[]>(fallbackStories);
   const [experiences, setExperiences] = useState<ExperienceItem[]>([]);
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
-  const [page, setPage] = useState(() =>
-    window.location.hash.startsWith('#admin') ? 'admin' : 'home'
-  );
+  const [page, setPage] = useState(() => parseLocation(window.location.hash).page);
   const [menu, setMenu] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
   const [adminAuthorised, setAdminAuthorised] = useState(false);
@@ -373,11 +373,100 @@ function App() {
         if (data?.stories?.length) setStories(data.stories);
         if (data?.experiences?.length) setExperiences(data.experiences);
         if (data?.settings) setSettings(data.settings);
-        if (data?.settings?.heroTitle)
-          document.title = `${data.settings.heroTitle} — Urban Life Co.`;
       })
       .catch(() => undefined);
   }, []);
+  useEffect(() => {
+    const syncRoute = () => {
+      const route = parseLocation(window.location.hash);
+      if ('ref' in route) {
+        if (route.page === 'event') {
+          const item = findByRef(events, route.ref);
+          if (item) {
+            setSelectedEvent(item);
+            setSelectedExperience(null);
+            setSelectedStory(null);
+            setPage('event');
+            return;
+          }
+        }
+        if (route.page === 'experience') {
+          const item = findByRef(experiences, route.ref);
+          if (item) {
+            setSelectedExperience(item);
+            setSelectedEvent(null);
+            setSelectedStory(null);
+            setPage('experience');
+            return;
+          }
+        }
+        if (route.page === 'story') {
+          const item = findByRef(stories, route.ref);
+          if (item) {
+            setSelectedStory(item);
+            setSelectedEvent(null);
+            setSelectedExperience(null);
+            setPage('story');
+            return;
+          }
+        }
+        setSelectedEvent(null);
+        setSelectedExperience(null);
+        setSelectedStory(null);
+        setPage('home');
+        return;
+      }
+      setSelectedEvent(null);
+      setSelectedExperience(null);
+      setSelectedStory(null);
+      setPage(route.page === 'notfound' ? 'home' : route.page);
+    };
+    syncRoute();
+    window.addEventListener('hashchange', syncRoute);
+    return () => window.removeEventListener('hashchange', syncRoute);
+  }, [events, experiences, stories]);
+  useEffect(() => {
+    const titles: Record<string, string> = {
+      home: settings.heroTitle || 'Live. Connect. Explore.',
+      about: 'Our Story',
+      experiences: 'Experiences',
+      events: 'Events',
+      journal: 'Journal',
+      community: 'Community',
+      contact: 'Contact',
+      admin: 'Admin workspace',
+    };
+    const title = selectedEvent
+      ? `${selectedEvent.title} — Urban Life Co.`
+      : selectedExperience
+        ? `${selectedExperience.name} — Urban Life Co.`
+        : selectedStory
+          ? `${selectedStory.title} — Urban Life Co.`
+          : `${titles[page] ?? 'Urban Life Co.'} — Urban Life Co.`;
+    const description = selectedEvent?.description || selectedExperience?.description || selectedStory?.excerpt || settings.heroCopy || 'Experiences that bring people together. Home of Urban Hikers, Urban Fitness and Urban Connect — Enugu, Nigeria.';
+    const jsonLd = selectedEvent
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'Event',
+          name: selectedEvent.title,
+          description: selectedEvent.description,
+          startDate: selectedEvent.date,
+          location: { '@type': 'Place', name: selectedEvent.location },
+          image: selectedEvent.image,
+          offers: selectedEvent.registrationLink ? { '@type': 'Offer', url: selectedEvent.registrationLink, price: selectedEvent.price } : undefined,
+        }
+      : selectedStory
+        ? { '@context': 'https://schema.org', '@type': 'Article', headline: selectedStory.title, description: selectedStory.excerpt, datePublished: selectedStory.date, image: selectedStory.coverImage }
+        : null;
+    applyPageMeta({
+      title,
+      description,
+      path: `${window.location.pathname}${window.location.search}${window.location.hash}`,
+      image: selectedEvent?.image || selectedExperience?.coverImage || selectedStory?.coverImage || '/resources/urban-life-logo.png',
+      noindex: page === 'admin',
+      jsonLd,
+    });
+  }, [page, selectedEvent, selectedExperience, selectedStory, settings]);
   const filteredEvents = useMemo(
     () =>
       events.filter(e =>
@@ -396,6 +485,7 @@ function App() {
     .filter(e => new Date(e.date) < startOfToday)
     .sort((a, b) => +new Date(b.date) - +new Date(a.date));
   const openEvent = (event: EventItem) => {
+    window.location.hash = routeToHash({ page: 'event', ref: itemRef(event.title, event.id) });
     setSelectedEvent(event);
     setSelectedExperience(null);
     setSelectedStory(null);
@@ -404,6 +494,7 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const openExperience = (experience: ExperienceItem) => {
+    window.location.hash = routeToHash({ page: 'experience', ref: itemRef(experience.name, experience.id) });
     setSelectedExperience(experience);
     setSelectedEvent(null);
     setSelectedStory(null);
@@ -412,6 +503,7 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const openStory = (story: Story) => {
+    window.location.hash = routeToHash({ page: 'story', ref: itemRef(story.title, story.id) });
     setSelectedStory(story);
     setSelectedEvent(null);
     setSelectedExperience(null);
@@ -420,13 +512,9 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const nav = (target: string) => {
-    if (target === 'admin') window.location.hash = 'admin';
-    else if (window.location.hash)
-      window.history.replaceState(
-        null,
-        '',
-        window.location.pathname + window.location.search
-      );
+    window.location.hash = target === 'admin'
+      ? 'admin'
+      : routeToHash({ page: target as StaticPage });
     setPage(target);
     setMenu(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1909,8 +1997,7 @@ function ExperiencesManager({
             Cancel
           </button>
         )}
-      </div>
-      <ListTable
+      </div>      <ListTable
         items={items}
         columns={['name', 'category', 'status']}
         onEdit={x => {
@@ -1997,7 +2084,8 @@ function StoriesManager({
         <label>
           Status
           <select
-            value={form.status}            onChange={e => setForm({ ...form, status: e.target.value })}
+            value={form.status}
+            onChange={e => setForm({ ...form, status: e.target.value })}
           >
             <option>draft</option>
             <option>published</option>
