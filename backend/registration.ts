@@ -280,6 +280,7 @@ export async function adminCheckInTicket(ctx: RouterContext) {
   try {
     await db.transact([
       db.tx.update('tickets', [{ id: ticket.id, record: { status: 'checked_in', checkedInAt: now, checkedInBy: actor }, if: { status: 'issued' } }], { patch: true }),
+      db.tx.update('events', [{ id: r.eventId, record: { checkedInCount: increment(1) } }], { patch: true }),
       db.tx.add('payment_audit', [{ id: crypto.randomUUID(), registrationId: r.id, ticketId: ticket.id, action: 'ticket_checked_in', actor, createdAt: now }]),
     ]);
   } catch (err) {
