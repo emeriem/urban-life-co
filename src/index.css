@@ -5892,3 +5892,53 @@ textarea::placeholder {
   .legal-copy { font-size: 14px; }
   .legal-copy h2 { margin-top: 28px; }
 }
+
+
+/* Phase 3 attendee ticket QR presentation */
+.ticket-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+.ticket-qr img {
+  display: block;
+  width: 192px;
+  height: 192px;
+  max-width: 100%;
+  padding: 0.75rem;
+  background: #fff;
+  border-radius: 0.75rem;
+  image-rendering: pixelated;
+}
+.ticket-qr a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+
+/* Consent-based community capture */
+.community-signup {
+  max-width: 760px;
+  margin: 0 auto;
+}
+.community-interest-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  margin-top: 0.5rem;
+}
+.community-interest-list label,
+.community-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+.community-interest-list input,
+.community-consent input {
+  width: auto;
+  min-width: 16px;
+  margin-top: 0.2rem;
+}

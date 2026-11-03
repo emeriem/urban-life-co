@@ -21,10 +21,12 @@ import {
   MessageCircle,
   Phone,
   RefreshCw,
+  Users,
 } from 'lucide-react';
 import { api, auth } from '@appdeploy/client';
 import { applyPageMeta } from './seo';
 import { findByRef, itemRef, parseLocation, routeToHash, type StaticPage } from './routing';
+import qrcode from './vendor/qrcode-generator';
 
 type EventItem = {
   id: string;
@@ -928,6 +930,7 @@ function App() {
               ))}
             </div>
           </section>
+          <CommunitySignup />
         </>
       )}
       {page !== 'admin' && (
@@ -961,6 +964,61 @@ function App() {
     </div>
   );
 }
+
+function CommunitySignup() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [interests, setInterests] = useState<string[]>([]);
+  const [consent, setConsent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const options = ['Urban Hikers', 'Urban Fitness', 'Urban Connect', 'Travel & Culture'];
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); setBusy(true); setMessage(''); setErrorMessage('');
+    try {
+      await api.post('/api/community-signups', { name, email, phone, interests, consent, website: '' });
+      setMessage('You are on the Urban Life community list. Thank you for joining.');
+      setName(''); setEmail(''); setPhone(''); setInterests([]); setConsent(false);
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.message ?? err?.message ?? 'We could not save your signup. Please try again.');
+    } finally { setBusy(false); }
+  };
+  return (
+    <section className="community-signup section">
+      <div className="field-gallery-heading">
+        <p className="eyebrow">STAY IN THE LOOP</p>
+        <h2>Find your people.</h2>
+        <p>Get occasional updates about upcoming experiences, community activities and new ways to connect.</p>
+      </div>
+      <form className="contact-form" onSubmit={submit}>
+        <label>Name<input required maxLength={120} value={name} onChange={e => setName(e.target.value)} /></label>
+        <label>Email<input required type="email" maxLength={200} value={email} onChange={e => setEmail(e.target.value)} /></label>
+        <label>Phone (optional)<input maxLength={40} value={phone} onChange={e => setPhone(e.target.value)} /></label>
+        <div className="full">
+          <p><strong>What are you interested in?</strong></p>
+          <div className="community-interest-list">
+            {options.map(option => <label key={option}>
+              <input type="checkbox" checked={interests.includes(option)}
+                onChange={e => setInterests(current => e.target.checked ? [...current, option] : current.filter(value => value !== option))} />
+              {option}
+            </label>)}
+          </div>
+        </div>
+        <label className="full community-consent">
+          <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} required />
+          I agree to receive community updates and invitations from Urban Life Co. I can withdraw my consent by contacting the team.
+        </label>
+        <p className="full consent-note">We use these details only to manage your community signup and send the updates you opted into. Read our Privacy Policy for more information.</p>
+        {message && <p className="full admin-notice" role="status">{message}</p>}
+        {errorMessage && <p className="full photos-error" role="alert">{errorMessage}</p>}
+        <button className="button dark" type="submit" disabled={busy || !consent}>{busy ? 'Joining…' : 'Join the community'} <ChevronRight size={16} /></button>
+      </form>
+    </section>
+  );
+}
+
 function Pillars() {
   return (
     <section className="pillars">
@@ -1029,55 +1087,242 @@ function EventCard({
     </article>
   );
 }
-function EventDetail({
-  event,
-  onBack,
-}: {
-  event: EventItem;
-  onBack: () => void;
-}) {
+function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }) {
+  const [quantity, setQuantity] = useState(1);
+  const [purchaserName, setPurchaserName] = useState('');
+  const [purchaserEmail, setPurchaserEmail] = useState('');
+  const [purchaserPhone, setPurchaserPhone] = useState('');
+  const [attendeeNamesText, setAttendeeNamesText] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [booking, setBooking] = useState<any>(() => {
+    const savedId = localStorage.getItem('ulc:booking-id:' + event.id);
+    return savedId ? { registrationId: savedId } : null;
+  });
+  const [accessToken] = useState(() => {
+    const storageKey = 'ulc:booking-access:' + event.id;
+    const saved = localStorage.getItem(storageKey);
+    if (saved) return saved;
+    const token = crypto.randomUUID() + crypto.randomUUID();
+    localStorage.setItem(storageKey, token);
+    return token;
+  });
+  const [idempotencyKey, setIdempotencyKey] = useState(() => {
+    const storageKey = 'ulc:booking-request:' + event.id;
+    const saved = localStorage.getItem(storageKey);
+    if (saved) return saved;
+    const key = crypto.randomUUID();
+    localStorage.setItem(storageKey, key);
+    return key;
+  });
+  const [transferReference, setTransferReference] = useState('');
+  const [transferSubmitted, setTransferSubmitted] = useState(false);
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [ticketBatchIndex, setTicketBatchIndex] = useState(0);
+  const [ticketBatchCount, setTicketBatchCount] = useState(0);
+  const [qrTicketId, setQrTicketId] = useState('');
+  const [qrDataUrl, setQrDataUrl] = useState('');
+  const rawPrice = String(event.price ?? '').trim();
+  const normalizedPrice = rawPrice.replace(/₦|NGN|,/gi, '').trim();
+  const isFree = /^free$/i.test(rawPrice) || (rawPrice !== '' && Number(normalizedPrice) === 0);
+  const escapeIcs = (value: string) => value.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+  const calendarDate = (date: Date) => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const downloadCalendar = () => {
+    const start = new Date(event.date + (event.time ? ' ' + event.time : 'T09:00:00'));
+    if (!Number.isFinite(start.getTime())) { setErrorMessage('The event date is not valid for a calendar entry.'); return; }
+    const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+    const now = calendarDate(new Date());
+    const ics = [
+      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Urban Life Co//Events//EN',
+      'CALSCALE:GREGORIAN', 'BEGIN:VEVENT', 'UID:' + escapeIcs(event.id) + '@urban-life-co',
+      'DTSTAMP:' + now, 'DTSTART:' + calendarDate(start), 'DTEND:' + calendarDate(end),
+      'SUMMARY:' + escapeIcs(event.title), 'LOCATION:' + escapeIcs(event.location),
+      'DESCRIPTION:' + escapeIcs(event.description), 'END:VEVENT', 'END:VCALENDAR',
+    ].join('\r\n');
+    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+    const link = document.createElement('a'); link.href = url; link.download = 'urban-life-event.ics';
+    document.body.appendChild(link); link.click(); link.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+  const shareEvent = async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.share) await navigator.share({ title: event.title, text: event.description, url });
+      else if (navigator.clipboard) { await navigator.clipboard.writeText(url); setErrorMessage('Event link copied.'); }
+      else setErrorMessage('Copy this event URL from your browser address bar to share it.');
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') setErrorMessage('Could not share this event from this browser.');
+    }
+  };
+  const changeQuantity = (next: number) => {
+    const safe = Number.isFinite(next) ? Math.max(1, Math.floor(next)) : 1;
+    setQuantity(safe);
+  };
+  const createTicketQr = (ticketId: string) => {
+    const factory = qrcode as unknown as (typeNumber: number, level: 'L' | 'M' | 'Q' | 'H') => {
+      addData: (data: string) => void;
+      make: () => void;
+      createDataURL: (cellSize?: number, margin?: number) => string;
+    };
+    const qr = factory(0, 'M');
+    qr.addData('ULC-TICKET:' + ticketId);
+    qr.make();
+    return qr.createDataURL(4, 8);
+  };
+  const printTicket = (ticket: any) => {
+    const qrData = createTicketQr(ticket.id);
+    const escapeHtml = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const popup = window.open('', '_blank');
+    if (!popup) { setErrorMessage('Allow pop-ups to print or save this ticket as a PDF.'); return; }
+    popup.opener = null;
+    popup.onload = () => popup.print();
+    const html = '<!doctype html><html><head><meta charset="utf-8"><title>Urban Life Co. ticket</title><style>' +
+      '@page{size:A5;margin:12mm}body{font-family:Arial,sans-serif;color:#171717;margin:0}main{border:1px solid #ddd;border-radius:16px;padding:24px}h1{font-size:24px;margin:8px 0}p{line-height:1.5}.brand{letter-spacing:.16em;font-size:11px;font-weight:bold}.qr{width:180px;height:180px;image-rendering:pixelated}.code{font-family:monospace;word-break:break-all;border-top:1px solid #ddd;padding-top:12px}</style></head><body><main>' +
+      '<div class="brand">URBAN LIFE CO. · LIVE. CONNECT. EXPLORE.</div>' +
+      '<h1>' + escapeHtml(event.title) + '</h1>' +
+      '<p><strong>Attendee:</strong> ' + escapeHtml(ticket.attendeeName || '') + '</p>' +
+      '<p><strong>Date:</strong> ' + escapeHtml(formatDate(event.date)) + (event.time ? ' · ' + escapeHtml(event.time) : '') + '</p>' +
+      '<p><strong>Location:</strong> ' + escapeHtml(event.location) + '</p>' +
+      '<img class="qr" src="' + qrData + '" alt="Ticket QR code">' +
+      '<p class="code">Ticket ID: ' + escapeHtml(ticket.id) + '</p>' +
+      '<p>Present this ticket at check-in. Each ticket is valid for one attendee and can be checked in once.</p>' +
+      '</main></body></html>';
+    popup.document.open(); popup.document.write(html); popup.document.close();
+  };
+  const showTicketQr = (ticketId: string) => {
+    setQrTicketId(ticketId);
+    setQrDataUrl(createTicketQr(ticketId));
+  };
+  const loadTicketBatch = async (registrationId: string, batchIndex: number, append = false) => {
+    const { data } = await api.post(`/api/registrations/${registrationId}/tickets`, { accessToken, batchIndex });
+    setTickets(current => append ? [...current, ...(data.tickets ?? [])] : (data.tickets ?? []));
+    setTicketBatchIndex(data.batchIndex);
+    setTicketBatchCount(data.batchCount);
+  };
+  const refreshStatus = async () => {
+    if (!booking?.registrationId) return;
+    setBusy(true); setErrorMessage('');
+    try {
+      const { data } = await api.post(`/api/registrations/${booking.registrationId}/status`, { accessToken });
+      setBooking((current: any) => ({ ...current, ...data, ticketCount: data.attendeeCount ?? current.ticketCount }));
+      setTransferSubmitted(data.paymentStatus === 'manual_review');
+      if (data.paymentStatus === 'manual_rejected') setTransferSubmitted(false);
+      if (data.status === 'confirmed') await loadTicketBatch(booking.registrationId, 0);
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.message ?? err?.message ?? 'Could not refresh booking status.');
+    } finally { setBusy(false); }
+  };
+  useEffect(() => {
+    if (booking?.registrationId && !booking.paymentReference) void refreshStatus();
+  }, [booking?.registrationId]);
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); setErrorMessage('');
+    const attendeeNames = attendeeNamesText.split(/\r?\n/).map(name => name.trim());
+    if (attendeeNames.length !== quantity || attendeeNames.some(name => !name)) {
+      setErrorMessage('Enter exactly one attendee name per ticket, with one name on each line.');
+      return;
+    }
+    setBusy(true);
+    try {
+      const { data } = await api.post('/api/registrations', {
+        eventId: event.id, idempotencyKey, accessToken, purchaserName, purchaserEmail, purchaserPhone,
+        paymentMethod: isFree ? 'free' : 'manual_transfer', attendees: attendeeNames.map(name => ({ name })),
+      });
+      setBooking(data);
+      localStorage.setItem('ulc:booking-id:' + event.id, data.registrationId);
+      if (data.status === 'confirmed') await loadTicketBatch(data.registrationId, 0);
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.message ?? err?.message ?? 'We could not create your booking. Please try again.');
+    } finally { setBusy(false); }
+  };
+  const submitTransfer = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); if (!booking?.registrationId) return;
+    setBusy(true); setErrorMessage('');
+    try {
+      await api.post(`/api/registrations/${booking.registrationId}/manual-transfer`, { accessToken, transferReference });
+      setTransferSubmitted(true);
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.message ?? err?.message ?? 'We could not submit the transfer reference. Please try again.');
+    } finally { setBusy(false); }
+  };
+  const resetBooking = () => {
+    setBooking(null); localStorage.removeItem('ulc:booking-id:' + event.id);
+    setTransferSubmitted(false); setTransferReference(''); setTickets([]);
+    setTicketBatchIndex(0); setTicketBatchCount(0); setQrTicketId(''); setQrDataUrl('');
+    const nextKey = crypto.randomUUID();
+    localStorage.setItem('ulc:booking-request:' + event.id, nextKey);
+    setIdempotencyKey(nextKey);
+  };
   return (
     <section className="event-detail">
-      <button className="link-button" onClick={onBack}>
-        ← Back to events
-      </button>
-      <div
-        className="event-detail-image"
-        style={{ backgroundImage: `url(${event.image})` }}
-      />
+      <button className="link-button" onClick={onBack}>← Back to events</button>
+      <div className="event-detail-image" style={{ backgroundImage: 'url(' + event.image + ')' }} />
       <div className="event-detail-copy">
         <p className="eyebrow">{event.experience ?? event.category}</p>
         <h1>{event.title}</h1>
-        <p className="event-detail-meta">
-          {formatDate(event.date)}
-          {event.time ? ` · ${event.time}` : ''} · {event.location}
-        </p>
+        <p className="event-detail-meta">{formatDate(event.date)}{event.time ? ' · ' + event.time : ''} · {event.location}</p>
         <p>{event.description}</p>
         <div className="event-detail-actions">
-          {event.registrationLink && (
-            <a
-              className="button dark"
-              href={event.registrationLink}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Register <ChevronRight size={16} />
-            </a>
-          )}
           <span>{event.price}</span>
+          <button className="link-button" type="button" onClick={downloadCalendar}>Add to calendar</button>
+          <button className="link-button" type="button" onClick={shareEvent}>Share event</button>
+          {event.location && <a className="link-button" href={'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(event.location)} target="_blank" rel="noreferrer">View map</a>}
         </div>
+        {booking ? (
+          <div className="admin-notice" role="status">
+            <ShieldCheck size={28} />
+            <h2>{booking.status === 'confirmed' ? 'Booking confirmed.' : booking.status === 'expired' ? 'Booking expired.' : 'Booking created — payment pending.'}</h2>
+            <p>Booking reference: <strong>{booking.paymentReference}</strong></p>
+            <p>{booking.ticketCount} ticket(s) · ₦{(booking.amountMinor / 100).toLocaleString('en-NG')}</p>
+            {booking.status === 'confirmed' && <>
+              <p>Your tickets have been issued. Present each ticket code at event check-in.</p>
+              {tickets.map((ticket, i) => (
+                <div className="cms-panel" key={ticket.id}>
+                  <p>Ticket {i + 1 + ticketBatchIndex * 500}: <strong>{ticket.attendeeName}</strong> · <code>{ticket.id}</code> · {ticket.status}</p>
+                  <button className="button ghost" type="button" onClick={() => showTicketQr(ticket.id)}>Show ticket QR</button> <button className="button ghost" type="button" onClick={() => printTicket(ticket)}>Print / Save PDF</button>
+                  {qrTicketId === ticket.id && qrDataUrl && <div className="ticket-qr">
+                    <img src={qrDataUrl} alt={'Ticket QR code for ' + ticket.attendeeName} width="192" height="192" />
+                    <a href={qrDataUrl} download={'urban-life-ticket-' + ticket.id + '.gif'}>Download QR code</a>
+                  </div>}
+                </div>
+              ))}
+              {ticketBatchIndex + 1 < ticketBatchCount && <button className="button ghost" onClick={() => loadTicketBatch(booking.registrationId, ticketBatchIndex + 1, true)}>Load next tickets</button>}
+            </>}
+            {booking.status === 'pending_payment' && booking.paymentStatus === 'manual_rejected' && <p>The submitted transfer reference was not accepted. Check with the event team before submitting a corrected reference.</p>}
+            {booking.status === 'pending_payment' && booking.transferDetails && <>
+              <p>Transfer to the approved account below. Tickets are issued only after an administrator verifies the actual bank credit.</p>
+              <p><strong>{booking.transferDetails.bankName}</strong><br />{booking.transferDetails.accountName}<br /><strong>{booking.transferDetails.accountNumber}</strong></p>
+              {booking.transferDetails.instructions && <p>{booking.transferDetails.instructions}</p>}
+              <p>Use this payment reference in your transfer narration: <strong>{booking.paymentReference}</strong></p>
+              {transferSubmitted ? <p>Reference received. Your booking is pending administrator verification. No tickets have been issued yet.</p> : (
+                <form className="contact-form" onSubmit={submitTransfer}>
+                  <label className="full">Bank transfer reference<input required value={transferReference} onChange={e => setTransferReference(e.target.value)} /></label>
+                  <button className="button dark" type="submit" disabled={busy}>{busy ? 'Submitting…' : 'Submit transfer reference'}</button>
+                </form>
+              )}
+            </>}
+            {booking.status === 'pending_payment' && <button className="button ghost" disabled={busy} onClick={refreshStatus}>{busy ? 'Checking…' : 'Refresh payment status'}</button>}
+            {booking.status === 'expired' && <p>The payment window has ended and the reserved tickets have been released. Contact the event team if you already transferred funds.</p>}
+            {!isFree && !booking.transferDetails && <p>Payment instructions are not configured yet. Please contact the event team before making a transfer.</p>}
+            <button className="button ghost" onClick={resetBooking}>Make another booking</button>
+          </div>
+        ) : (
+          <form className="contact-form" onSubmit={submit}>
+            <h2 className="full">Book your tickets</h2>
+            <label>Number of tickets<input type="number" min="1" step="1" value={quantity} onChange={e => changeQuantity(Number(e.target.value))} required /></label>
+            <label>Purchaser name<input required maxLength={120} value={purchaserName} onChange={e => setPurchaserName(e.target.value)} /></label>
+            <label>Email address<input required type="email" maxLength={200} value={purchaserEmail} onChange={e => setPurchaserEmail(e.target.value)} /></label>
+            <label>Phone number<input value={purchaserPhone} maxLength={40} onChange={e => setPurchaserPhone(e.target.value)} /></label>
+            <div className="full"><h3>Attendee details</h3><p>Enter the name of each person who will use a ticket.</p></div>
+            <label className="full">Attendee names — one per line<textarea required rows={6} value={attendeeNamesText} onChange={e => setAttendeeNamesText(e.target.value)} placeholder={'One attendee name per line'} /></label>
+            <p className="full consent-note">{isFree ? 'Free registration. Tickets are issued once the booking is accepted.' : 'Manual bank transfer is available only where approved bank details have been configured. Automated bank transfer and USSD will appear after provider sandbox verification. Large bookings may need to be split to fit safe atomic database transaction limits.'}</p>
+            {errorMessage && <div className="photos-error full" role="alert">{errorMessage}</div>}
+            <button className="button dark" type="submit" disabled={busy}>{busy ? 'Creating booking…' : 'Continue · ' + quantity + ' ticket' + (quantity === 1 ? '' : 's')} <ChevronRight size={16} /></button>
+          </form>
+        )}
+        {errorMessage && booking && <div className="photos-error" role="alert">{errorMessage}</div>}
         <div className="event-detail-grid">
-          <div>
-            <b>What to expect</b>
-            <p>
-              A thoughtfully designed Urban Life experience centred on people,
-              place and participation.
-            </p>
-          </div>
-          <div>
-            <b>Experience</b>
-            <p>{event.experience ?? event.category}</p>
-          </div>
+          <div><b>What to expect</b><p>A thoughtfully designed Urban Life experience centred on people, place and participation.</p></div>
+          <div><b>Experience</b><p>{event.experience ?? event.category}</p></div>
         </div>
       </div>
     </section>
@@ -1284,8 +1529,10 @@ function PrivacyPage() {
         <p>
           When you use the contact form, we collect your name, email address,
           optional phone number, enquiry type, message and the date and time the
-          enquiry is received. We also process information needed to protect the
-          form from spam and abuse.
+          enquiry is received. If you use the separate community signup, we also
+          collect your name, email address, optional phone number, selected
+          interests, consent choice and consent timestamp. We also process
+          information needed to protect forms from spam and abuse.
         </p>
         <p>
           If you are an authorised site administrator, account information is
@@ -1298,8 +1545,9 @@ function PrivacyPage() {
           We use enquiry information to read, respond to and manage requests,
           coordinate relevant partnerships or event conversations, maintain
           business records, and protect the website against spam or misuse.
-          Contact details are not used to add you to a marketing mailing list
-          through this form.
+          Community signup details are used only to manage the opt-in community
+          list and send the updates and invitations described on that form. The
+          contact form does not subscribe you to community communications.
         </p>
         <h2>4. Service providers and sharing</h2>
         <p>
@@ -1316,15 +1564,19 @@ function PrivacyPage() {
           Enquiries are stored in the website's administrative inbox and are
           retained for as long as reasonably necessary to respond, manage
           business records, protect the service and meet applicable legal
-          obligations. We use access controls and service-provider security
-          measures, but no internet transmission or storage system can be
-          guaranteed to be completely secure.
+          obligations. Community signup details are retained while the
+          subscription remains active and for a reasonable period after an
+          opt-out where needed to maintain suppression and compliance records.
+          We use access controls and service-provider security measures, but no
+          internet transmission or storage system can be guaranteed to be
+          completely secure.
         </p>
         <h2>6. Your choices and requests</h2>
         <p>
           You may contact us to request access to, correction of or deletion of
-          personal information you submitted, or to raise a privacy concern.
-          We will assess and respond to requests in accordance with applicable
+          personal information you submitted, withdraw your community signup
+          consent, or raise a privacy concern. Contact us at the email above to
+          request removal from the community list. We will assess and respond to requests in accordance with applicable
           data-protection law and any record-retention obligations.
         </p>
         <h2>7. Cookies and essential technologies</h2>
@@ -1670,6 +1922,8 @@ function AdminPanel({
     experiences: [],
     announcements: [],
     messages: [],
+    registrations: [],
+    subscribers: [],
   });
   const load = async () => {
     if (!authorised) return;
@@ -1683,6 +1937,8 @@ function AdminPanel({
         announcements,
         messages,
         settings,
+        registrations,
+        subscribers,
       ] = await Promise.all([
         api.get('/api/admin/dashboard'),
         api.get('/api/admin/events'),
@@ -1691,6 +1947,8 @@ function AdminPanel({
         api.get('/api/admin/announcements'),
         api.get('/api/admin/messages'),
         api.get('/api/admin/settings'),
+        api.get('/api/admin/registrations'),
+        api.get('/api/admin/community-subscribers'),
       ]);
       setData({
         ...dash.data,
@@ -1700,6 +1958,8 @@ function AdminPanel({
         announcements: announcements.data,
         messages: messages.data,
         settings: settings.data,
+        registrations: registrations.data?.registrations ?? [],
+        subscribers: subscribers.data?.subscribers ?? [],
       });
     } finally {
       setLoading(false);
@@ -1767,6 +2027,8 @@ function AdminPanel({
   const tabs = [
     ['dashboard', 'Overview', Compass],
     ['events', 'Events', CalendarDays],
+    ['registrations', 'Bookings & tickets', ShieldCheck],
+    ['community', 'Community list', Users],
     ['experiences', 'Experiences', Mountain],
     ['stories', 'Journal', Sparkles],
     ['announcements', 'Announcements', Megaphone],
@@ -1836,6 +2098,12 @@ function AdminPanel({
           {tab === 'events' && (
             <EventsManager items={data.events} reload={load} />
           )}{' '}
+          {tab === 'registrations' && (
+            <RegistrationsManager items={data.registrations} reload={load} />
+          )}{' '}
+          {tab === 'community' && (
+            <CommunitySubscribersManager items={data.subscribers} reload={load} />
+          )}{' '}
           {tab === 'experiences' && (
             <ExperiencesManager items={data.experiences} reload={load} />
           )}{' '}
@@ -1859,6 +2127,123 @@ function AdminPanel({
     </section>
   );
 }
+
+
+function CommunitySubscribersManager({ items, reload }: { items: any[]; reload: () => Promise<void> }) {
+  const downloadCsv = () => {
+    const quote = (value: unknown) => '"' + String(value ?? '').replace(/"/g, '""') + '"';
+    const active = items.filter(item => item.status === 'active');
+    const rows = [
+      ['Name', 'Email', 'Phone', 'Interests', 'Consent date', 'Status'],
+      ...active.map(item => [item.name, item.email, item.phone, (item.interests ?? []).join('; '), item.consentAt, item.status]),
+    ];
+    const csv = rows.map(row => row.map(quote).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a'); link.href = url; link.download = 'urban-life-community-list.csv';
+    document.body.appendChild(link); link.click(); link.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+  return (
+    <ManagerLayout title="Community list" description="People who explicitly opted in to receive Urban Life Co. community updates.">
+      <div className="cms-actions">
+        <span>{items.length} subscriber(s) in this page</span>
+        <button className="button dark" onClick={downloadCsv} disabled={!items.length}>Download CSV</button>
+        <button className="button ghost" onClick={reload}>Refresh list</button>
+      </div>
+      {items.length ? items.map(item => (
+        <article className="cms-panel" key={item.id}>
+          <h3>{item.name}</h3>
+          <p>{item.email}{item.phone ? ' · ' + item.phone : ''}</p>
+          <p>Interests: {(item.interests ?? []).join(', ') || 'Not specified'}</p>
+          <p>Consent recorded: {new Date(item.consentAt).toLocaleString('en-NG')} · {item.status}</p>
+          {item.status === 'active' && <button className="button ghost" onClick={async () => {
+            if (!window.confirm('Mark this person as unsubscribed? They will be excluded from the active CSV export.')) return;
+            try {
+              await api.post(`/api/admin/community-subscribers/${item.id}/unsubscribe`);
+              await reload();
+            } catch (err: any) {
+              window.alert(err?.response?.data?.message ?? err?.message ?? 'Could not update subscriber status.');
+            }
+          }}>Mark unsubscribed</button>}
+        </article>
+      )) : <Empty text="No community signups have been received yet." />}
+    </ManagerLayout>
+  );
+}
+
+function RegistrationsManager({ items, reload }: { items: any[]; reload: () => Promise<void> }) {
+  const [busyId, setBusyId] = useState('');
+  const [message, setMessage] = useState('');
+  const [ticketId, setTicketId] = useState('');
+  const [checkInBusy, setCheckInBusy] = useState(false);
+  const checkIn = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!ticketId.trim()) return;
+    setCheckInBusy(true); setMessage('');
+    try {
+      const normalizedTicketId = ticketId.trim().replace(/^ULC-TICKET:/i, '');
+      await api.post(`/api/admin/tickets/${normalizedTicketId}/check-in`);
+      setMessage('Ticket checked in successfully.'); setTicketId('');
+    } catch (err: any) {
+      setMessage(err?.response?.data?.message ?? err?.message ?? 'Ticket check-in failed.');
+    } finally { setCheckInBusy(false); }
+  };
+  const review = async (item: any, action: 'confirm' | 'reject') => {
+    const reason = window.prompt(action === 'confirm'
+      ? 'Confirm actual bank credit has been independently verified. Enter the audit note:'
+      : 'Enter the reason for rejecting this transfer reference:');
+    if (!reason?.trim()) return;
+    let verifiedAmountMinor: number | undefined;
+    if (action === 'confirm') {
+      if (!window.confirm('Have you verified the actual credit in the business bank account? A receipt screenshot alone is not sufficient.')) return;
+      const amount = window.prompt('Enter the exact amount credited to the business bank account in Naira (e.g. 7500.00):');
+      if (amount === null || !/^\d+(?:\.\d{1,2})?$/.test(amount.replace(/,/g, '').trim())) return;
+      verifiedAmountMinor = Math.round(Number(amount.replace(/,/g, '').trim()) * 100);
+    }
+    setBusyId(item.id); setMessage('');
+    try {
+      if (action === 'confirm') {
+        await api.post(`/api/admin/registrations/${item.id}/confirm-transfer`, { bankCreditVerified: true, verifiedAmountMinor, reason });
+      } else {
+        await api.post(`/api/admin/registrations/${item.id}/reject-transfer`, { reason });
+      }
+      setMessage(action === 'confirm' ? 'Transfer verified and tickets issued.' : 'Transfer reference rejected.');
+      await reload();
+    } catch (err: any) {
+      setMessage(err?.response?.data?.message ?? err?.message ?? 'The action could not be completed.');
+    } finally { setBusyId(''); }
+  };
+  return (
+    <ManagerLayout title="Bookings & tickets" description="Review bookings, verify manual bank transfers and manage event check-in.">
+      <form className="contact-form" onSubmit={checkIn}>
+        <label className="full">Ticket ID for check-in<input required value={ticketId} onChange={e => setTicketId(e.target.value)} placeholder="Scan or enter the ticket code" /></label>
+        <button className="button dark" type="submit" disabled={checkInBusy}>{checkInBusy ? 'Checking…' : 'Check in ticket'}</button>
+      </form>
+      {message && <div className="admin-notice" role="status">{message}</div>}
+      {items.length ? items.map(item => (
+        <article className="cms-panel" key={item.id}>
+          <div className="cms-panel-head">
+            <div>
+              <p className="eyebrow">{item.eventTitle || 'Event booking'}</p>
+              <h3>{item.purchaserName} · {item.attendeeCount} ticket(s)</h3>
+              <p>{item.purchaserEmail} {item.purchaserPhone ? '· ' + item.purchaserPhone : ''}</p>
+            </div>
+            <span className={'status-pill status-' + String(item.paymentStatus).toLowerCase()}>{item.paymentStatus}</span>
+          </div>
+          <p>Booking: <code>{item.id}</code></p>
+          <p>Payment reference: <strong>{item.paymentReference}</strong></p>
+          {item.transferReference && <p>Customer transfer reference: <strong>{item.transferReference}</strong></p>}
+          <p>Amount: ₦{(item.amountMinor / 100).toLocaleString('en-NG')} · Created: {new Date(item.createdAt).toLocaleString('en-NG')}</p>
+          {item.paymentStatus === 'manual_review' && <div className="cms-actions">
+            <button className="button dark" disabled={busyId === item.id} onClick={() => review(item, 'confirm')}>Verify bank credit & issue tickets</button>
+            <button className="button ghost" disabled={busyId === item.id} onClick={() => review(item, 'reject')}>Reject reference</button>
+          </div>}
+        </article>
+      )) : <Empty text="No bookings have been received yet." />}
+      <button className="button ghost" onClick={reload}>Refresh bookings</button>
+    </ManagerLayout>
+  );
+}
+
 function DashboardView({
   data,
   onOpen,
@@ -1890,6 +2275,9 @@ function DashboardView({
         {[
           ['Events', m.events, 'events'],
           ['Published', m.publishedEvents, 'events'],
+          ['Tickets sold', m.ticketsSold, 'registrations'],
+          ['Tickets reserved', m.ticketsReserved, 'registrations'],
+          ['Checked in', m.ticketsCheckedIn, 'registrations'],
           ['Journal', m.stories, 'stories'],
           ['Drafts', m.drafts, 'stories'],
           ['Media', m.media, 'media'],
