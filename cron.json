@@ -1,0 +1,8 @@
+[
+  {
+    "name": "expire-unpaid-ticket-holds",
+    "cron": "*/5 * * * *",
+    "handler": "registrationExpiryCron",
+    "timezone": "Africa/Lagos"
+  }
+]
