@@ -14,14 +14,14 @@ Restore GitHub as a reviewable, faithful text-source baseline for the known-good
 
 ## Result
 
-Five tracked text files differed and were copied from the selected AppDeploy snapshot into this branch:
+Four tracked text files differed materially and were copied from the selected AppDeploy snapshot into this branch. A fifth file, `src/routing.ts`, contained a duplicate `contact` declaration in the deployed snapshot; it was corrected rather than copied verbatim so the reconciled branch has a valid TypeScript route map:
 
 | File | AppDeploy snapshot | GitHub main before reconciliation | Action |
 |---|---:|---:|---|
 | `backend/index.ts` | 1,097 lines | 1,067 lines | Reconciled |
 | `src/App.tsx` | 2,962 lines | 2,840 lines | Reconciled |
 | `src/index.css` | 5,897 lines | 3,088 lines | Reconciled |
-| `src/routing.ts` | 100 lines | 100 lines | Reconciled |
+| `src/routing.ts` | 100 lines | 100 lines | Duplicate `contact` entry removed after CI identified TS1117 |
 | `tests/tests.json` | 132 lines | 131 lines | Reconciled |
 
 The following tracked text files were identical at comparison time:
@@ -68,3 +68,14 @@ The initial Phase 3 design is maintained separately on `phase-3/registration-pay
 ## Release guardrail
 
 This branch is for review only. Do not merge or deploy it without explicit approval. The user's standing instruction remains: **no deployments until explicitly requested**.
+
+
+## CI findings after opening the draft PR
+
+The first GitHub Actions run identified two TypeScript errors in the reconciled source:
+
+- `src/App.tsx`: the navigation helper accepted `string`, but the page-state setter requires a `StaticPage | DetailPage` value. The helper parameter is now typed as `StaticPage`.
+- `src/routing.ts`: duplicate `contact` entries existed in the static-page union and route map. The duplicate declarations were removed.
+
+The build and backend/API contract steps were skipped because type-checking failed first. The fixes were committed after that run. A new CI run for the latest head commit has not yet been observed, so the corrected branch is **not yet CI-verified**. Do not infer that the build or contract tests pass.
+
