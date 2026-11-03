@@ -1065,6 +1065,7 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     try {
       const { data } = await api.post('/api/registrations/' + booking.registrationId + '/status', { accessToken });
       setBooking((current: any) => ({ ...current, ...data, ticketCount: data.attendeeCount ?? current.ticketCount }));
+      if (data.paymentStatus === 'manual_rejected') setTransferSubmitted(false);
       if (data.status === 'confirmed') await loadTicketBatch(booking.registrationId, 0);
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message ?? err?.message ?? 'Could not refresh booking status.');
@@ -1110,7 +1111,7 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
         {booking ? (
           <div className="admin-notice" role="status">
             <ShieldCheck size={28} />
-            <h2>{booking.status === 'confirmed' ? 'Booking confirmed.' : 'Booking created — payment pending.'}</h2>
+            <h2>{booking.status === 'confirmed' ? 'Booking confirmed.' : booking.status === 'expired' ? 'Booking expired.' : 'Booking created — payment pending.'}</h2>
             <p>Booking reference: <strong>{booking.paymentReference}</strong></p>
             <p>{booking.ticketCount} ticket(s) · ₦{(booking.amountMinor / 100).toLocaleString('en-NG')}</p>
             {booking.status === 'confirmed' && <>
@@ -1118,6 +1119,7 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
               {tickets.map((ticket, i) => <p key={ticket.id}>Ticket {i + 1 + ticketBatchIndex * 500}: <strong>{ticket.attendeeName}</strong> · <code>{ticket.id}</code> · {ticket.status}</p>)}
               {ticketBatchIndex + 1 < ticketBatchCount && <button className="button ghost" onClick={() => loadTicketBatch(booking.registrationId, ticketBatchIndex + 1, true)}>Load next tickets</button>}
             </>}
+            {booking.status === 'pending_payment' && booking.paymentStatus === 'manual_rejected' && <p>The submitted transfer reference was not accepted. Check with the event team before submitting a corrected reference.</p>}
             {booking.status === 'pending_payment' && booking.transferDetails && <>
               <p>Transfer to the approved account below. Tickets are issued only after an administrator verifies the actual bank credit.</p>
               <p><strong>{booking.transferDetails.bankName}</strong><br />{booking.transferDetails.accountName}<br /><strong>{booking.transferDetails.accountNumber}</strong></p>
@@ -1131,6 +1133,7 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
               )}
             </>}
             {booking.status === 'pending_payment' && <button className="button ghost" disabled={busy} onClick={refreshStatus}>{busy ? 'Checking…' : 'Refresh payment status'}</button>}
+            {booking.status === 'expired' && <p>The payment window has ended and the reserved tickets have been released. Contact the event team if you already transferred funds.</p>}
             {!isFree && !booking.transferDetails && <p>Payment instructions are not configured yet. Please contact the event team before making a transfer.</p>}
             <button className="button ghost" onClick={resetBooking}>Make another booking</button>
           </div>
