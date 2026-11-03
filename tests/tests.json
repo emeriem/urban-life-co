@@ -200,6 +200,7 @@
       "Download the CSV and verify it contains only the current page's consented subscriber fields.",
       "Open the Privacy Policy and confirm the community signup data use and withdrawal contact are disclosed."
     ],
-    "expected": "Community details are stored only after explicit consent, repeat signups do not create duplicate email records, and administrators can review and export the opted-in list. This captures contacts only; no broadcast email is sent by this implementation. Administrators can process opt-out requests, and unsubscribed records are excluded from active exports."
+    "expected": "Community details are stored only after explicit consent, repeat signups do not create duplicate email records, and administrators can review and export the opted-in list. This captures contacts only; no broadcast email is sent by this implementation. Administrators can process opt-out requests, and unsubscribed records are excluded from active exports.",
+    "description": "Manual QA scenario for the stated user-facing workflow and expected outcomes."
   }
 ]
