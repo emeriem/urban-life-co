@@ -6,6 +6,7 @@ export type StaticPage =
   | 'journal'
   | 'contact'
   | 'community'
+  | 'contact'
   | 'privacy'
   | 'terms'
   | 'admin'
@@ -20,6 +21,7 @@ const STATIC_PAGES: Record<string, StaticPage> = {
   journal: 'journal',
   contact: 'contact',
   community: 'community',
+  contact: 'contact',
   privacy: 'privacy',
   terms: 'terms',
 };
