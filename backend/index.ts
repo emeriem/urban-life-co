@@ -3,7 +3,7 @@ import { db, secrets, storage } from '@appdeploy/sdk';
 import type { RouterMiddleware } from '@appdeploy/sdk';
 import { flutterwaveSandboxProvider } from './payment-provider';
 import { communitySignup, adminListCommunitySubscribers, adminUnsubscribeCommunitySubscriber } from './community';
-import { createRegistration, registrationStatus, registrationTickets, submitManualTransfer, adminListRegistrations, adminConfirmManualTransfer, adminRejectManualTransfer, adminCheckInTicket, expirePendingRegistrations, retryProviderPayment, flutterwaveWebhook } from './registration';
+import { createRegistration, registrationStatus, registrationTickets, submitManualTransfer, adminListRegistrations, adminConfirmManualTransfer, adminRejectManualTransfer, adminCheckInTicket, expirePendingRegistrations, retryProviderPayment, flutterwaveWebhook, getPaymentCapabilities } from './registration';
 
 // Admin access is configured only through the AppDeploy ADMIN_EMAILS secret.
 // Fail closed when the secret is absent or empty; never grant access from source code.
@@ -466,7 +466,7 @@ export const handler = router({
   'POST /api/community-signups': [communitySignup],
   'GET /api/admin/community-subscribers': [...admin, adminListCommunitySubscribers],
   'POST /api/admin/community-subscribers/:id/unsubscribe': [...admin, adminUnsubscribeCommunitySubscriber],
-  'GET /api/payments/capabilities': [async () => json(await flutterwaveSandboxProvider.getCapabilities())],
+  'GET /api/payments/capabilities': [getPaymentCapabilities],
   'POST /api/payments/flutterwave/webhook': [flutterwaveWebhook],
   'POST /api/registrations': [createRegistration],
   'POST /api/registrations/:id/status': [registrationStatus],
