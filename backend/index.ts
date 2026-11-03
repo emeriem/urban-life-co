@@ -582,6 +582,9 @@ export const handler = router({
       return json({
         metrics: {
           events: events.items.length,
+          ticketsSold: events.items.reduce((sum, item) => sum + (Number(item.confirmedCount) || 0), 0),
+          ticketsReserved: events.items.reduce((sum, item) => sum + (Number(item.heldCount) || 0), 0),
+          ticketsCheckedIn: events.items.reduce((sum, item) => sum + (Number(item.checkedInCount) || 0), 0),
           publishedEvents: events.items.filter(x => x.status === 'published')
             .length,
           stories: stories.items.length,
