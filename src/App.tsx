@@ -1921,6 +1921,19 @@ function AdminPanel({
 function RegistrationsManager({ items, reload }: { items: any[]; reload: () => Promise<void> }) {
   const [busyId, setBusyId] = useState('');
   const [message, setMessage] = useState('');
+  const [ticketId, setTicketId] = useState('');
+  const [checkInBusy, setCheckInBusy] = useState(false);
+  const checkIn = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!ticketId.trim()) return;
+    setCheckInBusy(true); setMessage('');
+    try {
+      await api.post(`/api/admin/tickets/${ticketId.trim()}/check-in`);
+      setMessage('Ticket checked in successfully.'); setTicketId('');
+    } catch (err: any) {
+      setMessage(err?.response?.data?.message ?? err?.message ?? 'Ticket check-in failed.');
+    } finally { setCheckInBusy(false); }
+  };
   const review = async (item: any, action: 'confirm' | 'reject') => {
     const reason = window.prompt(action === 'confirm'
       ? 'Confirm actual bank credit has been independently verified. Enter the audit note:'
@@ -1939,6 +1952,10 @@ function RegistrationsManager({ items, reload }: { items: any[]; reload: () => P
   };
   return (
     <ManagerLayout title="Bookings & tickets" description="Review bookings, verify manual bank transfers and manage event check-in.">
+      <form className="contact-form" onSubmit={checkIn}>
+        <label className="full">Ticket ID for check-in<input required value={ticketId} onChange={e => setTicketId(e.target.value)} placeholder="Scan or enter the ticket code" /></label>
+        <button className="button dark" type="submit" disabled={checkInBusy}>{checkInBusy ? 'Checking…' : 'Check in ticket'}</button>
+      </form>
       {message && <div className="admin-notice" role="status">{message}</div>}
       {items.length ? items.map(item => (
         <article className="cms-panel" key={item.id}>
