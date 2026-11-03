@@ -291,6 +291,11 @@ export async function adminCheckInTicket(ctx: RouterContext) {
     ]);
   } catch (err) {
     if (isDbError(err, ['AppDatabaseConditionFailed', 'AppDatabaseConflict'])) return error('This ticket was checked in by another administrator.', 409);
+    if (isDbError(err, ['AppDatabaseUnknownOutcome'])) {
+      const [reconciled] = await db.get<any>('tickets', [ticket.id], { consistent: true });
+      if (reconciled?.status === 'checked_in') return json({ ok: true, ticketId: ticket.id, status: 'checked_in', reconciled: true });
+      return error('Check-in outcome is being reconciled. Refresh the ticket before retrying.', 503);
+    }
     throw err;
   }
   return json({ ok: true, ticketId: ticket.id, status: 'checked_in' });
