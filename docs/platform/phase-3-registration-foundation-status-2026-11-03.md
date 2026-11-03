@@ -26,7 +26,8 @@
 
 ### Ticket operations
 - Tickets are separate records with pending_payment, issued, and checked_in states.
-- A protected administrator endpoint performs one-time check-in using a ticket ID.
+- Each attendee can generate and download a QR code containing only the random ticket credential; the QR is generated locally in the browser.
+- A protected administrator endpoint performs one-time check-in using a ticket ID or the copied ULC-TICKET QR payload.
 - Customer booking access uses a high-entropy token; only its SHA-256 digest is stored.
 - Unpaid holds have a scheduled expiry handler that releases held inventory and marks the booking/payment attempt expired.
 
@@ -57,7 +58,7 @@ These values have deliberately not been invented or configured. Until all three 
 ## Current limitations and release blockers
 
 1. **Provider sandbox:** no automated bank-transfer or USSD adapter is active. Provider selection and sandbox evidence remain outstanding.
-2. **Ticket QR rendering/scanning:** ticket IDs and one-time check-in API exist, but a customer-facing QR image/PDF and camera-based scanner are not yet implemented. Current check-in is by entering the ticket ID in the admin panel.
+2. **Ticket QR operations:** customer-facing QR images and downloads are implemented. A print-ready PDF layout and in-app camera scanner are still outstanding; administrators can paste the ticket ID or QR payload into the check-in field.
 3. **Expiry execution:** the cron definition is committed, but it will not run until a separately approved AppDeploy deployment. No deployment has been made.
 4. **Manual-transfer secrets:** real bank details are not in source and have not been supplied/configured.
 5. **Operational policies:** refund/cancellation, late payment, transfer mismatch/overpayment, evidence retention and customer confirmation channels still require owner approval.
@@ -72,7 +73,7 @@ These values have deliberately not been invented or configured. Until all three 
 - In a non-production AppDeploy test app, test concurrent reservations at the capacity boundary, duplicate idempotency keys, transaction conflicts/unknown outcomes, expiry, late payment, webhook replay, exact amount mismatch, ticket issuance and duplicate check-in.
 - Verify that a failed/expired booking releases its full held quantity exactly once.
 - Complete provider bank-transfer and USSD sandbox acceptance tests.
-- Implement QR ticket rendering/scanning and provide an accessible manual fallback.
+- Complete print-ready ticket PDF and camera scanning; retain the manual check-in fallback.
 - Complete privacy, security and operational runbooks.
 - Obtain explicit production release approval.
 
