@@ -18,6 +18,8 @@ import {
   ShieldCheck,
   Link2,
   Mail,
+  MessageCircle,
+  Phone,
   RefreshCw,
 } from 'lucide-react';
 import { api, auth } from '@appdeploy/client';
@@ -434,6 +436,8 @@ function App() {
       journal: 'Journal',
       community: 'Community',
       contact: 'Contact',
+      privacy: 'Privacy Policy',
+      terms: 'Terms of Use',
       admin: 'Admin workspace',
     };
     const title = selectedEvent
@@ -878,6 +882,8 @@ function App() {
         </section>
       )}
       {page === 'contact' && <ContactPage />}
+      {page === 'privacy' && <PrivacyPage />}
+      {page === 'terms' && <TermsPage />}
       {page === 'community' && (
         <>
           <section className="community-page">
@@ -935,6 +941,8 @@ function App() {
             <button onClick={() => nav('events')}>Events</button>
             <button onClick={() => nav('journal')}>Journal</button>
             <button onClick={() => nav('community')}>Community</button>
+            <button onClick={() => nav('privacy')}>Privacy Policy</button>
+            <button onClick={() => nav('terms')}>Terms of Use</button>
           </div>
           <div className="footer-bottom">
             <span>© 2026 Urban Life Co.</span>
@@ -1169,6 +1177,13 @@ function ContactPage() {
         title="Let’s build something together."
         copy="For partnerships, events, community enquiries and general conversations, send us a note."
       />
+      <div className="contact-direct" aria-label="Direct contact options">
+        <a className="contact-direct-link contact-whatsapp" href="https://wa.me/2348140098691?text=Hello%20Urban%20Life%20Co.%2C%20I%27d%20like%20to%20make%20an%20enquiry." target="_blank" rel="noreferrer">
+          <MessageCircle size={18} /> Chat with us on WhatsApp
+        </a>
+        <a className="contact-direct-link" href="mailto:njemtrybe@gmail.com"><Mail size={18} /> njemtrybe@gmail.com</a>
+        <a className="contact-direct-link" href="tel:+2348140098691"><Phone size={18} /> +234 814 009 8691</a>
+      </div>
       {sent ? (
         <div className="admin-notice">
           <ShieldCheck size={28} />
@@ -1220,8 +1235,12 @@ function ContactPage() {
             }}
           />
           <p className="full consent-note">
-            By sending this enquiry you agree that Urban Life Co. may use your
-            details to respond to you. We do not sell or share your information.
+            By sending this enquiry, you agree that Urban Life Co. may use your
+            details to respond to you. Read our{' '}
+            <button type="button" className="inline-legal-link" onClick={() => { window.location.hash = '#/privacy'; window.scrollTo({ top: 0 }); }}>
+              Privacy Policy
+            </button>{' '}
+            for details about how your information is handled.
           </p>
           {errorMessage && (
             <div className="photos-error full" role="alert">
@@ -1236,6 +1255,58 @@ function ContactPage() {
     </section>
   );
 }
+function PrivacyPage() {
+  return (
+    <section className="section page-section legal-page">
+      <PageHeading eyebrow="YOUR INFORMATION" title="Privacy Policy." copy="How Urban Life Co. collects, uses and protects information submitted through this website." />
+      <article className="legal-copy">
+        <p className="legal-updated">Last updated: 3 November 2026</p>
+        <h2>1. Who we are</h2>
+        <p>Urban Life Co. operates this website and handles enquiries submitted through it. For privacy questions or requests about your information, contact <a href="mailto:njemtrybe@gmail.com">njemtrybe@gmail.com</a>.</p>
+        <h2>2. Information we collect</h2>
+        <p>The contact form collects your name, email address, optional phone number, enquiry type, message and the date and time the enquiry is received. We also process information needed to protect the form from spam and abuse. Authorised administrator sign-in and the optional Google Photos feature may process account and picker-session information when an administrator chooses to use them.</p>
+        <h2>3. How we use information</h2>
+        <p>We use enquiry information to read, respond to and manage requests, coordinate relevant partnership or event conversations, maintain business records and protect the website. This form is not a marketing mailing-list subscription.</p>
+        <h2>4. Service providers</h2>
+        <p>The website uses AppDeploy for hosting and backend services. When email alerts are configured, Resend delivers new-enquiry notifications to our team. Google services are involved when an authorised administrator uses Google sign-in or Google Photos. These providers process information as needed to provide their services. Urban Life Co. does not sell personal information.</p>
+        <h2>5. Retention and security</h2>
+        <p>Enquiries are stored in the website's administrative inbox and retained for as long as reasonably necessary to respond, manage business records, protect the service and meet applicable legal obligations. Access controls and service-provider security measures are used, but no internet transmission or storage system can be guaranteed completely secure.</p>
+        <h2>6. Your choices and requests</h2>
+        <p>You may contact us to request access to, correction of or deletion of personal information you submitted, or to raise a privacy concern. Requests will be assessed under applicable data-protection law and any record-retention obligations.</p>
+        <h2>7. Cookies and essential technologies</h2>
+        <p>The website and its authentication or hosting services may use essential cookies, browser storage or similar technologies for security, sign-in and core site functionality. This website does not intentionally use advertising cookies.</p>
+        <h2>8. External websites and updates</h2>
+        <p>External websites have their own privacy practices. We may update this policy as the website or its data practices change. For questions, email <a href="mailto:njemtrybe@gmail.com">njemtrybe@gmail.com</a>.</p>
+      </article>
+    </section>
+  );
+}
+
+function TermsPage() {
+  return (
+    <section className="section page-section legal-page">
+      <PageHeading eyebrow="USING THIS WEBSITE" title="Terms of Use." copy="The basic terms that apply when you visit or use the Urban Life Co. website." />
+      <article className="legal-copy">
+        <p className="legal-updated">Last updated: 3 November 2026</p>
+        <h2>1. About these terms</h2>
+        <p>These terms apply to your use of the Urban Life Co. website. Use the website lawfully and in a way that does not interfere with other visitors or the operation of the service.</p>
+        <h2>2. Website information</h2>
+        <p>The website provides information about Urban Life Co., its communities, experiences, journal content and events. Event details, availability, prices, venues and schedules may change. Check current information or contact us before making plans.</p>
+        <h2>3. Enquiries and event participation</h2>
+        <p>Submitting a contact enquiry does not create a partnership, booking, membership or other contractual relationship. Event participation may be subject to separate registration requirements, capacity limits, fees, safety instructions or event-specific terms. External registration providers may have additional terms.</p>
+        <h2>4. Acceptable use</h2>
+        <p>You must not misuse the website, attempt unauthorised access, disrupt its operation, submit malicious content, impersonate another person or use the contact form for unlawful, abusive or unsolicited messages.</p>
+        <h2>5. Content and intellectual property</h2>
+        <p>Unless otherwise stated, website text, branding, graphics and original materials are owned by or used with permission by Urban Life Co. Do not reproduce, adapt or commercially exploit website materials without permission from the relevant rights holder.</p>
+        <h2>6. External services, availability and liability</h2>
+        <p>The website may link to third-party platforms and services that we do not control. We may update, suspend or withdraw parts of the website. To the extent permitted by applicable law, the website is provided for general information and is not a guarantee that every page, listing or linked service will always be available or error-free.</p>
+        <h2>7. Changes and contact</h2>
+        <p>We may revise these terms as the website develops. Questions can be sent to <a href="mailto:njemtrybe@gmail.com">njemtrybe@gmail.com</a>.</p>
+      </article>
+    </section>
+  );
+}
+
 function StoryStrip({
   stories,
   onView,
