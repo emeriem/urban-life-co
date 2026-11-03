@@ -2,7 +2,7 @@ import { router, json, error, requireAuth } from '@appdeploy/sdk';
 import { db, secrets, storage } from '@appdeploy/sdk';
 import type { RouterMiddleware } from '@appdeploy/sdk';
 import { unconfiguredPaymentProvider } from './payment-provider';
-import { createRegistration, registrationStatus, submitManualTransfer, adminListRegistrations, adminConfirmManualTransfer, adminRejectManualTransfer, adminCheckInTicket, expirePendingRegistrations } from './registration';
+import { createRegistration, registrationStatus, registrationTickets, submitManualTransfer, adminListRegistrations, adminConfirmManualTransfer, adminRejectManualTransfer, adminCheckInTicket, expirePendingRegistrations } from './registration';
 
 // Admin access is configured only through the AppDeploy ADMIN_EMAILS secret.
 // Fail closed when the secret is absent or empty; never grant access from source code.
@@ -465,6 +465,7 @@ export const handler = router({
   'GET /api/payments/capabilities': [async () => json(await unconfiguredPaymentProvider.getCapabilities())],
   'POST /api/registrations': [createRegistration],
   'POST /api/registrations/:id/status': [registrationStatus],
+  'POST /api/registrations/:id/tickets': [registrationTickets],
   'POST /api/registrations/:id/manual-transfer': [submitManualTransfer],
   'GET /api/admin/registrations': [...admin, adminListRegistrations],
   'POST /api/admin/registrations/:id/confirm-transfer': [...admin, adminConfirmManualTransfer],
