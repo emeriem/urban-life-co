@@ -37,8 +37,15 @@
 - The shipped default adapter is intentionally disabled. Automated transfer and USSD must not be advertised as active until a provider passes sandbox testing and is configured.
 - Card data is not collected.
 
+### Community capture and CRM foundation
+- Added an explicit opt-in community signup form for name, email, optional phone and interest preferences.
+- Email addresses are keyed by a SHA-256 digest to prevent duplicate subscriber records; consent timestamp/version are retained.
+- Added a protected CMS Community list with CSV export of the current page.
+- Updated the Privacy Policy to disclose community signup data use and how to withdraw consent.
+- This captures an opted-in list only; no broadcast email is sent or mailing provider connected.
+
 ### Admin UI
-- Added a Bookings & tickets CMS tab.
+- Added a Bookings & tickets CMS tab and Community list tab.
 - Administrators can inspect booking/payment references, verify actual transfer credit, reject transfer references, and enter a ticket ID for check-in.
 - The admin dashboard includes confirmed tickets sold, active ticket holds, and checked-in attendance counters.
 - Event detail pages provide calendar-file export, native share/copy-link behavior, and a map-search link.
@@ -64,7 +71,7 @@ These values have deliberately not been invented or configured. Until all three 
 4. **Manual-transfer secrets:** real bank details are not in source and have not been supplied/configured.
 5. **Operational policies:** refund/cancellation, late payment, transfer mismatch/overpayment, evidence retention and customer confirmation channels still require owner approval.
 6. **Membership and CRM:** paid memberships/subscriptions are not implemented. The roadmap says these follow validation of requirements, providers, fees and local operating constraints.
-7. **Community capture and broader analytics:** a mailing-list consent flow, communications/segmentation, conversion/retention analytics and exports are not implemented. The current branch adds only ticket sales/reservation/attendance counters.
+7. **Membership and communications:** paid membership tiers, member account lifecycle, subscription billing, automated broadcast delivery, segmentation, unsubscribe automation and conversion/retention analytics are not implemented. The current branch adds opt-in contact capture, CSV export and ticket sales/reservation/attendance counters.
 8. **Legal/privacy review:** registration and payment data handling, retention and Nigerian privacy/legal language require review before launch.
 9. **Runtime QA:** the repository CI checks frontend type/build and static API contracts; it does not execute AppDeploy database transactions or a browser end-to-end payment flow. Sandbox/concurrency tests remain mandatory.
 
