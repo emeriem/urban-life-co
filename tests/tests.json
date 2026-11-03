@@ -184,7 +184,8 @@
       "email uniqueness",
       "admin community list",
       "CSV export",
-      "privacy disclosure"
+      "privacy disclosure",
+      "unsubscribe processing"
     ],
     "steps": [
       "Open the Community page and locate the community signup form.",
@@ -194,9 +195,11 @@
       "Confirm a success message is displayed and the signup is stored once.",
       "Submit again with the same email and confirm the existing subscriber record is updated rather than duplicated.",
       "Open the CMS Community list tab and confirm the consented subscriber and preferences are visible.",
+      "Request withdrawal of consent and have an administrator mark the subscriber as unsubscribed",
+      "Confirm the subscriber is excluded from the active CSV export and the audit action is recorded",
       "Download the CSV and verify it contains only the current page's consented subscriber fields.",
       "Open the Privacy Policy and confirm the community signup data use and withdrawal contact are disclosed."
     ],
-    "expected": "Community details are stored only after explicit consent, repeat signups do not create duplicate email records, and administrators can review and export the opted-in list. This captures contacts only; no broadcast email is sent by this implementation."
+    "expected": "Community details are stored only after explicit consent, repeat signups do not create duplicate email records, and administrators can review and export the opted-in list. This captures contacts only; no broadcast email is sent by this implementation. Administrators can process opt-out requests, and unsubscribed records are excluded from active exports."
   }
 ]
