@@ -1718,6 +1718,7 @@ function AdminPanel({
     experiences: [],
     announcements: [],
     messages: [],
+    registrations: [],
   });
   const load = async () => {
     if (!authorised) return;
@@ -1731,6 +1732,7 @@ function AdminPanel({
         announcements,
         messages,
         settings,
+        registrations,
       ] = await Promise.all([
         api.get('/api/admin/dashboard'),
         api.get('/api/admin/events'),
@@ -1739,6 +1741,7 @@ function AdminPanel({
         api.get('/api/admin/announcements'),
         api.get('/api/admin/messages'),
         api.get('/api/admin/settings'),
+        api.get('/api/admin/registrations'),
       ]);
       setData({
         ...dash.data,
@@ -1748,6 +1751,7 @@ function AdminPanel({
         announcements: announcements.data,
         messages: messages.data,
         settings: settings.data,
+        registrations: registrations.data?.registrations ?? [],
       });
     } finally {
       setLoading(false);
@@ -1815,6 +1819,7 @@ function AdminPanel({
   const tabs = [
     ['dashboard', 'Overview', Compass],
     ['events', 'Events', CalendarDays],
+    ['registrations', 'Bookings & tickets', ShieldCheck],
     ['experiences', 'Experiences', Mountain],
     ['stories', 'Journal', Sparkles],
     ['announcements', 'Announcements', Megaphone],
@@ -1884,6 +1889,9 @@ function AdminPanel({
           {tab === 'events' && (
             <EventsManager items={data.events} reload={load} />
           )}{' '}
+          {tab === 'registrations' && (
+            <RegistrationsManager items={data.registrations} reload={load} />
+          )}{' '}
           {tab === 'experiences' && (
             <ExperiencesManager items={data.experiences} reload={load} />
           )}{' '}
@@ -1907,6 +1915,54 @@ function AdminPanel({
     </section>
   );
 }
+
+function RegistrationsManager({ items, reload }: { items: any[]; reload: () => Promise<void> }) {
+  const [busyId, setBusyId] = useState('');
+  const [message, setMessage] = useState('');
+  const review = async (item: any, action: 'confirm' | 'reject') => {
+    const reason = window.prompt(action === 'confirm'
+      ? 'Confirm actual bank credit has been independently verified. Enter the audit note:'
+      : 'Enter the reason for rejecting this transfer reference:');
+    if (!reason?.trim()) return;
+    if (action === 'confirm' && !window.confirm('Have you verified the actual credit in the business bank account? A receipt screenshot alone is not sufficient.')) return;
+    setBusyId(item.id); setMessage('');
+    try {
+      await api.post('/api/admin/registrations/' + item.id + (action === 'confirm' ? '/confirm-transfer' : '/reject-transfer'),
+        action === 'confirm' ? { bankCreditVerified: true, reason } : { reason });
+      setMessage(action === 'confirm' ? 'Transfer verified and tickets issued.' : 'Transfer reference rejected.');
+      await reload();
+    } catch (err: any) {
+      setMessage(err?.response?.data?.message ?? err?.message ?? 'The action could not be completed.');
+    } finally { setBusyId(''); }
+  };
+  return (
+    <ManagerLayout title="Bookings & tickets" description="Review bookings, verify manual bank transfers and manage event check-in.">
+      {message && <div className="admin-notice" role="status">{message}</div>}
+      {items.length ? items.map(item => (
+        <article className="cms-panel" key={item.id}>
+          <div className="cms-panel-head">
+            <div>
+              <p className="eyebrow">{item.eventTitle || 'Event booking'}</p>
+              <h3>{item.purchaserName} · {item.attendeeCount} ticket(s)</h3>
+              <p>{item.purchaserEmail} {item.purchaserPhone ? '· ' + item.purchaserPhone : ''}</p>
+            </div>
+            <span className={'status-pill status-' + String(item.paymentStatus).toLowerCase()}>{item.paymentStatus}</span>
+          </div>
+          <p>Booking: <code>{item.id}</code></p>
+          <p>Payment reference: <strong>{item.paymentReference}</strong></p>
+          {item.transferReference && <p>Customer transfer reference: <strong>{item.transferReference}</strong></p>}
+          <p>Amount: ₦{(item.amountMinor / 100).toLocaleString('en-NG')} · Created: {new Date(item.createdAt).toLocaleString('en-NG')}</p>
+          {item.paymentStatus === 'manual_review' && <div className="cms-actions">
+            <button className="button dark" disabled={busyId === item.id} onClick={() => review(item, 'confirm')}>Verify bank credit & issue tickets</button>
+            <button className="button ghost" disabled={busyId === item.id} onClick={() => review(item, 'reject')}>Reject reference</button>
+          </div>}
+        </article>
+      )) : <Empty text="No bookings have been received yet." />}
+      <button className="button ghost" onClick={reload}>Refresh bookings</button>
+    </ManagerLayout>
+  );
+}
+
 function DashboardView({
   data,
   onOpen,
