@@ -282,3 +282,60 @@ export async function adminCheckInTicket(ctx: RouterContext) {
   }
   return json({ ok: true, ticketId: ticket.id, status: 'checked_in' });
 }
+
+
+export async function expirePendingRegistrations() {
+  const [state] = await db.get<any>('registration_expiry_state', ['cursor'], { consistent: true });
+  const page = await db.list<Registration>('registrations', {
+    limit: 100,
+    ...(state?.nextToken ? { nextToken: state.nextToken } : {}),
+  });
+  let processed = 0;
+  for (const r of page.items) {
+    if (processed >= 20) break;
+    if (r.status !== 'pending_payment' || !r.expiresAt || Date.parse(r.expiresAt) >= Date.now()) continue;
+    const [event] = await db.get<EventRecord>('events', [r.eventId], { consistent: true });
+    if (!event) continue;
+    const held = count(event.heldCount);
+    if (held === null || held < r.attendeeCount) continue;
+    const now = new Date().toISOString();
+    try {
+      await db.transact([
+        db.tx.update('events', [{
+          id: event.id,
+          record: { heldCount: increment(-r.attendeeCount) },
+          if: { heldCount: event.heldCount, confirmedCount: event.confirmedCount },
+        }], { patch: true }),
+        db.tx.update('registrations', [{
+          id: r.id,
+          record: { status: 'expired', paymentStatus: 'expired', expiredAt: now },
+          if: { status: 'pending_payment', paymentStatus: r.paymentStatus },
+        }], { patch: true }),
+        db.tx.update('payment_attempts', [{
+          id: r.paymentId,
+          record: { status: 'expired', expiredAt: now },
+          if: { status: r.paymentStatus },
+        }], { patch: true }),
+        db.tx.add('payment_audit', [{
+          id: crypto.randomUUID(), registrationId: r.id, action: 'booking_expired',
+          actor: 'system', createdAt: now,
+        }]),
+      ]);
+      processed++;
+    } catch (err) {
+      if (isDbError(err, ['AppDatabaseConditionFailed', 'AppDatabaseConflict'])) continue;
+      throw err;
+    }
+  }
+  await db.tx.add('registration_expiry_state', [{
+    id: 'cursor',
+    nextToken: page.nextToken ?? null,
+    updatedAt: new Date().toISOString(),
+  }]);
+  if (!page.nextToken) {
+    await db.tx.update('registration_expiry_state', [{
+      id: 'cursor', record: { nextToken: null, updatedAt: new Date().toISOString() },
+    }], { patch: true });
+  }
+  return { statusCode: 200, processed };
+}
