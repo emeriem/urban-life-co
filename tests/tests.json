@@ -13,20 +13,26 @@
       "shareable detail links",
       "browser back navigation",
       "privacy policy page",
-      "terms of use page"
+      "terms of use page",
+      "event calendar export",
+      "event sharing",
+      "event map link"
     ],
     "description": "Verifies visitors can discover public content, open detail routes and reach the site's legal information.",
     "steps": [
       "Open the public site",
       "Open Experiences and select an experience",
       "Open Events and select a visible event",
+      "On an event detail page, download the calendar file and confirm it contains the event title, date, time and location",
+      "Use Share event and confirm the public event URL can be shared or copied",
+      "Open View map and confirm the event location is passed to the map search",
       "Reload the page and confirm the same event detail is still shown",
       "Press the browser back button and confirm the Events list is shown",
       "Open Journal and select a story",
       "Use the footer to open Privacy Policy, then Terms of Use",
       "Return to the homepage"
     ],
-    "expected": "Public content details remain navigable and reloadable, browser back returns to the previous list, and both legal pages open from the footer without authentication."
+    "expected": "Public content details remain navigable and reloadable, browser back returns to the previous list, and both legal pages open from the footer without authentication. Event detail also provides a downloadable calendar entry, a shareable detail URL and a map-search link."
   },
   {
     "name": "Super Admin can operate core CMS content",
