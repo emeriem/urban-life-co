@@ -21,6 +21,7 @@ import {
   MessageCircle,
   Phone,
   RefreshCw,
+  Users,
 } from 'lucide-react';
 import { api, auth } from '@appdeploy/client';
 import { applyPageMeta } from './seo';
