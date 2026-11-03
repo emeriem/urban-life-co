@@ -6,6 +6,8 @@ export type StaticPage =
   | 'journal'
   | 'contact'
   | 'community'
+  | 'privacy'
+  | 'terms'
   | 'admin'
   | 'notfound';
 export type DetailPage = 'event' | 'experience' | 'story';
@@ -18,6 +20,8 @@ const STATIC_PAGES: Record<string, StaticPage> = {
   journal: 'journal',
   contact: 'contact',
   community: 'community',
+  privacy: 'privacy',
+  terms: 'terms',
 };
 const DETAIL_SEGMENT: Record<string, DetailPage> = {
   events: 'event',

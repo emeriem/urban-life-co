@@ -1,6 +1,6 @@
 [
   {
-    "name": "Public discovery and detail flows work",
+    "name": "Public discovery, detail and legal pages work",
     "sanity": true,
     "viewport": "desktop",
     "covers": [
@@ -11,7 +11,9 @@
       "journal detail",
       "past and upcoming events",
       "shareable detail links",
-      "browser back navigation"
+      "browser back navigation",
+      "privacy policy page",
+      "terms of use page"
     ],
     "description": "Verifies visitors can move through the main public content system and open real detail experiences.",
     "steps": [
@@ -21,9 +23,10 @@
       "Reload the page and confirm the same event detail is still shown",
       "Press the browser back button and confirm the Events list is shown",
       "Open Journal and select a story",
+      "Use the footer to open Privacy Policy, then Terms of Use",
       "Return to the homepage"
     ],
-    "expected": "Explore, View event, and Read story actions open corresponding content detail without authentication. Reloading an event detail keeps the visitor on that event, the browser back button returns to the Events list, and the visitor can return to the public site."
+    "expected": "Explore, View event, and Read story actions open corresponding content detail without authentication. Reloading an event detail keeps the visitor on that event, the browser back button returns to the Events list, and the visitor can return to the public site. Both legal pages open from the footer without authentication."
   },
   {
     "name": "Super Admin can operate core CMS content",
@@ -58,18 +61,22 @@
     "expected": "The authorised administrator reaches the CMS, content operations persist, and dashboard counts reflect the updated state."
   },
   {
-    "name": "Contact and media workflows persist",
+    "name": "Contact, WhatsApp and media workflows work",
     "viewport": "mobile",
     "covers": [
       "contact form",
       "message persistence",
       "direct image upload",
       "media listing",
-      "media deletion"
+      "media deletion",
+      "WhatsApp click-to-chat",
+      "direct email contact",
+      "direct phone contact"
     ],
     "description": "Verifies visitors can submit a contact enquiry and the administrator can maintain uploaded media.",
     "steps": [
       "Open Contact",
+      "Confirm WhatsApp, email and phone contact links are visible and target the official contact details",
       "Submit a valid enquiry",
       "Open the private admin CMS",
       "Open Messages and find the new enquiry",
@@ -77,7 +84,7 @@
       "Confirm the image appears",
       "Remove the uploaded image"
     ],
-    "expected": "The enquiry is saved and visible to the administrator, uploaded media appears in the archive, and the administrator can remove it."
+    "expected": "The enquiry is saved and visible to the administrator, uploaded media appears in the archive, and the administrator can remove it. The WhatsApp shortcut targets +2348140098691, and direct email and phone links use the official contact details."
   },
   {
     "name": "Google Photos is protected and retryable",
