@@ -102,13 +102,13 @@ async function configuredNames() {
 }
 async function readCredentials() {
   const names = await configuredNames();
-  if (!names.includes('FLUTTERWAVE_CLIENT_ID') ||
-      !names.includes('FLUTTERWAVE_CLIENT_SECRET') ||
-      !names.includes('FLUTTERWAVE_WEBHOOK_SECRET')) return null;
+  if (!names.includes('FLUTTERWAVE_SANDBOX_CLIENT_ID') ||
+      !names.includes('FLUTTERWAVE_SANDBOX_CLIENT_SECRET') ||
+      !names.includes('FLUTTERWAVE_SANDBOX_WEBHOOK_SECRET')) return null;
   const [clientId, clientSecret, webhookSecret] = await Promise.all([
-    secrets.readSecret('FLUTTERWAVE_CLIENT_ID'),
-    secrets.readSecret('FLUTTERWAVE_CLIENT_SECRET'),
-    secrets.readSecret('FLUTTERWAVE_WEBHOOK_SECRET'),
+    secrets.readSecret('FLUTTERWAVE_SANDBOX_CLIENT_ID'),
+    secrets.readSecret('FLUTTERWAVE_SANDBOX_CLIENT_SECRET'),
+    secrets.readSecret('FLUTTERWAVE_SANDBOX_WEBHOOK_SECRET'),
   ]);
   if (![clientId, clientSecret, webhookSecret].every(value => value.trim())) return null;
   return { clientId, clientSecret, webhookSecret };
@@ -189,7 +189,7 @@ function toVerified(data: Record<string, any>): VerifiedPayment {
 export const flutterwaveSandboxProvider: PaymentProvider = {
   async getCapabilities() {
     const names = await configuredNames();
-    const enabled = ['FLUTTERWAVE_CLIENT_ID', 'FLUTTERWAVE_CLIENT_SECRET', 'FLUTTERWAVE_WEBHOOK_SECRET']
+    const enabled = ['FLUTTERWAVE_SANDBOX_CLIENT_ID', 'FLUTTERWAVE_SANDBOX_CLIENT_SECRET', 'FLUTTERWAVE_SANDBOX_WEBHOOK_SECRET']
       .every(name => names.includes(name));
     if (!enabled) return {
       provider: 'flutterwave-v4-sandbox',
