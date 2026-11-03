@@ -1937,6 +1937,8 @@ function AdminPanel({
     messages: [],
     registrations: [],
     subscribers: [],
+    subscribersNextToken: null,
+    registrationsNextToken: null,
   });
   const load = async () => {
     if (!authorised) return;
@@ -1973,10 +1975,32 @@ function AdminPanel({
         settings: settings.data,
         registrations: registrations.data?.registrations ?? [],
         subscribers: subscribers.data?.subscribers ?? [],
+        subscribersNextToken: subscribers.data?.nextToken ?? null,
+        registrationsNextToken: registrations.data?.nextToken ?? null,
       });
     } finally {
       setLoading(false);
     }
+  };
+  const loadMoreSubscribers = async () => {
+    const token = data.subscribersNextToken;
+    if (!token) return;
+    const { data: page } = await api.get('/api/admin/community-subscribers?nextToken=' + encodeURIComponent(token));
+    setData((current: any) => ({
+      ...current,
+      subscribers: [...current.subscribers, ...(page.subscribers ?? [])],
+      subscribersNextToken: page.nextToken ?? null,
+    }));
+  };
+  const loadMoreRegistrations = async () => {
+    const token = data.registrationsNextToken;
+    if (!token) return;
+    const { data: page } = await api.get('/api/admin/registrations?nextToken=' + encodeURIComponent(token));
+    setData((current: any) => ({
+      ...current,
+      registrations: [...current.registrations, ...(page.registrations ?? [])],
+      registrationsNextToken: page.nextToken ?? null,
+    }));
   };
   useEffect(() => {
     load();
@@ -2112,10 +2136,10 @@ function AdminPanel({
             <EventsManager items={data.events} reload={load} />
           )}{' '}
           {tab === 'registrations' && (
-            <RegistrationsManager items={data.registrations} reload={load} />
+            <RegistrationsManager items={data.registrations} reload={load} hasMore={Boolean(data.registrationsNextToken)} loadMore={loadMoreRegistrations} />
           )}{' '}
           {tab === 'community' && (
-            <CommunitySubscribersManager items={data.subscribers} reload={load} />
+            <CommunitySubscribersManager items={data.subscribers} reload={load} hasMore={Boolean(data.subscribersNextToken)} loadMore={loadMoreSubscribers} />
           )}{' '}
           {tab === 'experiences' && (
             <ExperiencesManager items={data.experiences} reload={load} />
@@ -2142,7 +2166,7 @@ function AdminPanel({
 }
 
 
-function CommunitySubscribersManager({ items, reload }: { items: any[]; reload: () => Promise<void> }) {
+function CommunitySubscribersManager({ items, reload, hasMore, loadMore }: { items: any[]; reload: () => Promise<void>; hasMore: boolean; loadMore: () => Promise<void> }) {
   const downloadCsv = () => {
     const quote = (value: unknown) => '"' + String(value ?? '').replace(/"/g, '""') + '"';
     const active = items.filter(item => item.status === 'active');
@@ -2158,7 +2182,7 @@ function CommunitySubscribersManager({ items, reload }: { items: any[]; reload: 
   return (
     <ManagerLayout title="Community list" description="People who explicitly opted in to receive Urban Life Co. community updates.">
       <div className="cms-actions">
-        <span>{items.length} subscriber(s) in this page</span>
+        <span>{items.length} subscriber(s) loaded</span>
         <button className="button dark" onClick={downloadCsv} disabled={!items.length}>Download CSV</button>
         <button className="button ghost" onClick={reload}>Refresh list</button>
       </div>
@@ -2179,11 +2203,12 @@ function CommunitySubscribersManager({ items, reload }: { items: any[]; reload: 
           }}>Mark unsubscribed</button>}
         </article>
       )) : <Empty text="No community signups have been received yet." />}
+      {hasMore && <button className="button ghost" onClick={loadMore}>Load more subscribers</button>}
     </ManagerLayout>
   );
 }
 
-function RegistrationsManager({ items, reload }: { items: any[]; reload: () => Promise<void> }) {
+function RegistrationsManager({ items, reload, hasMore, loadMore }: { items: any[]; reload: () => Promise<void>; hasMore: boolean; loadMore: () => Promise<void> }) {
   const [busyId, setBusyId] = useState('');
   const [message, setMessage] = useState('');
   const [ticketId, setTicketId] = useState('');
@@ -2252,6 +2277,7 @@ function RegistrationsManager({ items, reload }: { items: any[]; reload: () => P
           </div>}
         </article>
       )) : <Empty text="No bookings have been received yet." />}
+      {hasMore && <button className="button ghost" onClick={loadMore}>Load more bookings</button>}
       <button className="button ghost" onClick={reload}>Refresh bookings</button>
     </ManagerLayout>
   );
