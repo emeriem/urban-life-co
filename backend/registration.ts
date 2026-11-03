@@ -93,6 +93,8 @@ export async function createRegistration(ctx: RouterContext) {
   if (unit > 0 && method !== 'manual_transfer') return error('Automated bank transfer and USSD remain disabled pending provider sandbox validation. Select manual bank transfer.', 409);
   const details = unit > 0 ? await bankDetails() : null;
   if (unit > 0 && !details) return error('Paid checkout is not enabled yet. Approved bank details or a sandbox-verified payment provider must be configured first.', 503);
+  const totalMinor = unit * attendees.length;
+  if (!Number.isSafeInteger(totalMinor)) return error('The booking total is too large to process safely.', 400);
   const held = count(event.heldCount); const confirmed = count(event.confirmedCount);
   if (held === null || confirmed === null) return error('Event inventory requires administrator reconciliation.', 503);
   if (typeof event.capacity === 'number' && held + confirmed + attendees.length > event.capacity)
@@ -111,7 +113,7 @@ export async function createRegistration(ctx: RouterContext) {
   const booking: Registration = {
     id, eventId, eventTitle: clean(event.title, 200), purchaserName: name, purchaserEmail: email,
     purchaserPhone: phone, attendeeCount: attendees.length,
-    amountMinor: unit * attendees.length, currency: 'NGN', status: free ? 'confirmed' : 'pending_payment',
+    amountMinor: totalMinor, currency: 'NGN', status: free ? 'confirmed' : 'pending_payment',
     paymentStatus: free ? 'not_required' : 'awaiting_transfer', paymentMethod: free ? 'free' : 'manual_transfer',
     paymentId, paymentReference: reference, ticketBatchIds: batchIds, accessTokenHash: await hash(token),
     createdAt, expiresAt,
@@ -124,7 +126,7 @@ export async function createRegistration(ctx: RouterContext) {
     db.tx.add('registrations', [booking]),
     db.tx.add('registration_requests', [{ id: key, owner: email, payloadHash, registrationId: id, createdAt }]),
     db.tx.add('payment_attempts', [{ id: paymentId, registrationId: id, method: free ? 'free' : 'manual_transfer',
-      status: free ? 'not_required' : 'awaiting_transfer', amountMinor: unit * attendees.length,
+      status: free ? 'not_required' : 'awaiting_transfer', amountMinor: totalMinor,
       currency: 'NGN', reference, createdAt }]),
   ];
   for (let i = 0; i < ticketRows.length; i += BATCH) {
