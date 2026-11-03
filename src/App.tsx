@@ -1082,7 +1082,7 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     setAttendees(current => Array.from({ length: safe }, (_, i) => current[i] ?? ''));
   };
   const loadTicketBatch = async (registrationId: string, batchIndex: number, append = false) => {
-    const { data } = await api.post('/api/registrations/' + registrationId + '/tickets', { accessToken, batchIndex });
+    const { data } = await api.post(`/api/registrations/${registrationId}/tickets`, { accessToken, batchIndex });
     setTickets(current => append ? [...current, ...(data.tickets ?? [])] : (data.tickets ?? []));
     setTicketBatchIndex(data.batchIndex);
     setTicketBatchCount(data.batchCount);
@@ -1091,7 +1091,7 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     if (!booking?.registrationId) return;
     setBusy(true); setErrorMessage('');
     try {
-      const { data } = await api.post('/api/registrations/' + booking.registrationId + '/status', { accessToken });
+      const { data } = await api.post(`/api/registrations/${booking.registrationId}/status`, { accessToken });
       setBooking((current: any) => ({ ...current, ...data, ticketCount: data.attendeeCount ?? current.ticketCount }));
       if (data.paymentStatus === 'manual_rejected') setTransferSubmitted(false);
       if (data.status === 'confirmed') await loadTicketBatch(booking.registrationId, 0);
@@ -1116,7 +1116,7 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     e.preventDefault(); if (!booking?.registrationId) return;
     setBusy(true); setErrorMessage('');
     try {
-      await api.post('/api/registrations/' + booking.registrationId + '/manual-transfer', { accessToken, transferReference });
+      await api.post(`/api/registrations/${booking.registrationId}/manual-transfer`, { accessToken, transferReference });
       setTransferSubmitted(true);
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message ?? err?.message ?? 'We could not submit the transfer reference. Please try again.');
