@@ -397,20 +397,45 @@ async function googleJson(
     throw new Error(data?.error?.message ?? 'Google Photos request failed.');
   return data;
 }
-async function sendContactLeadAlert(lead: { name: string; email: string; phone: string; type: string; message: string; createdAt: string }): Promise<boolean> {
+async function sendContactLeadAlert(lead: {
+  name: string;
+  email: string;
+  phone: string;
+  type: string;
+  message: string;
+  createdAt: string;
+}): Promise<boolean> {
   const names = await secrets.listSecretNames();
-  if (!names.includes('RESEND_API_KEY') || !names.includes('RESEND_FROM_EMAIL')) return false;
-  const [apiKey, from] = await Promise.all([secrets.readSecret('RESEND_API_KEY'), secrets.readSecret('RESEND_FROM_EMAIL')]);
+  if (!names.includes('RESEND_API_KEY') || !names.includes('RESEND_FROM_EMAIL'))
+    return false;
+  const [apiKey, from] = await Promise.all([
+    secrets.readSecret('RESEND_API_KEY'),
+    secrets.readSecret('RESEND_FROM_EMAIL'),
+  ]);
   if (!apiKey || !from) return false;
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${String(apiKey)}`, 'Content-Type': 'application/json' },
+    headers: {
+      Authorization: `Bearer ${String(apiKey)}`,
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify({
       from: String(from),
       to: ['njemtrybe@gmail.com'],
       reply_to: lead.email,
       subject: `New ${lead.type.toLowerCase()} enquiry — ${lead.name}`,
-      text: ['A new enquiry was submitted through the Urban Life Co. website.', '', `Name: ${lead.name}`, `Email: ${lead.email}`, `Phone: ${lead.phone || 'Not provided'}`, `Enquiry type: ${lead.type}`, `Received: ${lead.createdAt}`, '', 'Message:', lead.message].join('\\n'),
+      text: [
+        'A new enquiry was submitted through the Urban Life Co. website.',
+        '',
+        `Name: ${lead.name}`,
+        `Email: ${lead.email}`,
+        `Phone: ${lead.phone || 'Not provided'}`,
+        `Enquiry type: ${lead.type}`,
+        `Received: ${lead.createdAt}`,
+        '',
+        'Message:',
+        lead.message,
+      ].join('\\n'),
     }),
   });
   if (!response.ok) {
@@ -492,11 +517,16 @@ export const handler = router({
           createdAt: new Date().toISOString(),
         },
       ]);
+      const createdAt = new Date().toISOString();
       let notificationSent = false;
       try {
         notificationSent = await sendContactLeadAlert({
-          name, email, phone, type, message,
-          createdAt: new Date().toISOString(),
+          name,
+          email,
+          phone,
+          type,
+          message,
+          createdAt,
         });
       } catch (notificationError) {
         console.error('Contact lead notification could not be sent.', notificationError);
