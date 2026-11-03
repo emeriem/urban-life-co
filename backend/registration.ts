@@ -1,7 +1,7 @@
 import { db, error, increment, isAppDatabaseError, json, secrets } from '@appdeploy/sdk';
 import type { RouterContext } from '@appdeploy/sdk';
 
-type EventRecord = { id: string; title?: string; date?: string; status?: string; price?: string | number; capacity?: number; heldCount?: number; confirmedCount?: number };
+type EventRecord = { id?: string; title?: string; date?: string; status?: string; price?: string | number; capacity?: number; heldCount?: number; confirmedCount?: number };
 type Registration = {
   id: string; eventId: string; eventTitle: string; purchaserName: string; purchaserEmail: string;
   purchaserPhone: string; attendeeCount: number; amountMinor: number;
@@ -224,7 +224,7 @@ export async function adminConfirmManualTransfer(ctx: RouterContext) {
   if (ticketIds.length !== r.attendeeCount) return error('Ticket records are incomplete.', 409);
   const now = new Date().toISOString(); const actor = ctx.user?.email ?? ctx.user?.userId ?? 'administrator';
   const ops: any[] = [
-    db.tx.update('events', [{ id: event.id, record: { heldCount: increment(-r.attendeeCount), confirmedCount: increment(r.attendeeCount) },
+    db.tx.update('events', [{ id: r.eventId, record: { heldCount: increment(-r.attendeeCount), confirmedCount: increment(r.attendeeCount) },
       if: { heldCount: event.heldCount, confirmedCount: event.confirmedCount } }], { patch: true }),
     db.tx.update('registrations', [{ id: r.id, record: { status: 'confirmed', paymentStatus: 'manually_confirmed',
       verifiedAt: now, verifiedBy: actor, verificationNote: reason }, if: { status: 'pending_payment', paymentStatus: 'manual_review' } }], { patch: true }),
@@ -306,7 +306,7 @@ export async function expirePendingRegistrations() {
     try {
       await db.transact([
         db.tx.update('events', [{
-          id: event.id,
+          id: r.eventId,
           record: { heldCount: increment(-r.attendeeCount) },
           if: { heldCount: event.heldCount, confirmedCount: event.confirmedCount },
         }], { patch: true }),
