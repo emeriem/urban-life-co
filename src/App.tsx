@@ -2038,7 +2038,8 @@ function RegistrationsManager({ items, reload }: { items: any[]; reload: () => P
     if (!ticketId.trim()) return;
     setCheckInBusy(true); setMessage('');
     try {
-      await api.post(`/api/admin/tickets/${ticketId.trim()}/check-in`);
+      const normalizedTicketId = ticketId.trim().replace(/^ULC-TICKET:/i, '');
+      await api.post(`/api/admin/tickets/${normalizedTicketId}/check-in`);
       setMessage('Ticket checked in successfully.'); setTicketId('');
     } catch (err: any) {
       setMessage(err?.response?.data?.message ?? err?.message ?? 'Ticket check-in failed.');
