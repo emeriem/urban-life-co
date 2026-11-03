@@ -76,7 +76,7 @@ export async function createRegistration(ctx: RouterContext) {
   if (!eventId || !validKey(key) || token.length < 32) return error('A valid event, booking key and access token are required.', 400);
   if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return error('Enter the purchaser name and a valid email address.', 400);
   if (!attendees.length || attendees.some(x => !x)) return error('Provide a name for every ticket holder.', 400);
-  const payloadHash = await hash(JSON.stringify({ eventId, name, email, phone, attendees, method }));
+  const payloadHash = await hash(JSON.stringify({ eventId, name, email, phone, attendees, method, bankCode }));
   const [prior] = await db.get<any>('registration_requests', [key], { consistent: true });
   if (prior) {
     if (prior.owner !== email || prior.payloadHash !== payloadHash) return error('This booking key was already used for different details.', 409);
@@ -84,7 +84,9 @@ export async function createRegistration(ctx: RouterContext) {
     if (!saved) return error('The booking is being reconciled. Retry with the same booking key.', 503);
     return json({ registrationId: saved.id, status: saved.status, paymentReference: saved.paymentReference,
       amountMinor: saved.amountMinor, currency: saved.currency, ticketCount: saved.attendeeCount,
-      transferDetails: saved.amountMinor ? await bankDetails() : null, replayed: true });
+      transferDetails: saved.amountMinor && saved.paymentMethod === 'manual_transfer' ? await bankDetails() : null,
+      providerInstruction: saved.providerInstruction ?? null, providerInstructionExpiresAt: saved.providerInstructionExpiresAt ?? null,
+      paymentMethod: saved.paymentMethod, replayed: true });
   }
   const [event] = await db.get<EventRecord>('events', [eventId], { consistent: true });
   if (!event || event.status !== 'published') return error('This event is not open for registration.', 404);
@@ -162,7 +164,9 @@ export async function createRegistration(ctx: RouterContext) {
         const saved = await getBooking(receipt.registrationId);
         if (saved) return json({ registrationId: saved.id, status: saved.status,
           paymentReference: saved.paymentReference, amountMinor: saved.amountMinor, currency: 'NGN',
-          ticketCount: saved.attendeeCount, transferDetails: saved.amountMinor ? await bankDetails() : null, replayed: true });
+          ticketCount: saved.attendeeCount, transferDetails: saved.amountMinor && saved.paymentMethod === 'manual_transfer' ? await bankDetails() : null,
+          providerInstruction: saved.providerInstruction ?? null, providerInstructionExpiresAt: saved.providerInstructionExpiresAt ?? null,
+          paymentMethod: saved.paymentMethod, replayed: true });
         return error('The booking is still being reconciled. Retry with the same booking key.', 503);
       }
       if (receipt) return error('This booking key belongs to another booking.', 409);
