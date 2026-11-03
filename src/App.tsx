@@ -1029,55 +1029,103 @@ function EventCard({
     </article>
   );
 }
-function EventDetail({
-  event,
-  onBack,
-}: {
-  event: EventItem;
-  onBack: () => void;
-}) {
+function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }) {
+  const [quantity, setQuantity] = useState(1);
+  const [purchaserName, setPurchaserName] = useState('');
+  const [purchaserEmail, setPurchaserEmail] = useState('');
+  const [purchaserPhone, setPurchaserPhone] = useState('');
+  const [attendees, setAttendees] = useState<string[]>(['']);
+  const [busy, setBusy] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [booking, setBooking] = useState<any>(null);
+  const [accessToken] = useState(() => crypto.randomUUID() + crypto.randomUUID());
+  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
+  const [transferReference, setTransferReference] = useState('');
+  const [transferSubmitted, setTransferSubmitted] = useState(false);
+  const isFree = /^free$/i.test(String(event.price ?? '').trim()) || Number(event.price) === 0;
+  const changeQuantity = (next: number) => {
+    const safe = Number.isFinite(next) ? Math.max(1, Math.min(50000, Math.floor(next))) : 1;
+    setQuantity(safe);
+    setAttendees(current => Array.from({ length: safe }, (_, i) => current[i] ?? ''));
+  };
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); setBusy(true); setErrorMessage('');
+    try {
+      const { data } = await api.post('/api/registrations', {
+        eventId: event.id, idempotencyKey, accessToken, purchaserName, purchaserEmail, purchaserPhone,
+        paymentMethod: isFree ? 'free' : 'manual_transfer', attendees: attendees.map(name => ({ name })),
+      });
+      setBooking(data);
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.message ?? err?.message ?? 'We could not create your booking. Please try again.');
+    } finally { setBusy(false); }
+  };
+  const submitTransfer = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); if (!booking?.registrationId) return;
+    setBusy(true); setErrorMessage('');
+    try {
+      await api.post('/api/registrations/' + booking.registrationId + '/manual-transfer', { accessToken, transferReference });
+      setTransferSubmitted(true);
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.message ?? err?.message ?? 'We could not submit the transfer reference. Please try again.');
+    } finally { setBusy(false); }
+  };
+  const resetBooking = () => {
+    setBooking(null); setTransferSubmitted(false); setTransferReference(''); setIdempotencyKey(crypto.randomUUID());
+  };
   return (
     <section className="event-detail">
-      <button className="link-button" onClick={onBack}>
-        ← Back to events
-      </button>
-      <div
-        className="event-detail-image"
-        style={{ backgroundImage: `url(${event.image})` }}
-      />
+      <button className="link-button" onClick={onBack}>← Back to events</button>
+      <div className="event-detail-image" style={{ backgroundImage: 'url(' + event.image + ')' }} />
       <div className="event-detail-copy">
         <p className="eyebrow">{event.experience ?? event.category}</p>
         <h1>{event.title}</h1>
-        <p className="event-detail-meta">
-          {formatDate(event.date)}
-          {event.time ? ` · ${event.time}` : ''} · {event.location}
-        </p>
+        <p className="event-detail-meta">{formatDate(event.date)}{event.time ? ' · ' + event.time : ''} · {event.location}</p>
         <p>{event.description}</p>
-        <div className="event-detail-actions">
-          {event.registrationLink && (
-            <a
-              className="button dark"
-              href={event.registrationLink}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Register <ChevronRight size={16} />
-            </a>
-          )}
-          <span>{event.price}</span>
-        </div>
+        <div className="event-detail-actions"><span>{event.price}</span></div>
+        {booking ? (
+          <div className="admin-notice" role="status">
+            <ShieldCheck size={28} />
+            <h2>{booking.status === 'confirmed' ? 'Booking confirmed.' : 'Booking created — payment pending.'}</h2>
+            <p>Booking reference: <strong>{booking.paymentReference}</strong></p>
+            <p>{booking.ticketCount} ticket(s) · ₦{(booking.amountMinor / 100).toLocaleString('en-NG')}</p>
+            {booking.status === 'confirmed' && <>
+              <p>Your tickets have been issued. Keep this booking reference for event check-in.</p>
+              {Array.isArray(booking.ticketIds) && booking.ticketIds.map((id: string, i: number) => <p key={id}>Ticket {i + 1}: <code>{id}</code></p>)}
+            </>}
+            {booking.status === 'pending_payment' && booking.transferDetails && <>
+              <p>Transfer to the approved account below. Tickets are issued only after an administrator verifies the actual bank credit.</p>
+              <p><strong>{booking.transferDetails.bankName}</strong><br />{booking.transferDetails.accountName}<br /><strong>{booking.transferDetails.accountNumber}</strong></p>
+              {booking.transferDetails.instructions && <p>{booking.transferDetails.instructions}</p>}
+              <p>Use this payment reference in your transfer narration: <strong>{booking.paymentReference}</strong></p>
+              {transferSubmitted ? <p>Reference received. Your booking is pending administrator verification. No tickets have been issued yet.</p> : (
+                <form className="contact-form" onSubmit={submitTransfer}>
+                  <label className="full">Bank transfer reference<input required value={transferReference} onChange={e => setTransferReference(e.target.value)} /></label>
+                  <button className="button dark" type="submit" disabled={busy}>{busy ? 'Submitting…' : 'Submit transfer reference'}</button>
+                </form>
+              )}
+            </>}
+            {!isFree && !booking.transferDetails && <p>Payment instructions are not configured yet. Please contact the event team before making a transfer.</p>}
+            <button className="button ghost" onClick={resetBooking}>Make another booking</button>
+          </div>
+        ) : (
+          <form className="contact-form" onSubmit={submit}>
+            <h2 className="full">Book your tickets</h2>
+            <label>Number of tickets<input type="number" min="1" step="1" value={quantity} onChange={e => changeQuantity(Number(e.target.value))} required /></label>
+            <label>Purchaser name<input required maxLength={120} value={purchaserName} onChange={e => setPurchaserName(e.target.value)} /></label>
+            <label>Email address<input required type="email" maxLength={200} value={purchaserEmail} onChange={e => setPurchaserEmail(e.target.value)} /></label>
+            <label>Phone number<input value={purchaserPhone} maxLength={40} onChange={e => setPurchaserPhone(e.target.value)} /></label>
+            <div className="full"><h3>Attendee details</h3><p>Enter the name of each person who will use a ticket.</p></div>
+            {attendees.map((name, index) => <label key={index}>Ticket {index + 1} — attendee name<input required maxLength={120} value={name} onChange={e => setAttendees(current => current.map((v, i) => i === index ? e.target.value : v))} /></label>)}
+            <p className="full consent-note">{isFree ? 'Free registration. Tickets are issued once the booking is accepted.' : 'Manual bank transfer is available only where approved bank details have been configured. Automated bank transfer and USSD will appear after provider sandbox verification.'}</p>
+            {errorMessage && <div className="photos-error full" role="alert">{errorMessage}</div>}
+            <button className="button dark" type="submit" disabled={busy}>{busy ? 'Creating booking…' : 'Continue · ' + quantity + ' ticket' + (quantity === 1 ? '' : 's')} <ChevronRight size={16} /></button>
+          </form>
+        )}
+        {errorMessage && booking && <div className="photos-error" role="alert">{errorMessage}</div>}
         <div className="event-detail-grid">
-          <div>
-            <b>What to expect</b>
-            <p>
-              A thoughtfully designed Urban Life experience centred on people,
-              place and participation.
-            </p>
-          </div>
-          <div>
-            <b>Experience</b>
-            <p>{event.experience ?? event.category}</p>
-          </div>
+          <div><b>What to expect</b><p>A thoughtfully designed Urban Life experience centred on people, place and participation.</p></div>
+          <div><b>Experience</b><p>{event.experience ?? event.category}</p></div>
         </div>
       </div>
     </section>
