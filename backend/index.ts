@@ -397,6 +397,30 @@ async function googleJson(
     throw new Error(data?.error?.message ?? 'Google Photos request failed.');
   return data;
 }
+async function sendContactLeadAlert(lead: { name: string; email: string; phone: string; type: string; message: string; createdAt: string }): Promise<boolean> {
+  const names = await secrets.listSecretNames();
+  if (!names.includes('RESEND_API_KEY') || !names.includes('RESEND_FROM_EMAIL')) return false;
+  const [apiKey, from] = await Promise.all([secrets.readSecret('RESEND_API_KEY'), secrets.readSecret('RESEND_FROM_EMAIL')]);
+  if (!apiKey || !from) return false;
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${String(apiKey)}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: String(from),
+      to: ['njemtrybe@gmail.com'],
+      reply_to: lead.email,
+      subject: `New ${lead.type.toLowerCase()} enquiry — ${lead.name}`,
+      text: ['A new enquiry was submitted through the Urban Life Co. website.', '', `Name: ${lead.name}`, `Email: ${lead.email}`, `Phone: ${lead.phone || 'Not provided'}`, `Enquiry type: ${lead.type}`, `Received: ${lead.createdAt}`, '', 'Message:', lead.message].join('\\n'),
+    }),
+  });
+  if (!response.ok) {
+    const details = await response.text().catch(() => '');
+    console.error(`Resend contact alert failed (${response.status}): ${details.slice(0, 300)}`);
+    return false;
+  }
+  return true;
+}
+
 const admin = [requireAuth(), requireAdminFromSecret];
 export const handler = router({
   'GET /api/_healthcheck': [async () => json({ message: 'Success' })],
@@ -468,7 +492,16 @@ export const handler = router({
           createdAt: new Date().toISOString(),
         },
       ]);
-      return json({ ok: Boolean(id) });
+      let notificationSent = false;
+      try {
+        notificationSent = await sendContactLeadAlert({
+          name, email, phone, type, message,
+          createdAt: new Date().toISOString(),
+        });
+      } catch (notificationError) {
+        console.error('Contact lead notification could not be sent.', notificationError);
+      }
+      return json({ ok: Boolean(id), notificationSent });
     },
   ],
   'GET /api/media': [
