@@ -1755,12 +1755,6 @@ function StoryStrip({
   onView: () => void;
   onOpen: (story: Story) => void;
 }) {
-  const orderedStories = [...stories].sort((a, b) => {
-    const featuredDelta = Number(Boolean(b.featured)) - Number(Boolean(a.featured));
-    if (featuredDelta !== 0) return featuredDelta;
-    return new Date(b.date).getTime() - new Date(a.date).getTime();
-  });
-
   return (
     <section className="section stories">
       <div className="section-head">
@@ -1773,7 +1767,7 @@ function StoryStrip({
         </button>
       </div>
       <div className="story-grid">
-        {orderedStories.map((s, i) => (
+        {stories.map((s, i) => (
           <article className={`story story-${i}`} key={s.id}>
             {s.coverImage && (
               <img
@@ -1784,11 +1778,8 @@ function StoryStrip({
                 decoding="async"
               />
             )}
-            <div className="story-meta-row">
-              <div className="story-meta">
-                {s.category} · {formatDate(s.date)}
-              </div>
-              {s.featured && <span className="story-badge">Featured</span>}
+            <div className="story-meta">
+              {s.category} · {formatDate(s.date)}
             </div>
             <h3>{s.title}</h3>
             <p>{s.excerpt}</p>
@@ -2223,7 +2214,7 @@ function CommunitySubscribersManager({ items, reload, hasMore, loadMore }: { ite
   const downloadCsv = () => {
     const quote = (value: unknown) => {
       const raw = String(value ?? '');
-      const safe = /^[\\s]*[=+\\-@]/.test(raw) ? "'" + raw : raw;
+      const safe = /^[\s]*[=+\-@]/.test(raw) ? "'" + raw : raw;
       return '"' + safe.replace(/"/g, '""') + '"';
     };
     const active = items.filter(item => item.status === 'active');
@@ -2768,14 +2759,6 @@ function StoriesManager({
             <option>published</option>
             <option>archived</option>
           </select>
-        </label>
-        <label className="checkbox-field">
-          <input
-            type="checkbox"
-            checked={Boolean(form.featured)}
-            onChange={e => setForm({ ...form, featured: e.target.checked })}
-          />
-          <span>Feature on homepage</span>
         </label>
         <label className="full">
           Excerpt
