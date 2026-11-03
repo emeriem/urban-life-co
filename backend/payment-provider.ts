@@ -162,13 +162,16 @@ async function createCustomer(input: {
   customerPhone?: string;
 }) {
   const name = splitName(input.customerName);
+  const digits = String(input.customerPhone ?? '').replace(/\D/g, '');
+  const localNumber = digits.startsWith('234') ? digits.slice(3) : digits.startsWith('0') ? digits.slice(1) : digits;
+  const validNigeriaPhone = /^\d{10}$/.test(localNumber) ? localNumber : '';
   return apiRequest('/customers', {
     method: 'POST',
     idempotencyKey: input.merchantReference + '-customer',
     body: {
       name,
       email: input.customerEmail,
-      ...(input.customerPhone ? { phone: { country_code: '234', number: input.customerPhone.replace(/^\+?234|^0/, '') } } : {}),
+      ...(validNigeriaPhone ? { phone: { country_code: '234', number: validNigeriaPhone } } : {}),
     },
   });
 }
@@ -208,7 +211,7 @@ export const flutterwaveSandboxProvider: PaymentProvider = {
         enabled: true,
         currency: ['NGN'],
         bankTransfer: true,
-        ussd: true,
+        ussd: banks.length > 0,
         supportedBanks: banks.map((bank: any) => ({ code: String(bank.code), name: String(bank.name) }))
           .filter((bank: { code: string; name: string }) => bank.code && bank.name),
       };
