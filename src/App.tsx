@@ -1122,9 +1122,24 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
   const [ticketBatchCount, setTicketBatchCount] = useState(0);
   const [qrTicketId, setQrTicketId] = useState('');
   const [qrDataUrl, setQrDataUrl] = useState('');
+  const [paymentCapabilities, setPaymentCapabilities] = useState<any>(null);
+  const [paymentMethod, setPaymentMethod] = useState('bank_transfer');
+  const [ussdBankCode, setUssdBankCode] = useState('');
   const rawPrice = String(event.price ?? '').trim();
   const normalizedPrice = rawPrice.replace(/₦|NGN|,/gi, '').trim();
   const isFree = /^free$/i.test(rawPrice) || (rawPrice !== '' && Number(normalizedPrice) === 0);
+  useEffect(() => {
+    api.get('/api/payments/capabilities').then(({ data }) => {
+      setPaymentCapabilities(data);
+      if (data.enabled) setPaymentMethod('bank_transfer');
+      else if (data.manualTransfer) setPaymentMethod('manual_transfer');
+    }).catch(() => setPaymentCapabilities({ enabled: false, manualTransfer: false, supportedBanks: [] }));
+  }, []);
+  const availablePaymentMethods = [
+    ...(paymentCapabilities?.bankTransfer ? [{ value: 'bank_transfer', label: 'Bank transfer (virtual account)' }] : []),
+    ...(paymentCapabilities?.ussd ? [{ value: 'ussd', label: 'USSD' }] : []),
+    ...(paymentCapabilities?.manualTransfer ? [{ value: 'manual_transfer', label: 'Manual bank transfer' }] : []),
+  ];
   const escapeIcs = (value: string) => value.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
   const calendarDate = (date: Date) => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
   const downloadCalendar = () => {
@@ -1225,7 +1240,7 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
     try {
       const { data } = await api.post('/api/registrations', {
         eventId: event.id, idempotencyKey, accessToken, purchaserName, purchaserEmail, purchaserPhone,
-        paymentMethod: isFree ? 'free' : 'manual_transfer', attendees: attendeeNames.map(name => ({ name })),
+        paymentMethod: isFree ? 'free' : paymentMethod, bankCode: paymentMethod === 'ussd' ? ussdBankCode : '', attendees: attendeeNames.map(name => ({ name })),
       });
       setBooking(data);
       localStorage.setItem('ulc:booking-id:' + event.id, data.registrationId);
@@ -1288,8 +1303,8 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
               {ticketBatchIndex + 1 < ticketBatchCount && <button className="button ghost" onClick={() => loadTicketBatch(booking.registrationId, ticketBatchIndex + 1, true)}>Load next tickets</button>}
             </>}
             {booking.status === 'pending_payment' && booking.paymentStatus === 'manual_rejected' && <p>The submitted transfer reference was not accepted. Check with the event team before submitting a corrected reference.</p>}
-            {booking.status === 'pending_payment' && booking.transferDetails && <>
-              <p>Transfer to the approved account below. Tickets are issued only after an administrator verifies the actual bank credit.</p>
+            {booking.status === 'pending_payment' && booking.paymentMethod === 'manual_transfer' && booking.transferDetails && <>
+              <p>Transfer to the approved business account below. Tickets are issued only after an administrator verifies the actual bank credit.</p>
               <p><strong>{booking.transferDetails.bankName}</strong><br />{booking.transferDetails.accountName}<br /><strong>{booking.transferDetails.accountNumber}</strong></p>
               {booking.transferDetails.instructions && <p>{booking.transferDetails.instructions}</p>}
               <p>Use this payment reference in your transfer narration: <strong>{booking.paymentReference}</strong></p>
@@ -1300,9 +1315,35 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
                 </form>
               )}
             </>}
-            {booking.status === 'pending_payment' && <button className="button ghost" disabled={busy} onClick={refreshStatus}>{busy ? 'Checking…' : 'Refresh payment status'}</button>}
+            {booking.status === 'pending_payment' && booking.paymentMethod === 'bank_transfer' && booking.providerInstruction && <>
+              <p>Transfer the exact amount to this unique virtual account. Your tickets will be issued after Flutterwave verifies the payment.</p>
+              <p><strong>{booking.providerInstruction.bankName}</strong><br />Account number: <strong>{booking.providerInstruction.accountNumber}</strong></p>
+              <p>{booking.providerInstruction.note}</p>
+              <p>Amount: <strong>₦{(booking.amountMinor / 100).toLocaleString('en-NG')}</strong></p>
+              {booking.providerInstructionExpiresAt && <p>Account expires: {new Date(booking.providerInstructionExpiresAt).toLocaleString('en-NG')}</p>}
+            </>}
+            {booking.status === 'pending_payment' && booking.paymentMethod === 'ussd' && booking.providerInstruction && <>
+              <p>Use the bank's USSD instructions below to authorize this payment. Tickets are issued only after Flutterwave confirms payment.</p>
+              <p><strong>{booking.providerInstruction.bankName}</strong></p>
+              <p>{booking.providerInstruction.note}</p>
+              <p>Amount: <strong>₦{(booking.amountMinor / 100).toLocaleString('en-NG')}</strong></p>
+            </>}
+            {booking.status === 'pending_payment' && booking.paymentStatus === 'provider_creation_failed' && <>
+              <p>Payment instructions could not be generated. Your ticket hold is still reserved until its expiry.</p>
+              <button className="button dark" disabled={busy} onClick={async () => {
+                setBusy(true); setErrorMessage('');
+                try {
+                  const { data } = await api.post('/api/registrations/' + booking.registrationId + '/retry-payment', { accessToken });
+                  setBooking((current: any) => ({ ...current, ...data, paymentStatus: data.paymentStatus }));
+                } catch (err: any) {
+                  setErrorMessage(err?.response?.data?.message ?? err?.message ?? 'Could not retry payment setup.');
+                } finally { setBusy(false); }
+              }}>{busy ? 'Retrying…' : 'Retry payment setup'}</button>
+            </>}
+            {booking.status === 'pending_payment' && booking.paymentStatus === 'reconciliation_required' && <p>Your payment is being reconciled by the event team. Tickets have not been issued yet.</p>}
             {booking.status === 'expired' && <p>The payment window has ended and the reserved tickets have been released. Contact the event team if you already transferred funds.</p>}
-            {!isFree && !booking.transferDetails && <p>Payment instructions are not configured yet. Please contact the event team before making a transfer.</p>}
+            {booking.status === 'pending_payment' && <button className="button ghost" disabled={busy} onClick={refreshStatus}>{busy ? 'Checking…' : 'Refresh payment status'}</button>}
+            {!isFree && booking.paymentMethod === 'manual_transfer' && !booking.transferDetails && <p>Manual transfer instructions are not configured. Please contact the event team before making a transfer.</p>}
             <button className="button ghost" onClick={resetBooking}>Make another booking</button>
           </div>
         ) : (
@@ -1314,9 +1355,21 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
             <label>Phone number<input value={purchaserPhone} maxLength={40} onChange={e => setPurchaserPhone(e.target.value)} /></label>
             <div className="full"><h3>Attendee details</h3><p>Enter the name of each person who will use a ticket.</p></div>
             <label className="full">Attendee names — one per line<textarea required rows={6} value={attendeeNamesText} onChange={e => setAttendeeNamesText(e.target.value)} placeholder={'One attendee name per line'} /></label>
-            <p className="full consent-note">{isFree ? 'Free registration. Tickets are issued once the booking is accepted.' : 'Manual bank transfer is available only where approved bank details have been configured. Automated bank transfer and USSD will appear after provider sandbox verification. Large bookings may need to be split to fit safe atomic database transaction limits.'}</p>
+            {!isFree && <label className="full">Payment method
+              <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}>
+                {availablePaymentMethods.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+            </label>}
+            {!isFree && paymentMethod === 'ussd' && <label className="full">Bank for USSD
+              <select required value={ussdBankCode} onChange={e => setUssdBankCode(e.target.value)}>
+                <option value="">Select your bank</option>
+                {(paymentCapabilities?.supportedBanks ?? []).map((bank: any) => <option key={bank.code} value={bank.code}>{bank.name}</option>)}
+              </select>
+            </label>}
+            {!isFree && paymentCapabilities && availablePaymentMethods.length === 0 && <p className="full consent-note">Online payment is not configured in this environment yet. Please contact the event team before making a payment.</p>}
+            <p className="full consent-note">{isFree ? 'Free registration. Tickets are issued once the booking is accepted.' : paymentMethod === 'manual_transfer' ? 'Manual transfers are verified by an administrator against actual bank credit. A receipt screenshot alone does not confirm payment.' : 'Automated payment uses Flutterwave sandbox while this environment is being tested. Your tickets are issued only after server-side payment verification. Large bookings may need to be split to fit safe atomic database transaction limits.'}</p>
             {errorMessage && <div className="photos-error full" role="alert">{errorMessage}</div>}
-            <button className="button dark" type="submit" disabled={busy}>{busy ? 'Creating booking…' : 'Continue · ' + quantity + ' ticket' + (quantity === 1 ? '' : 's')} <ChevronRight size={16} /></button>
+            <button className="button dark" type="submit" disabled={busy || (!isFree && availablePaymentMethods.length === 0) || (paymentMethod === 'ussd' && !ussdBankCode)}>{busy ? 'Creating booking…' : 'Continue · ' + quantity + ' ticket' + (quantity === 1 ? '' : 's')} <ChevronRight size={16} /></button>
           </form>
         )}
         {errorMessage && booking && <div className="photos-error" role="alert">{errorMessage}</div>}
@@ -1531,8 +1584,13 @@ function PrivacyPage() {
           optional phone number, enquiry type, message and the date and time the
           enquiry is received. If you use the separate community signup, we also
           collect your name, email address, optional phone number, selected
-          interests, consent choice and consent timestamp. We also process
-          information needed to protect forms from spam and abuse.
+          interests, consent choice and consent timestamp. If you book an event,
+          we also collect purchaser contact details, attendee names, booking and
+          payment references, ticket identifiers, and check-in status. For manual
+          bank transfers, an administrator records the transfer reference and
+          verification decision; Urban Life Co. does not ask you to submit card
+          details through this checkout. We also process information needed to
+          protect forms from spam and abuse.
         </p>
         <p>
           If you are an authorised site administrator, account information is
@@ -1548,6 +1606,9 @@ function PrivacyPage() {
           Community signup details are used only to manage the opt-in community
           list and send the updates and invitations described on that form. The
           contact form does not subscribe you to community communications.
+          Event-registration information is used to administer bookings, allocate
+          event capacity, verify payments, issue and validate tickets, operate
+          event check-in, and respond to booking support requests.
         </p>
         <h2>4. Service providers and sharing</h2>
         <p>
@@ -1567,7 +1628,12 @@ function PrivacyPage() {
           obligations. Community signup details are retained while the
           subscription remains active and for a reasonable period after an
           opt-out where needed to maintain suppression and compliance records.
-          We use access controls and service-provider security measures, but no
+          Event booking, payment-reference and attendance records are retained
+          for as long as reasonably necessary to operate the event, resolve
+          payment disputes, maintain business records and meet legal obligations.
+          Specific retention periods will be set in the operational retention
+          schedule before production launch. We use access controls and
+          service-provider security measures, but no
           internet transmission or storage system can be guaranteed to be
           completely secure.
         </p>
@@ -1924,6 +1990,8 @@ function AdminPanel({
     messages: [],
     registrations: [],
     subscribers: [],
+    subscribersNextToken: null,
+    registrationsNextToken: null,
   });
   const load = async () => {
     if (!authorised) return;
@@ -1960,10 +2028,32 @@ function AdminPanel({
         settings: settings.data,
         registrations: registrations.data?.registrations ?? [],
         subscribers: subscribers.data?.subscribers ?? [],
+        subscribersNextToken: subscribers.data?.nextToken ?? null,
+        registrationsNextToken: registrations.data?.nextToken ?? null,
       });
     } finally {
       setLoading(false);
     }
+  };
+  const loadMoreSubscribers = async () => {
+    const token = data.subscribersNextToken;
+    if (!token) return;
+    const { data: page } = await api.get('/api/admin/community-subscribers', { nextToken: token });
+    setData((current: any) => ({
+      ...current,
+      subscribers: [...current.subscribers, ...(page.subscribers ?? [])],
+      subscribersNextToken: page.nextToken ?? null,
+    }));
+  };
+  const loadMoreRegistrations = async () => {
+    const token = data.registrationsNextToken;
+    if (!token) return;
+    const { data: page } = await api.get('/api/admin/registrations', { nextToken: token });
+    setData((current: any) => ({
+      ...current,
+      registrations: [...current.registrations, ...(page.registrations ?? [])],
+      registrationsNextToken: page.nextToken ?? null,
+    }));
   };
   useEffect(() => {
     load();
@@ -2099,10 +2189,10 @@ function AdminPanel({
             <EventsManager items={data.events} reload={load} />
           )}{' '}
           {tab === 'registrations' && (
-            <RegistrationsManager items={data.registrations} reload={load} />
+            <RegistrationsManager items={data.registrations} reload={load} hasMore={Boolean(data.registrationsNextToken)} loadMore={loadMoreRegistrations} />
           )}{' '}
           {tab === 'community' && (
-            <CommunitySubscribersManager items={data.subscribers} reload={load} />
+            <CommunitySubscribersManager items={data.subscribers} reload={load} hasMore={Boolean(data.subscribersNextToken)} loadMore={loadMoreSubscribers} />
           )}{' '}
           {tab === 'experiences' && (
             <ExperiencesManager items={data.experiences} reload={load} />
@@ -2129,9 +2219,13 @@ function AdminPanel({
 }
 
 
-function CommunitySubscribersManager({ items, reload }: { items: any[]; reload: () => Promise<void> }) {
+function CommunitySubscribersManager({ items, reload, hasMore, loadMore }: { items: any[]; reload: () => Promise<void>; hasMore: boolean; loadMore: () => Promise<void> }) {
   const downloadCsv = () => {
-    const quote = (value: unknown) => '"' + String(value ?? '').replace(/"/g, '""') + '"';
+    const quote = (value: unknown) => {
+      const raw = String(value ?? '');
+      const safe = /^[\\s]*[=+\\-@]/.test(raw) ? "'" + raw : raw;
+      return '"' + safe.replace(/"/g, '""') + '"';
+    };
     const active = items.filter(item => item.status === 'active');
     const rows = [
       ['Name', 'Email', 'Phone', 'Interests', 'Consent date', 'Status'],
@@ -2145,8 +2239,9 @@ function CommunitySubscribersManager({ items, reload }: { items: any[]; reload: 
   return (
     <ManagerLayout title="Community list" description="People who explicitly opted in to receive Urban Life Co. community updates.">
       <div className="cms-actions">
-        <span>{items.length} subscriber(s) in this page</span>
-        <button className="button dark" onClick={downloadCsv} disabled={!items.length}>Download CSV</button>
+        <span>{items.length} subscriber(s) loaded</span>
+        {hasMore && <p className="consent-note">Load all subscriber pages before downloading the complete CSV.</p>}
+        <button className="button dark" onClick={downloadCsv} disabled={!items.length || hasMore}>Download full CSV</button>
         <button className="button ghost" onClick={reload}>Refresh list</button>
       </div>
       {items.length ? items.map(item => (
@@ -2166,11 +2261,12 @@ function CommunitySubscribersManager({ items, reload }: { items: any[]; reload: 
           }}>Mark unsubscribed</button>}
         </article>
       )) : <Empty text="No community signups have been received yet." />}
+      {hasMore && <button className="button ghost" onClick={loadMore}>Load more subscribers</button>}
     </ManagerLayout>
   );
 }
 
-function RegistrationsManager({ items, reload }: { items: any[]; reload: () => Promise<void> }) {
+function RegistrationsManager({ items, reload, hasMore, loadMore }: { items: any[]; reload: () => Promise<void>; hasMore: boolean; loadMore: () => Promise<void> }) {
   const [busyId, setBusyId] = useState('');
   const [message, setMessage] = useState('');
   const [ticketId, setTicketId] = useState('');
@@ -2239,6 +2335,7 @@ function RegistrationsManager({ items, reload }: { items: any[]; reload: () => P
           </div>}
         </article>
       )) : <Empty text="No bookings have been received yet." />}
+      {hasMore && <button className="button ghost" onClick={loadMore}>Load more bookings</button>}
       <button className="button ghost" onClick={reload}>Refresh bookings</button>
     </ManagerLayout>
   );

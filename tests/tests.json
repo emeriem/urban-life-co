@@ -202,5 +202,87 @@
     ],
     "expected": "Community details are stored only after explicit consent, repeat signups do not create duplicate email records, and administrators can review and export the opted-in list. This captures contacts only; no broadcast email is sent by this implementation. Administrators can process opt-out requests, and unsubscribed records are excluded from active exports.",
     "description": "Manual QA scenario for the stated user-facing workflow and expected outcomes."
+  },
+  {
+    "name": "Capacity boundary remains safe during concurrent bookings and CMS edits",
+    "viewport": "desktop",
+    "covers": [
+      "concurrent capacity reservation",
+      "no overbooking",
+      "event inventory counters",
+      "CMS event patch preservation",
+      "capacity reduction guardrail"
+    ],
+    "description": "Verifies concurrent multi-ticket requests cannot oversell an event and routine event edits cannot overwrite or undercut live inventory.",
+    "setup": [
+      "Create and publish a test event with capacity 5 and ticket price NGN 1000."
+    ],
+    "steps": [
+      "Open the same test event in two independent browser sessions as Customer A and Customer B.",
+      "Customer A submits a booking for 3 attendees.",
+      "At the same time, Customer B submits a booking for 3 attendees.",
+      "Confirm no more than 5 tickets are held and one request is rejected if both cannot fit.",
+      "As an administrator, edit the event description and date without changing its capacity.",
+      "Confirm the held and confirmed counters remain unchanged after the event edit.",
+      "Attempt to reduce capacity below the sum of held and confirmed tickets.",
+      "Confirm the CMS rejects the capacity reduction and displays a clear error."
+    ],
+    "expected": "Inventory never exceeds the event capacity; event edits preserve transactional counters; capacity cannot be reduced below already held and sold tickets."
+  },
+  {
+    "name": "Booking access, manual-transfer exceptions and community privacy",
+    "viewport": "mobile",
+    "covers": [
+      "booking access token authorization",
+      "manual transfer amount mismatch",
+      "late payment exception",
+      "community consent and unsubscribe",
+      "privacy policy registration disclosure"
+    ],
+    "description": "Verifies private booking data is protected and unresolved payment cases do not issue tickets or bypass the documented exception path.",
+    "steps": [
+      "Create a paid test booking and save its booking access token.",
+      "Attempt to retrieve booking status using an incorrect access token and confirm access is denied.",
+      "Submit a transfer reference and confirm tickets remain inactive.",
+      "Attempt administrator confirmation with an amount different from the booking total and confirm no ticket is issued.",
+      "Allow the booking hold to expire, then attempt confirmation and confirm the late payment is not automatically accepted.",
+      "Submit a community signup without consent and confirm no record is created.",
+      "Submit with consent, then process an unsubscribe request and confirm the contact is excluded from active exports.",
+      "Open the Privacy Policy and confirm event purchaser, attendee, payment-reference and check-in data are disclosed."
+    ],
+    "expected": "Booking details are disclosed only to the token holder; amount mismatches and late transfers never issue tickets automatically; community consent and opt-out rules are enforced and event data processing is disclosed."
+  },
+  {
+    "name": "Flutterwave sandbox bank transfer and USSD checkout",
+    "viewport": "desktop",
+    "covers": [
+      "Flutterwave sandbox credentials",
+      "NGN dynamic virtual account",
+      "USSD bank directory",
+      "USSD charge instructions",
+      "signed payment webhook",
+      "server-side charge verification",
+      "provider idempotency",
+      "automatic ticket issuance"
+    ],
+    "description": "Verifies the sandbox payment adapter creates NGN bank-transfer and USSD instructions and issues tickets only after a valid signed and server-verified payment.",
+    "setup": [
+      "Configure only Flutterwave sandbox credentials and webhook secret in the isolated staging app.",
+      "Create a published test event priced at NGN 1000 with capacity 10."
+    ],
+    "steps": [
+      "Open the test event and choose Bank transfer (virtual account).",
+      "Submit a one-attendee booking and confirm a unique NGN dynamic virtual account and exact amount are displayed.",
+      "Complete the provider's sandbox transfer scenario and wait for the signed webhook.",
+      "Confirm the server fetches the charge and issues exactly one ticket only when reference, amount, currency and status match.",
+      "Repeat the same webhook delivery and confirm no duplicate ticket or inventory movement occurs.",
+      "Create another test booking and choose USSD.",
+      "Select a bank from the live Nigeria bank directory and submit the booking.",
+      "Confirm the returned USSD dial instruction is displayed with the correct NGN amount.",
+      "Complete the provider's sandbox USSD scenario and confirm server-side verification issues exactly one ticket.",
+      "Send an invalid webhook signature and confirm no booking or ticket state changes.",
+      "Simulate a successful charge with a mismatched amount or currency and confirm it is held for reconciliation without ticket issuance."
+    ],
+    "expected": "Bank transfer and USSD instructions are created using sandbox-only credentials. Valid signed webhook events are reconciled against the fetched charge, booking reference, NGN currency and exact amount. Duplicate events are idempotent; invalid signatures and mismatches never issue tickets."
   }
 ]

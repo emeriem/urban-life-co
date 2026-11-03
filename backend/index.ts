@@ -1,9 +1,8 @@
 import { router, json, error, requireAuth } from '@appdeploy/sdk';
 import { db, secrets, storage } from '@appdeploy/sdk';
 import type { RouterMiddleware } from '@appdeploy/sdk';
-import { unconfiguredPaymentProvider } from './payment-provider';
 import { communitySignup, adminListCommunitySubscribers, adminUnsubscribeCommunitySubscriber } from './community';
-import { createRegistration, registrationStatus, registrationTickets, submitManualTransfer, adminListRegistrations, adminConfirmManualTransfer, adminRejectManualTransfer, adminCheckInTicket, expirePendingRegistrations } from './registration';
+import { createRegistration, registrationStatus, registrationTickets, submitManualTransfer, adminListRegistrations, adminConfirmManualTransfer, adminRejectManualTransfer, adminCheckInTicket, expirePendingRegistrations, retryProviderPayment, flutterwaveWebhook, getPaymentCapabilities } from './registration';
 
 // Admin access is configured only through the AppDeploy ADMIN_EMAILS secret.
 // Fail closed when the secret is absent or empty; never grant access from source code.
@@ -466,11 +465,13 @@ export const handler = router({
   'POST /api/community-signups': [communitySignup],
   'GET /api/admin/community-subscribers': [...admin, adminListCommunitySubscribers],
   'POST /api/admin/community-subscribers/:id/unsubscribe': [...admin, adminUnsubscribeCommunitySubscriber],
-  'GET /api/payments/capabilities': [async () => json(await unconfiguredPaymentProvider.getCapabilities())],
+  'GET /api/payments/capabilities': [getPaymentCapabilities],
+  'POST /api/payments/flutterwave/webhook': [flutterwaveWebhook],
   'POST /api/registrations': [createRegistration],
   'POST /api/registrations/:id/status': [registrationStatus],
   'POST /api/registrations/:id/tickets': [registrationTickets],
   'POST /api/registrations/:id/manual-transfer': [submitManualTransfer],
+  'POST /api/registrations/:id/retry-payment': [retryProviderPayment],
   'GET /api/admin/registrations': [...admin, adminListRegistrations],
   'POST /api/admin/registrations/:id/confirm-transfer': [...admin, adminConfirmManualTransfer],
   'POST /api/admin/registrations/:id/reject-transfer': [...admin, adminRejectManualTransfer],
@@ -641,16 +642,20 @@ export const handler = router({
       const clean = pick(ctx.body, EVENT_FIELDS);
       if (!validStatus(clean, EVENT_STATUSES))
         return error('Invalid status.', 400);
-      const [ok] = await db.update('events', [
-        {
-          id: ctx.params.id,
-          record: {
-            ...existing,
-            ...clean,
-            updatedAt: new Date().toISOString(),
-          },
-        },
-      ]);
+      if (typeof clean.capacity === 'number') {
+        const held = Number(existing.heldCount ?? 0);
+        const confirmed = Number(existing.confirmedCount ?? 0);
+        if (!Number.isSafeInteger(held) || !Number.isSafeInteger(confirmed) ||
+            held < 0 || confirmed < 0 || clean.capacity < held + confirmed)
+          return error('Capacity cannot be lower than tickets already reserved or sold.', 409);
+      }
+      // Patch only CMS-owned fields. A full-record replacement based on a stale
+      // read could overwrite concurrent held/confirmed/check-in counters.
+      const [ok] = await db.tx.update('events', [{
+        id: ctx.params.id,
+        record: { ...clean, updatedAt: new Date().toISOString() },
+      }], { patch: true });
+      if (!ok) return error('Event changed or was removed. Refresh and try again.', 409);
       return json({ ok });
     },
   ],
@@ -659,16 +664,11 @@ export const handler = router({
     async ctx => {
       const [existing] = await db.get('events', [ctx.params.id]);
       if (!existing) return error('Event not found.', 404);
-      const [ok] = await db.update('events', [
-        {
-          id: ctx.params.id,
-          record: {
-            ...existing,
-            status: 'archived',
-            updatedAt: new Date().toISOString(),
-          },
-        },
-      ]);
+      const [ok] = await db.tx.update('events', [{
+        id: ctx.params.id,
+        record: { status: 'archived', updatedAt: new Date().toISOString() },
+      }], { patch: true });
+      if (!ok) return error('Event changed or was removed. Refresh and try again.', 409);
       return json({ ok });
     },
   ],
