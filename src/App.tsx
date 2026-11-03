@@ -1038,8 +1038,22 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
   const [busy, setBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [booking, setBooking] = useState<any>(null);
-  const [accessToken] = useState(() => crypto.randomUUID() + crypto.randomUUID());
-  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
+  const [accessToken] = useState(() => {
+    const storageKey = 'ulc:booking-access:' + event.id;
+    const saved = sessionStorage.getItem(storageKey);
+    if (saved) return saved;
+    const token = crypto.randomUUID() + crypto.randomUUID();
+    sessionStorage.setItem(storageKey, token);
+    return token;
+  });
+  const [idempotencyKey, setIdempotencyKey] = useState(() => {
+    const storageKey = 'ulc:booking-request:' + event.id;
+    const saved = sessionStorage.getItem(storageKey);
+    if (saved) return saved;
+    const key = crypto.randomUUID();
+    sessionStorage.setItem(storageKey, key);
+    return key;
+  });
   const [transferReference, setTransferReference] = useState('');
   const [transferSubmitted, setTransferSubmitted] = useState(false);
   const [tickets, setTickets] = useState<any[]>([]);
@@ -1129,7 +1143,10 @@ function EventDetail({ event, onBack }: { event: EventItem; onBack: () => void }
   };
   const resetBooking = () => {
     setBooking(null); setTransferSubmitted(false); setTransferReference(''); setTickets([]);
-    setTicketBatchIndex(0); setTicketBatchCount(0); setIdempotencyKey(crypto.randomUUID());
+    setTicketBatchIndex(0); setTicketBatchCount(0);
+    const nextKey = crypto.randomUUID();
+    sessionStorage.setItem('ulc:booking-request:' + event.id, nextKey);
+    setIdempotencyKey(nextKey);
   };
   return (
     <section className="event-detail">
