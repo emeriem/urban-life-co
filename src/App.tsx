@@ -1943,7 +1943,7 @@ function RegistrationsManager({ items, reload }: { items: any[]; reload: () => P
     if (action === 'confirm') {
       if (!window.confirm('Have you verified the actual credit in the business bank account? A receipt screenshot alone is not sufficient.')) return;
       const amount = window.prompt('Enter the exact amount credited to the business bank account in Naira (e.g. 7500.00):');
-      if (amount === null || !/^\\d+(?:\\.\\d{1,2})?$/.test(amount.replace(/,/g, '').trim())) return;
+      if (amount === null || !/^\d+(?:\.\d{1,2})?$/.test(amount.replace(/,/g, '').trim())) return;
       verifiedAmountMinor = Math.round(Number(amount.replace(/,/g, '').trim()) * 100);
     }
     setBusyId(item.id); setMessage('');
