@@ -1036,17 +1036,17 @@ function Pillars() {
       <Pillar
         n="01"
         title="Live"
-        text="Wellness, culture, recreation and experiences that make life feel lived."
+        text="Experiences that bring energy, discovery and joy into everyday life."
       />
       <Pillar
         n="02"
         title="Connect"
-        text="Friendships, community, networking and meaningful human relationships."
+        text="Communities, networks and the relationships that make life richer."
       />
       <Pillar
         n="03"
         title="Explore"
-        text="Trails, places, adventures and the curiosity to keep discovering."
+        text="Trails, places and new perspectives that keep curiosity alive."
       />
     </section>
   );
@@ -1849,7 +1849,7 @@ function ExperienceShowcase({
   return (
     <section className="ecosystem-section modern-experiences">
       <div className="section-head ecosystem-head">
-        <div>          <p className="eyebrow">02 / FIND YOUR PEOPLE</p>
+        <div>          <p className="eyebrow">02 / OUR ECOSYSTEM</p>
           <h2>Different ways to live more.</h2>
           <p className="modern-section-subtitle">One ecosystem. Many ways to belong.</p>
         </div>
@@ -1880,22 +1880,22 @@ function BrandFeature({
   return (
     <section className="brand-feature">
       <div className="brand-feature-copy">
-        <p className="eyebrow">A HOUSE OF EXPERIENCES</p>
+        <p className="eyebrow">ONE PARENT COMPANY / DISTINCT BRANDS</p>
         <h2>
           Different worlds.
           <br />
           <em>One urban life.</em>
         </h2>
         <p>
-          Urban Life Co. brings together distinct experiences without flattening
-          them into one visual identity. Urban Hikers, Urban Fitness and future
-          experiences each get room to be themselves.
+          Each community keeps its own voice, character and visual identity.
+          Urban Life Co. provides the shared direction and infrastructure that
+          helps the wider ecosystem grow.
         </p>
         <button
           className="button dark"
-          onClick={() => onNavigate('experiences')}
+          onClick={() => onNavigate('brands')}
         >
-          Explore the ecosystem <ChevronRight size={17} />
+          Explore our brands <ChevronRight size={17} />
         </button>
       </div>
       <div className="brand-feature-stack" aria-hidden="true">

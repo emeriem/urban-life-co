@@ -104,4 +104,4 @@ The ledger records all 34 stored version identifiers and the cumulative v34 sour
 
 ## Reconciliation outcome
 
-The current cumulative production source and its binary resources are represented on the reconciliation branch. No production deployment was initiated by this source sync. The next commit on this branch is reserved for the approved public-site visual refresh.
+The current cumulative production source and its binary resources are represented on the reconciliation branch. No production deployment was initiated by this source sync. The next feature-branch commit adds the approved public-site visual refresh. Release remains pending GitHub checks, AppDeploy build validation and post-deployment QA.

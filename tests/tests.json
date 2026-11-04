@@ -304,5 +304,24 @@
       "Select Contact Urban Life Co."
     ],
     "expected": "The portfolio presents distinct brand and experience areas under the parent company, and the partnership page leads visitors to the existing contact page without disrupting existing event, community or CMS routes."
+  },
+  {
+    "name": "Corporate homepage editorial layout and mobile journey",
+    "viewport": "mobile",
+    "covers": [
+      "editorial homepage hierarchy",
+      "responsive hero and navigation",
+      "brand ecosystem visual discovery",
+      "partnership-to-contact conversion"
+    ],
+    "description": "Verifies the refreshed corporate homepage and portfolio remain readable and navigable on a mobile viewport.",
+    "steps": [
+      "Open the public homepage at a mobile viewport.",
+      "Open the navigation menu and select Our Brands.",
+      "Review all four ecosystem entries and confirm their labels and descriptions are readable.",
+      "Open Partnerships from the navigation.",
+      "Select Contact Urban Life Co."
+    ],
+    "expected": "The hero, navigation, brand portfolio and partnership content remain usable without horizontal overflow; the Contact page opens from the partnership call to action."
   }
 ]
