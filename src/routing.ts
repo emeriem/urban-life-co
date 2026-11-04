@@ -1,6 +1,8 @@
 export type StaticPage =
   | 'home'
   | 'about'
+  | 'brands'
+  | 'partnerships'
   | 'experiences'
   | 'events'
   | 'journal'
@@ -15,6 +17,8 @@ export type Route = { page: StaticPage } | { page: DetailPage; ref: string };
 
 const STATIC_PAGES: Record<string, StaticPage> = {
   about: 'about',
+  brands: 'brands',
+  partnerships: 'partnerships',
   experiences: 'experiences',
   events: 'events',
   journal: 'journal',

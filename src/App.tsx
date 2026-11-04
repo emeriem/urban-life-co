@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { api, auth } from '@appdeploy/client';
 import { applyPageMeta } from './seo';
+import { rewriteAssetUrls } from './assets';
 import { findByRef, itemRef, parseLocation, routeToHash, type StaticPage } from './routing';
 import qrcode from './vendor/qrcode-generator';
 
@@ -68,103 +69,103 @@ type Story = {
 type Announcement = { id: string; title: string; body: string; date: string };
 const heroMemories = [
   {
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-trail-walk.jpg',
+    image: '/resources/photos/urban-hikers-trail-walk.webp',
     alt: 'Urban Hikers walking together along a trail',
   },
   {
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-summit-group.jpg',
+    image: '/resources/photos/urban-hikers-summit-group.webp',
     alt: 'Urban Hikers celebrating together at the summit',
   },
   {
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-community.jpg',
+    image: '/resources/photos/urban-hikers-community.webp',
     alt: 'Urban Hikers sharing a moment outdoors',
   },
   {
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-enugu-view.jpg',
+    image: '/resources/photos/urban-hikers-enugu-view.webp',
     alt: 'Urban Hikers looking out over Enugu',
   },
 ];
 const fieldPhotos = [
   {
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-ije-ugwu-hike.jpg',
+    image: '/resources/photos/urban-hikers-ije-ugwu-hike.webp',
     alt: 'Ije Ugwu hike event poster',
     caption: 'Ije Ugwu hike',
     type: 'poster',
   },
   {
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-ball-and-banter-poster.jpg',
+    image: '/resources/photos/urban-hikers-ball-and-banter-poster.webp',
     alt: 'Urban Hikers Ball and Banter event poster',
     caption: 'Ball and Banter',
     type: 'poster',
   },
   {
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-hangout-poster.jpg',
+    image: '/resources/photos/urban-hikers-hangout-poster.webp',
     alt: 'Urban Hikers community hangout event poster',
     caption: 'Community hangout',
     type: 'poster',
   },
   {
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-fitness-walk-poster.jpg',
+    image: '/resources/photos/urban-fitness-walk-poster.webp',
     alt: 'Urban Fitness Walk event poster',
     caption: 'Urban Fitness Walk',
     type: 'poster',
   },
   {
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-story.jpg',
+    image: '/resources/photos/urban-hikers-story.webp',
     alt: 'Urban Hikers story artwork',
     caption: 'Stories from the trail',
     type: 'poster',
   },
   {
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-trail-walk.jpg',
+    image: '/resources/photos/urban-hikers-trail-walk.webp',
     alt: 'The group setting out together on a trail',
     caption: 'On the move',
     type: 'photo',
   },
   {
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-trail-rest.jpg',
+    image: '/resources/photos/urban-hikers-trail-rest.webp',
     alt: 'Hikers taking a break together on the trail',
     caption: 'A moment to catch our breath',
     type: 'photo',
   },
   {
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-enugu-view.jpg',
+    image: '/resources/photos/urban-hikers-enugu-view.webp',
     alt: 'The group taking in a view over Enugu',
     caption: 'Enugu from above',
     type: 'photo',
   },
   {
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-summit-group.jpg',
+    image: '/resources/photos/urban-hikers-summit-group.webp',
     alt: 'The Urban Hikers group at the summit',
     caption: 'Made it together',
     type: 'photo',
   },
   {
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-trail-pair.jpg',
+    image: '/resources/photos/urban-hikers-trail-pair.webp',
     alt: 'Two hikers walking together outdoors',
     caption: 'The people make the path',
     type: 'photo',
   },
   {
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-hillside-group.jpg',
+    image: '/resources/photos/urban-hikers-hillside-group.webp',
     alt: 'Urban Hikers gathered on a hillside',
     caption: 'A hillside gathering',
     type: 'photo',
   },
   {
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-city-walk.jpg',
+    image: '/resources/photos/urban-hikers-city-walk.webp',
     alt: 'The group exploring the city on foot',
     caption: 'A city walk',
     type: 'photo',
   },
   {
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-city-walk-2.jpg',
+    image: '/resources/photos/urban-hikers-city-walk-2.webp',
     alt: 'Urban Hikers walking through the neighbourhood',
     caption: 'Finding a new route',
     type: 'photo',
   },
   {
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-community.jpg',
+    image: '/resources/photos/urban-hikers-community.webp',
     alt: 'Friends sharing the day outdoors',
     caption: 'Good company, open air',
     type: 'photo',
@@ -253,7 +254,7 @@ const fallbackEvents: EventItem[] = [
     status: 'completed',
     price: '₦2,500',
     description: 'A return to the trail: movement, exploration and community.',
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-trail-walk.jpg',
+    image: '/resources/photos/urban-hikers-trail-walk.webp',
   },
   {
     id: 'e2',
@@ -264,7 +265,7 @@ const fallbackEvents: EventItem[] = [
     status: 'completed',
     price: '₦1,000',
     description: 'Games, music, drinks and the people that make the community.',
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-community.jpg',
+    image: '/resources/photos/urban-hikers-community.webp',
   },
   {
     id: 'e3',
@@ -276,7 +277,7 @@ const fallbackEvents: EventItem[] = [
     price: 'Free',
     description:
       'An active afternoon built around touch rugby, movement and connection.',
-    image: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-summit-group.jpg',
+    image: '/resources/photos/urban-hikers-summit-group.webp',
   },
 ];
 const fallbackStories: Story[] = [
@@ -285,7 +286,7 @@ const fallbackStories: Story[] = [
     title: 'More Than a Hike. It’s a Community.',
     category: 'Community',
     date: '2026-08-28',
-    coverImage: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-trail-pair.jpg',
+    coverImage: '/resources/photos/urban-hikers-trail-pair.webp',
     excerpt:
       'Why the trail is only the beginning of what Urban Hikers is building.',
     featured: true,
@@ -295,7 +296,7 @@ const fallbackStories: Story[] = [
     title: 'Why We Live. Connect. Explore.',
     category: 'Urban Life Co.',
     date: '2026-08-20',
-    coverImage: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-hillside-group.jpg',
+    coverImage: '/resources/photos/urban-hikers-hillside-group.webp',
     excerpt: 'The three ideas at the centre of every experience we create.',
   },
   {
@@ -303,7 +304,7 @@ const fallbackStories: Story[] = [
     title: 'The Urban Life Field Notes',
     category: 'Journal',
     date: '2026-08-10',
-    coverImage: 'https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/events/optimized/urban-hikers-story.jpg',
+    coverImage: '/resources/photos/urban-hikers-story.webp',
     excerpt: 'A growing archive of places, people and experiences.',
   },
 ];
@@ -372,7 +373,8 @@ function App() {
       });
     api
       .get('/api/content')
-      .then(({ data }) => {
+      .then(({ data: raw }) => {
+        const data = rewriteAssetUrls(raw);
         if (data?.events?.length) setEvents(data.events);
         if (data?.announcement) setAnnouncement(data.announcement);
         if (data?.stories?.length) setStories(data.stories);
@@ -434,6 +436,8 @@ function App() {
     const titles: Record<string, string> = {
       home: settings.heroTitle || 'Live. Connect. Explore.',
       about: 'Our Story',
+      brands: 'Our Brands',
+      partnerships: 'Partnerships',
       experiences: 'Experiences',
       events: 'Events',
       journal: 'Journal',
@@ -586,7 +590,7 @@ function App() {
           >
             <img
               className="brand-mark"
-              src="https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/brand/urban-life-ul-mark.png"
+              src="/resources/brand/urban-life-ul-mark.png"
               alt="Urban Life Co."
             />
           </button>
@@ -594,7 +598,9 @@ function App() {
             {([
               'home',
               'about',
+              'brands',
               'experiences',
+              'partnerships',
               'events',
               'journal',
               'community',
@@ -657,17 +663,17 @@ function App() {
               </h1>
               <p className="hero-copy">
                 {settings.heroCopy ??
-                  'We create experiences that bring people together, encourage exploration and make everyday life more meaningful.'}
+                  'We build brands, communities and experiences that help people live fully, connect meaningfully and explore more.'}
               </p>
               <div className="actions">
                 <button
                   className="button light"
-                  onClick={() => nav('experiences')}
+                  onClick={() => nav('brands')}
                 >
-                  Explore experiences <ChevronRight size={17} />
+                  Explore our brands <ChevronRight size={17} />
                 </button>
-                <button className="text-button" onClick={() => nav('about')}>
-                  Discover our story ↗
+                <button className="text-button" onClick={() => nav('partnerships')}>
+                  Work with us ↗
                 </button>
               </div>
               <div className="hero-meta">
@@ -752,10 +758,10 @@ function App() {
             </div>
           </div>
           <section className="statement">
-            <p className="eyebrow">01 / WHY WE EXIST</p>
-            <h2>A richer life is <span>a shared experience.</span></h2>
-            <p>From movement and the outdoors to culture, travel and new connections, Urban Life Co. is building a home for experiences that make life feel bigger.</p>
-            <button className="link-button modern-intro-link" onClick={() => nav('about')}>Meet Urban Life Co. ↗</button>
+            <p className="eyebrow">01 / THE COMPANY</p>
+            <h2>We build what brings <span>life together.</span></h2>
+            <p>Urban Life Co. is the company behind a growing ecosystem of lifestyle brands, communities and experiences across movement, the outdoors, travel, culture and connection.</p>
+            <button className="link-button modern-intro-link" onClick={() => nav('about')}>Get to know the company ↗</button>
           </section>
           <Pillars />
           <ExperienceShowcase onNavigate={nav} />
@@ -785,6 +791,8 @@ function App() {
           />
         </>
       )}
+      {page === 'brands' && <BrandsPage onNavigate={nav} />}
+      {page === 'partnerships' && <PartnershipsPage onNavigate={nav} />}
       {page === 'about' && (
         <PageIntro
           eyebrow="OUR STORY"
@@ -942,6 +950,8 @@ function App() {
           </div>
           <div className="footer-links">
             <button onClick={() => nav('about')}>About</button>
+            <button onClick={() => nav('brands')}>Our Brands</button>
+            <button onClick={() => nav('partnerships')}>Partnerships</button>
             <button onClick={() => nav('events')}>Events</button>
             <button onClick={() => nav('journal')}>Journal</button>
             <button onClick={() => nav('community')}>Community</button>
@@ -1905,6 +1915,128 @@ function BrandFeature({
     </section>
   );
 }
+function BrandsPage({ onNavigate }: { onNavigate: (target: StaticPage) => void }) {
+  const portfolio = [
+    {
+      number: '01',
+      category: 'OUTDOOR LIFESTYLE',
+      name: 'Urban Hikers',
+      statement: 'More than a hike. It’s a community.',
+      description: 'An outdoor lifestyle community built around hiking, adventure, travel, wellness and the connections made along the way.',
+      link: 'Explore experiences',
+      target: 'experiences' as StaticPage,
+    },
+    {
+      number: '02',
+      category: 'MOVEMENT & WELLNESS',
+      name: 'Urban Fitness Club',
+      statement: 'Make movement part of life.',
+      description: 'A community-led approach to fitness, everyday activity and shared progress.',
+      link: 'Find your community',
+      target: 'community' as StaticPage,
+    },
+    {
+      number: '03',
+      category: 'SOCIAL CONNECTION',
+      name: 'Urban Connect',
+      statement: 'Good people. Meaningful connections.',
+      description: 'A platform for bringing people, networks and opportunities closer through shared experiences.',
+      link: 'Join the community',
+      target: 'community' as StaticPage,
+    },
+    {
+      number: '04',
+      category: 'EXPERIENCE VERTICAL',
+      name: 'Travel & Culture',
+      statement: 'See more. Understand more.',
+      description: 'A growing area of focus for experiences shaped by places, culture and discovery.',
+      link: 'Explore experiences',
+      target: 'experiences' as StaticPage,
+    },
+  ];
+
+  return (
+    <main className="portfolio-page">
+      <header className="portfolio-hero">
+        <p className="eyebrow">THE URBAN LIFE CO. ECOSYSTEM / 01</p>
+        <h1>One company.<br /><em>Many ways to live.</em></h1>
+        <p>We build distinct lifestyle brands and communities around the things that make life richer: movement, exploration, culture and human connection.</p>
+      </header>
+      <div className="portfolio-grid">
+        {portfolio.map(item => (
+          <article className="portfolio-card" key={item.number}>
+            <div className="portfolio-card-meta"><span>{item.number} / 04</span><span>{item.category}</span></div>
+            <h2>{item.name}</h2>
+            <h3>{item.statement}</h3>
+            <p>{item.description}</p>
+            <button className="portfolio-link" onClick={() => onNavigate(item.target)}>{item.link} <span aria-hidden="true">↗</span></button>
+          </article>
+        ))}
+      </div>
+      <div className="portfolio-footnote">
+        <span>THE PARENT COMPANY</span>
+        <p>Each brand keeps its own voice, identity and community. Urban Life Co. provides the shared direction, infrastructure and ambition behind the ecosystem.</p>
+        <button className="portfolio-link" onClick={() => onNavigate('about')}>Our story <span aria-hidden="true">↗</span></button>
+      </div>
+      <div className="portfolio-cta">
+        <p className="eyebrow">BUILD WITH US</p>
+        <h2>Good things grow<br /><em>together.</em></h2>
+        <button className="button light" onClick={() => onNavigate('partnerships')}>Explore partnerships <ChevronRight size={17} /></button>
+      </div>
+    </main>
+  );
+}
+
+function PartnershipsPage({ onNavigate }: { onNavigate: (target: StaticPage) => void }) {
+  const opportunities = [
+    {
+      number: '01',
+      title: 'Brand partnerships',
+      description: 'Create thoughtful collaborations that connect brands with active, engaged communities and meaningful experiences.',
+    },
+    {
+      number: '02',
+      title: 'Experience partnerships',
+      description: 'Work with us on events, destinations, venues and programmes that give people a reason to come together.',    },
+    {
+      number: '03',
+      title: 'Community & impact',
+      description: 'Support initiatives around wellness, outdoor access, learning and positive local impact.',
+    },
+  ];
+
+  return (
+    <main className="portfolio-page partnership-page">
+      <header className="portfolio-hero">
+        <p className="eyebrow">PARTNERSHIPS / OPEN INVITATION</p>
+        <h1>Build something<br /><em>worth sharing.</em></h1>
+        <p>We work with organisations, businesses and people who believe that better experiences create stronger communities.</p>
+      </header>
+      <div className="partnership-intro">
+        <p className="eyebrow">WAYS TO WORK TOGETHER</p>
+        <h2>Shared values.<br /><em>Real-world value.</em></h2>
+      </div>
+      <div className="portfolio-grid partnership-grid">
+        {opportunities.map(item => (
+          <article className="portfolio-card partnership-card" key={item.number}>
+            <div className="portfolio-card-meta"><span>{item.number} / 03</span><span>COLLABORATION</span></div>
+            <h2>{item.title}</h2>
+            <p>{item.description}</p>
+          </article>
+        ))}
+      </div>
+      <div className="partnership-contact">
+        <div>
+          <p className="eyebrow">START A CONVERSATION</p>
+          <h2>Have an idea<br /><em>we should explore?</em></h2>
+          <p>Tell us what you have in mind. We’ll take it from there.</p>
+        </div>
+        <button className="button light" onClick={() => onNavigate('contact')}>Contact Urban Life Co. <ChevronRight size={17} /></button>
+      </div>
+    </main>
+  );
+}
+
 function PageHeading({
   eyebrow,
   title,
@@ -2067,7 +2199,7 @@ function AdminPanel({
             className="cms-brand"
             href={`${window.location.pathname}${window.location.search}`}
           >
-            <img src="https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/brand/urban-life-ul-mark.png" alt="" />
+            <img src="/resources/brand/urban-life-ul-mark.png" alt="" />
             <span>
               Urban Life Co.<small>Content studio</small>
             </span>
@@ -2134,7 +2266,7 @@ function AdminPanel({
           className="cms-brand"
           href={`${window.location.pathname}${window.location.search}`}
         >
-          <img src="https://raw.githubusercontent.com/emeriem/urban-life-co/main/public/brand/urban-life-ul-mark.png" alt="" />
+          <img src="/resources/brand/urban-life-ul-mark.png" alt="" />
           <span>
             Urban Life Co.<small>Content studio</small>
           </span>
