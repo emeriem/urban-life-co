@@ -918,9 +918,13 @@ body {
   transform: scale(1.04);
 }
 
-.portfolio-page .portfolio-card > * {
+.portfolio-page .portfolio-card > :not(.portfolio-card-meta) {
   position: relative;
   z-index: 1;
+}
+.portfolio-page .portfolio-card-meta {
+  position: absolute;
+  z-index: 2;
 }
 
 .portfolio-page .portfolio-card-meta {
