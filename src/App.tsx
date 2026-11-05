@@ -523,6 +523,7 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const nav = (target: StaticPage) => {
+    if (target !== 'events') setQuery('');
     window.location.hash = target === 'admin'
       ? 'admin'
       : routeToHash({ page: target as StaticPage });
@@ -594,34 +595,33 @@ function App() {
               alt="Urban Life Co."
             />
           </button>
-          <nav className={menu ? 'nav modern-nav open' : 'nav modern-nav'}>
+          <nav id="primary-navigation" className={menu ? 'nav modern-nav open' : 'nav modern-nav'}>
             {([
-              'home',
-              'about',
               'brands',
               'experiences',
-              'partnerships',
               'events',
-              'journal',
-              'community',
+              'about',
               'contact',
             ] as StaticPage[]).map(item => (
               <button
                 key={item}
                 className={page === item ? 'active' : ''}
+                aria-current={page === item ? 'page' : undefined}
                 onClick={() => nav(item)}
               >
                 {item}
               </button>
             ))}
-            <button className="nav-cta" onClick={() => nav('events')}>
-              Explore events <ChevronRight size={15} />
+            <button className="nav-cta" onClick={() => nav('community')}>
+              Join the community <ChevronRight size={15} />
             </button>
           </nav>
           <button
             className="menu-btn"
             onClick={() => setMenu(!menu)}
-            aria-label="Toggle navigation"
+            aria-label={menu ? 'Close navigation' : 'Open navigation'}
+            aria-expanded={menu}
+            aria-controls="primary-navigation"
           >
             {menu ? <X /> : <Menu />}
           </button>
@@ -652,28 +652,20 @@ function App() {
               <p className="eyebrow">
                 {settings.heroEyebrow ?? 'URBAN LIFE CO. · ENUGU · NIGERIA'}
               </p>
-              <h1>
-                {(settings.heroTitle ?? 'Live. Connect. Explore.')
-                  .split('. ')
-                  .map((word: string, index: number) => (
-                    <span key={word + index}>
-                      {word.replace(/\.$/, '')}.<br />
-                    </span>
-                  ))}
-              </h1>
+              <h1>{settings.heroTitle ?? 'A more connected way to live.'}</h1>
               <p className="hero-copy">
                 {settings.heroCopy ??
-                  'We build brands, communities and experiences that help people live fully, connect meaningfully and explore more.'}
+                  'Discover communities and experiences built around movement, the outdoors, culture and meaningful connection.'}
               </p>
               <div className="actions">
                 <button
                   className="button light"
-                  onClick={() => nav('brands')}
+                  onClick={() => nav('community')}
                 >
-                  Explore our brands <ChevronRight size={17} />
+                  Find your people <ChevronRight size={17} />
                 </button>
-                <button className="text-button" onClick={() => nav('partnerships')}>
-                  Work with us ↗
+                <button className="text-button" onClick={() => nav('experiences')}>
+                  Explore experiences <ArrowRight size={16} />
                 </button>
               </div>
               <div className="hero-meta">
@@ -683,7 +675,7 @@ function App() {
                   {String(heroSlide + 1).padStart(2, '0')} /{' '}
                   {String(heroMemories.length).padStart(2, '0')}
                 </span>
-                <div className="hero-controls" aria-label="Hero memories">
+                <div className="hero-controls" role="group" aria-label="Hero image controls">
                   <button
                     className="hero-control"
                     aria-label="Show previous memory"
@@ -780,7 +772,12 @@ function App() {
                 ))}
               </div>
             ) : (
-              <Empty text="Nothing on the calendar yet. Check back soon." />
+              <div className="empty-state-actions">
+                <Empty text="Nothing on the calendar yet. Join the community to hear about the next experience." />
+                <button className="button dark" onClick={() => nav('community')}>
+                  Join the community <ChevronRight size={16} />
+                </button>
+              </div>
             )}
           </section>
           <BrandFeature onNavigate={nav} />
@@ -789,6 +786,21 @@ function App() {
             onView={() => nav('journal')}
             onOpen={openStory}
           />
+          <section className="home-conversion">
+            <div className="home-conversion-copy">
+              <p className="eyebrow">YOUR NEXT CHAPTER STARTS HERE</p>
+              <h2>Life is better <em>shared.</em></h2>
+              <p>Meet people, find experiences and make room for more of what matters.</p>
+            </div>
+            <div className="home-conversion-actions">
+              <button className="button light" onClick={() => nav('community')}>
+                Join the community <ChevronRight size={17} />
+              </button>
+              <button className="home-partner-link" onClick={() => nav('partnerships')}>
+                Partner with Urban Life Co. <ArrowRight size={16} />
+              </button>
+            </div>
+          </section>
         </>
       )}
       {page === 'brands' && <BrandsPage onNavigate={nav} />}
@@ -806,29 +818,38 @@ function App() {
             title="Find your way in."
             copy="Urban Life Co. is the home for communities and experiences designed around movement, discovery and connection."
           />
-          <div className="experience-grid">
-            {experiences.map((experience, index) => (
-              <Experience
-                key={experience.id}
-                title={experience.name}
-                eyebrow={experience.category?.toUpperCase() ?? 'EXPERIENCE'}
-                tone={
-                  index === 0 ? 'hikers' : index === 1 ? 'fitness' : 'connect'
-                }
-                icon={
-                  index === 0 ? (
-                    <Mountain />
-                  ) : index === 1 ? (
-                    <Sparkles />
-                  ) : (
-                    <Compass />
-                  )
-                }
-                copy={experience.description}
-                onOpen={() => openExperience(experience)}
-              />
-            ))}
-          </div>
+          {experiences.length ? (
+            <div className="experience-grid">
+              {experiences.map((experience, index) => (
+                <Experience
+                  key={experience.id}
+                  title={experience.name}
+                  eyebrow={experience.category?.toUpperCase() ?? 'EXPERIENCE'}
+                  tone={
+                    index === 0 ? 'hikers' : index === 1 ? 'fitness' : 'connect'
+                  }
+                  icon={
+                    index === 0 ? (
+                      <Mountain />
+                    ) : index === 1 ? (
+                      <Sparkles />
+                    ) : (
+                      <Compass />
+                    )
+                  }
+                  copy={experience.description}
+                  onOpen={() => openExperience(experience)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state-actions">
+              <Empty text="We are preparing the next set of experiences. Join the community to hear when they are announced." />
+              <button className="button dark" onClick={() => nav('community')}>
+                Join the community <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
         </section>
       )}
       {page === 'event' && selectedEvent && (
@@ -857,25 +878,45 @@ function App() {
             <input
               value={query}
               onChange={e => setQuery(e.target.value)}
+              aria-label="Search events by title, place or experience"
               placeholder="Search events, places or experiences"
             />
           </div>
-          <h3 className="subhead">Upcoming</h3>
-          {upcoming.length ? (
-            <div className="event-grid">
-              {upcoming.map(e => (
-                <EventCard key={e.id} event={e} onOpen={openEvent} />
-              ))}
+          {filteredEvents.length === 0 ? (
+            <div className="empty-state-actions">
+              <Empty text={query ? 'No events match your search. Try another term.' : 'No events have been published yet.'} />
+              {query ? (
+                <button className="button dark" onClick={() => setQuery('')}>Clear search</button>
+              ) : (
+                <button className="button dark" onClick={() => nav('community')}>
+                  Get community updates <ChevronRight size={16} />
+                </button>
+              )}
             </div>
           ) : (
-            <Empty text="No upcoming events published yet." />
+            <>
+              <h3 className="subhead">Upcoming</h3>
+              {upcoming.length ? (
+                <div className="event-grid">
+                  {upcoming.map(e => (
+                    <EventCard key={e.id} event={e} onOpen={openEvent} />
+                  ))}
+                </div>
+              ) : (
+                <Empty text="No upcoming events. Explore the past events below." />
+              )}
+              <h3 className="subhead">Past events</h3>
+              {past.length ? (
+                <div className="event-grid">
+                  {past.map(e => (
+                    <EventCard key={e.id} event={e} onOpen={openEvent} />
+                  ))}
+                </div>
+              ) : (
+                <Empty text="No past events to show yet." />
+              )}
+            </>
           )}
-          <h3 className="subhead">Past events</h3>
-          <div className="event-grid">
-            {past.map(e => (
-              <EventCard key={e.id} event={e} onOpen={openEvent} />
-            ))}
-          </div>
         </section>
       )}
       {page === 'journal' && (
@@ -939,7 +980,7 @@ function App() {
               ))}
             </div>
           </section>
-          <CommunitySignup />
+          <CommunitySignup onNavigate={nav} />
         </>
       )}
       {page !== 'admin' && (
@@ -976,7 +1017,7 @@ function App() {
   );
 }
 
-function CommunitySignup() {
+function CommunitySignup({ onNavigate }: { onNavigate: (target: StaticPage) => void }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -1007,8 +1048,8 @@ function CommunitySignup() {
         <label>Name<input required maxLength={120} value={name} onChange={e => setName(e.target.value)} /></label>
         <label>Email<input required type="email" maxLength={200} value={email} onChange={e => setEmail(e.target.value)} /></label>
         <label>Phone (optional)<input maxLength={40} value={phone} onChange={e => setPhone(e.target.value)} /></label>
-        <div className="full">
-          <p><strong>What are you interested in?</strong></p>
+        <fieldset className="full community-interest-fieldset">
+          <legend>What are you interested in?</legend>
           <div className="community-interest-list">
             {options.map(option => <label key={option}>
               <input type="checkbox" checked={interests.includes(option)}
@@ -1016,12 +1057,16 @@ function CommunitySignup() {
               {option}
             </label>)}
           </div>
-        </div>
+        </fieldset>
         <label className="full community-consent">
           <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} required />
           I agree to receive community updates and invitations from Urban Life Co. I can withdraw my consent by contacting the team.
         </label>
-        <p className="full consent-note">We use these details only to manage your community signup and send the updates you opted into. Read our Privacy Policy for more information.</p>
+        <p className="full consent-note">
+          We use these details only to manage your community signup and send the updates you opted into. Read our{' '}
+          <button type="button" className="inline-legal-link" onClick={() => onNavigate('privacy')}>Privacy Policy</button>
+          {' '}for more information.
+        </p>
         {message && <p className="full admin-notice" role="status">{message}</p>}
         {errorMessage && <p className="full photos-error" role="alert">{errorMessage}</p>}
         <button className="button dark" type="submit" disabled={busy || !consent}>{busy ? 'Joining…' : 'Join the community'} <ChevronRight size={16} /></button>
@@ -1503,7 +1548,7 @@ function ContactPage() {
         </a>
       </div>
       {sent ? (
-        <div className="admin-notice">
+        <div className="admin-notice" role="status" aria-live="polite">
           <ShieldCheck size={28} />
           <h2>Message received.</h2>
           <p>
@@ -1517,15 +1562,15 @@ function ContactPage() {
         <form className="contact-form" onSubmit={submit}>
           <label>
             Name
-            <input required name="name" />
+            <input required name="name" maxLength={120} autoComplete="name" />
           </label>
           <label>
             Email
-            <input required type="email" name="email" />
+            <input required type="email" name="email" maxLength={200} autoComplete="email" />
           </label>
           <label>
             Phone
-            <input name="phone" />
+            <input name="phone" maxLength={40} autoComplete="tel" />
           </label>
           <label>
             Enquiry type
@@ -1538,7 +1583,7 @@ function ContactPage() {
           </label>
           <label className="full">
             Message
-            <textarea required name="message" rows={6} />
+            <textarea required name="message" rows={6} maxLength={5000} />
           </label>
           <input
             name="website"
@@ -1952,8 +1997,7 @@ function BrandsPage({ onNavigate }: { onNavigate: (target: StaticPage) => void }
       description: 'A growing area of focus for experiences shaped by places, culture and discovery.',
       link: 'Explore experiences',
       target: 'experiences' as StaticPage,
-    },
-  ];
+    },  ];
 
   return (
     <main className="portfolio-page">
@@ -1994,8 +2038,7 @@ function PartnershipsPage({ onNavigate }: { onNavigate: (target: StaticPage) => 
       title: 'Brand partnerships',
       description: 'Create thoughtful collaborations that connect brands with active, engaged communities and meaningful experiences.',
     },
-    {
-      number: '02',
+    {      number: '02',
       title: 'Experience partnerships',
       description: 'Work with us on events, destinations, venues and programmes that give people a reason to come together.',    },
     {
@@ -2064,31 +2107,49 @@ function PageIntro({
   copy: string;
 }) {
   return (
-    <section className="page-intro">
+    <main className="page-intro about-page">
       <PageHeading eyebrow={eyebrow} title={title} copy={copy} />
-      <div className="timeline">
-        <div>
-          <b>2026</b>
-          <span>
-            Urban Life Co. begins shaping a lifestyle ecosystem around
-            community, outdoors and connection.
-          </span>
-        </div>
-        <div>
-          <b>Now</b>
-          <span>
-            Urban Hikers grows as an experience-led community under the Urban
-            Life Co. umbrella.
-          </span>
-        </div>
-        <div>
-          <b>Next</b>
-          <span>
-            More experiences, more people, more places and more ways to connect.
-          </span>
-        </div>
-      </div>
-    </section>
+      <section className="about-overview">
+        <p className="eyebrow">THE PARENT COMPANY</p>
+        <p className="about-lede">
+          Urban Life Co. is building a portfolio of community, lifestyle, outdoor,
+          travel, education and innovation brands.
+        </p>
+        <p>
+          We create experiences, communities, businesses and products that help
+          people live, connect and explore. From our base in Enugu, Nigeria, our
+          focus is on building meaningful experiences that bring people together
+          and can grow into enduring brands.
+        </p>
+      </section>
+      <section className="about-pillars" aria-label="How Urban Life Co. works">
+        <article>
+          <span>01 / COMMUNITY</span>
+          <h2>People first.</h2>
+          <p>
+            We start with people, belonging and shared interests. Community is
+            not an audience to collect; it is the foundation of what we build.
+          </p>
+        </article>
+        <article>
+          <span>02 / EXPERIENCES</span>
+          <h2>Make it meaningful.</h2>
+          <p>
+            We create opportunities to move, meet, learn, discover and spend
+            time well, both online and in the real world.
+          </p>
+        </article>
+        <article>
+          <span>03 / ECOSYSTEM</span>
+          <h2>Distinct by design.</h2>
+          <p>
+            Each brand keeps its own identity and voice, supported by a shared
+            company direction and the systems needed to grow responsibly.
+          </p>
+        </article>
+      </section>
+      <p className="about-signoff">Live. Connect. Explore.</p>
+    </main>
   );
 }
 function Empty({ text }: { text: string }) {
