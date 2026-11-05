@@ -23,6 +23,8 @@
       "Open the public site",
       "Open Experiences and select an experience",
       "Open Events and select a visible event",
+      "On Events, search for an event with no matching results and confirm a clear empty state appears",
+      "Clear the search and confirm the event list returns",
       "On an event detail page, download the calendar file and confirm it contains the event title, date, time and location",
       "Use Share event and confirm the public event URL can be shared or copied",
       "Open View map and confirm the event location is passed to the map search",
@@ -32,7 +34,7 @@
       "Use the footer to open Privacy Policy, then Terms of Use",
       "Return to the homepage"
     ],
-    "expected": "Public content details remain navigable and reloadable, browser back returns to the previous list, and both legal pages open from the footer without authentication. Event detail also provides a downloadable calendar entry, a shareable detail URL and a map-search link."
+    "expected": "Public content details remain navigable and reloadable, browser back returns to the previous list, and both legal pages open from the footer without authentication. Event detail also provides a downloadable calendar entry, a shareable detail URL and a map-search link. An unmatched event search displays a clear empty state and can be cleared to restore the event list."
   },
   {
     "name": "Super Admin can operate core CMS content",
