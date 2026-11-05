@@ -284,5 +284,44 @@
       "Simulate a successful charge with a mismatched amount or currency and confirm it is held for reconciliation without ticket issuance."
     ],
     "expected": "Bank transfer and USSD instructions are created using sandbox-only credentials. Valid signed webhook events are reconciled against the fetched charge, booking reference, NGN currency and exact amount. Duplicate events are idempotent; invalid signatures and mismatches never issue tickets."
+  },
+  {
+    "name": "Corporate brand and partnership discovery",
+    "viewport": "mobile",
+    "covers": [
+      "parent-company brand portfolio",
+      "brand-specific descriptions",
+      "partnership discovery",
+      "contact conversion",
+      "responsive corporate navigation"
+    ],
+    "description": "Verifies visitors can understand the Urban Life Co. portfolio and move from partnership opportunities to a contact enquiry.",
+    "steps": [
+      "Open the public homepage and choose Our Brands from the navigation.",
+      "Review the Urban Hikers, Urban Fitness Club, Urban Connect and Travel & Culture portfolio entries.",
+      "Choose Partnerships from the navigation.",
+      "Review the brand, experience and community collaboration pathways.",
+      "Select Contact Urban Life Co."
+    ],
+    "expected": "The portfolio presents distinct brand and experience areas under the parent company, and the partnership page leads visitors to the existing contact page without disrupting existing event, community or CMS routes."
+  },
+  {
+    "name": "Corporate homepage editorial layout and mobile journey",
+    "viewport": "mobile",
+    "covers": [
+      "editorial homepage hierarchy",
+      "responsive hero and navigation",
+      "brand ecosystem visual discovery",
+      "partnership-to-contact conversion"
+    ],
+    "description": "Verifies the refreshed corporate homepage and portfolio remain readable and navigable on a mobile viewport.",
+    "steps": [
+      "Open the public homepage at a mobile viewport.",
+      "Open the navigation menu and select Our Brands.",
+      "Review all four ecosystem entries and confirm their labels and descriptions are readable.",
+      "Open Partnerships from the navigation.",
+      "Select Contact Urban Life Co."
+    ],
+    "expected": "The hero, navigation, brand portfolio and partnership content remain usable without horizontal overflow; the Contact page opens from the partnership call to action."
   }
 ]

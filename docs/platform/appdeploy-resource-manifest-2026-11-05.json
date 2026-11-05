@@ -1,0 +1,91 @@
+{
+  "app_id": "urban-life-co-zk9nyq",
+  "appdeploy_snapshot": "1793834371557",
+  "created_utc": "2026-11-04T23:19:31.557Z",
+  "resources": [
+    {
+      "path": "public/resources/urban-life-logo.png",
+      "mime_type": "image/png"
+    },
+    {
+      "path": "public/resources/brand/urban-life-ul-mark.png",
+      "mime_type": "image/png"
+    },
+    {
+      "path": "public/resources/icons/apple-touch-icon.png",
+      "mime_type": "image/png"
+    },
+    {
+      "path": "public/resources/icons/icon-192.png",
+      "mime_type": "image/png"
+    },
+    {
+      "path": "public/resources/icons/icon-512.png",
+      "mime_type": "image/png"
+    },
+    {
+      "path": "public/resources/icons/icon-maskable-512.png",
+      "mime_type": "image/png"
+    },
+    {
+      "path": "public/resources/og-image.jpg",
+      "mime_type": "image/jpeg"
+    },
+    {
+      "path": "public/resources/photos/urban-fitness-walk-poster.webp",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "public/resources/photos/urban-hikers-ball-and-banter-poster.webp",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "public/resources/photos/urban-hikers-city-walk-2.webp",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "public/resources/photos/urban-hikers-city-walk.webp",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "public/resources/photos/urban-hikers-community.webp",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "public/resources/photos/urban-hikers-enugu-view.webp",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "public/resources/photos/urban-hikers-hangout-poster.webp",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "public/resources/photos/urban-hikers-hillside-group.webp",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "public/resources/photos/urban-hikers-ije-ugwu-hike.webp",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "public/resources/photos/urban-hikers-story.webp",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "public/resources/photos/urban-hikers-summit-group.webp",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "public/resources/photos/urban-hikers-trail-pair.webp",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "public/resources/photos/urban-hikers-trail-rest.webp",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "public/resources/photos/urban-hikers-trail-walk.webp",
+      "mime_type": "image/webp"
+    }
+  ]
+}

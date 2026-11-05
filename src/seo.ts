@@ -1,7 +1,7 @@
 const DEFAULT_TITLE = 'Urban Life Co. — Live. Connect. Explore.';
 const DEFAULT_DESCRIPTION =
   'Urban Life Co. creates experiences that help people live, connect and explore.';
-const DEFAULT_IMAGE = '/resources/urban-life-logo.png';
+const DEFAULT_IMAGE = '/resources/og-image.jpg';
 
 export type PageMeta = {
   title?: string;
